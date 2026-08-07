@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #0a4d8c;
+  --color-primary-hover: #083a6b;
+  --color-primary-soft: #e8f1f8;
+  --color-secondary: #1a6b9a;
+  --color-accent: #ff6b1a;
+  --color-accent-hover: #e55a0f;
+  --color-background: #f3f6f9;
+  --color-surface: #ffffff;
+  --color-border: #dce3eb;
+  --color-text-primary: #0f1c2e;
+  --color-text-secondary: #5b6b7c;
+  --color-success: #14804a;
+  --color-warning: #c47a0a;
+  --color-error: #c53030;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background font-sans text-ink antialiased;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--color-accent) 28%, white);
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .bg-mesh {
+    background-color: var(--color-background);
+    background-image:
+      radial-gradient(ellipse 80% 50% at 10% -10%, rgba(10, 77, 140, 0.12), transparent 55%),
+      radial-gradient(ellipse 60% 40% at 90% 0%, rgba(255, 107, 26, 0.08), transparent 50%),
+      linear-gradient(180deg, #eef3f8 0%, var(--color-background) 45%, #f8fafc 100%);
+  }
+
+  .animate-delay-100 {
+    animation-delay: 100ms;
+  }
+  .animate-delay-200 {
+    animation-delay: 200ms;
+  }
+  .animate-delay-300 {
+    animation-delay: 300ms;
+  }
+}

@@ -1,0 +1,2 @@
+-- Optional extra seed hook used by `supabase db reset`.
+-- Schema seeds live in migrations 00011–00013.
