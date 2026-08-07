@@ -45,7 +45,7 @@ export const mockCategories: MockCategory[] = [
     description: "Tesisat ve montaj malzemeleri",
     productCount: 2210,
     image:
-      "https://images.unsplash.com/photo-1530124566582-a618bc2610dc?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=800&q=80",
   },
   {
     id: "4",

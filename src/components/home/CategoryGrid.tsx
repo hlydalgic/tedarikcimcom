@@ -38,12 +38,18 @@ export function CategoryGrid() {
               className="object-cover transition duration-500 group-hover:scale-105"
               sizes="(max-width: 768px) 50vw, 16vw"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/25 to-transparent" />
+            <div
+              className="absolute inset-x-0 bottom-0 h-1/2"
+              style={{
+                background:
+                  "linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.45) 45%, transparent 100%)",
+              }}
+            />
             <div className="absolute inset-x-0 bottom-0 p-3 md:p-4">
-              <h3 className="font-display text-sm font-semibold text-white md:text-base">
+              <h3 className="font-display text-sm font-semibold text-white [text-shadow:0_1px_8px_rgba(0,0,0,0.65)] md:text-base">
                 {category.name}
               </h3>
-              <p className="mt-0.5 text-[11px] text-white/70 md:text-xs">
+              <p className="mt-0.5 text-[11px] text-white/90 [text-shadow:0_1px_6px_rgba(0,0,0,0.6)] md:text-xs">
                 {category.productCount.toLocaleString("tr-TR")} ürün
               </p>
             </div>
