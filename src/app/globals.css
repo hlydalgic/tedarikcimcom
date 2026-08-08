@@ -2,13 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+  Neutral design-token fallbacks.
+  Runtime marketplace_settings colors override --color-primary / secondary / accent
+  via marketplaceCssVars() on <html style={...}>.
+*/
 :root {
-  --color-primary: #0a4d8c;
-  --color-primary-hover: #083a6b;
-  --color-primary-soft: #e8f1f8;
-  --color-secondary: #1a6b9a;
-  --color-accent: #ff6b1a;
-  --color-accent-hover: #e55a0f;
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-soft: #eff6ff;
+  --color-secondary: #475569;
+  --color-accent: #ea580c;
+  --color-accent-hover: #c2410c;
   --color-background: #f3f6f9;
   --color-surface: #ffffff;
   --color-border: #dce3eb;
@@ -41,8 +46,8 @@
   .bg-mesh {
     background-color: var(--color-background);
     background-image:
-      radial-gradient(ellipse 80% 50% at 10% -10%, rgba(10, 77, 140, 0.12), transparent 55%),
-      radial-gradient(ellipse 60% 40% at 90% 0%, rgba(255, 107, 26, 0.08), transparent 50%),
+      radial-gradient(ellipse 80% 50% at 10% -10%, color-mix(in srgb, var(--color-primary) 14%, transparent), transparent 55%),
+      radial-gradient(ellipse 60% 40% at 90% 0%, color-mix(in srgb, var(--color-accent) 10%, transparent), transparent 50%),
       linear-gradient(180deg, #eef3f8 0%, var(--color-background) 45%, #f8fafc 100%);
   }
 

@@ -4,10 +4,26 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { ArrowRight, Search } from "lucide-react";
+import { BrandMark } from "@/components/branding/BrandMark";
 import { mockNavCategories } from "@/lib/mock-data";
 
-export function Hero() {
+export type HeroBranding = {
+  shortName: string;
+  logoUrl: string | null;
+  seoTitle: string | null;
+  tagline: string | null;
+  marketplaceName: string;
+};
+
+export function Hero({ branding }: { branding: HeroBranding }) {
   const [query, setQuery] = useState("");
+  const headline =
+    branding.seoTitle?.trim() ||
+    branding.marketplaceName ||
+    "Teknik Ürünler Pazaryeri";
+  const subtitle =
+    branding.tagline?.trim() ||
+    "Güvenilir satıcılardan teknik ürünleri tek platformda bulun.";
 
   return (
     <section className="relative isolate min-h-[78vh] overflow-hidden md:min-h-[82vh]">
@@ -19,7 +35,6 @@ export function Hero() {
         className="object-cover object-center"
         sizes="100vw"
       />
-      {/* Left-weighted dark gradient — text readable, right side lighter */}
       <div
         className="absolute inset-0"
         style={{
@@ -36,17 +51,20 @@ export function Hero() {
       />
 
       <div className="relative mx-auto grid min-h-[78vh] max-w-7xl items-center gap-10 px-4 py-20 md:min-h-[82vh] md:grid-cols-[1.15fr_0.85fr] md:gap-12 md:px-6 md:py-24 lg:px-8">
-        {/* Left: brand, headline, CTAs */}
         <div className="[text-shadow:0_2px_12px_rgba(0,0,0,0.55),0_1px_2px_rgba(0,0,0,0.8)]">
-          <p className="animate-fade-up font-display text-2xl font-bold tracking-tight text-white sm:text-3xl">
-            tedarik<span className="text-accent [text-shadow:0_1px_8px_rgba(0,0,0,0.45)]">cim</span>
-          </p>
+          <div className="animate-fade-up">
+            <BrandMark
+              shortName={branding.shortName}
+              logoUrl={branding.logoUrl}
+              invert
+              className="text-2xl sm:text-3xl"
+            />
+          </div>
           <h1 className="animate-fade-up animate-delay-100 mt-5 max-w-xl text-balance font-display text-3xl font-bold leading-[1.15] tracking-tight text-white sm:text-4xl md:text-5xl lg:text-[3.25rem]">
-            Türkiye&apos;nin Teknik Ürünler Pazaryeri
+            {headline}
           </h1>
           <p className="animate-fade-up animate-delay-200 mt-5 max-w-lg text-base leading-relaxed text-white md:text-lg">
-            Boru, hırdavat, vana ve daha fazlası — güvenilir satıcılardan tek
-            platformda
+            {subtitle}
           </p>
 
           <div className="animate-fade-up animate-delay-300 mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -66,7 +84,6 @@ export function Hero() {
           </div>
         </div>
 
-        {/* Right: search + popular categories */}
         <div className="animate-fade-up animate-delay-200 rounded-2xl border border-white/30 bg-surface/92 p-5 shadow-lift backdrop-blur-md md:p-6">
           <form
             role="search"

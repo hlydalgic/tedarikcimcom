@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
+import type { CSSProperties } from "react";
 import { Figtree, Outfit } from "next/font/google";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import {
+  getMarketplaceSettings,
+  marketplaceCssVars,
+} from "@/lib/marketplace/settings";
 import "./globals.css";
 
 const display = Outfit({
@@ -16,26 +21,58 @@ const body = Figtree({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "tedarikcim — Türkiye'nin teknik ürünler pazaryeri",
-    template: "%s | tedarikcim",
-  },
-  description:
-    "Boru, vana, hırdavat ve altyapı malzemelerini doğrulanmış satıcılardan güvenle tedarik edin.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getMarketplaceSettings();
+  const title =
+    settings.seo_title?.trim() || settings.marketplace_name || "Marketplace";
+  const description =
+    settings.seo_description?.trim() ||
+    settings.tagline?.trim() ||
+    undefined;
 
-export default function RootLayout({
+  return {
+    title: {
+      default: title,
+      template: `%s | ${settings.short_name}`,
+    },
+    description,
+    icons: settings.favicon_url
+      ? { icon: settings.favicon_url }
+      : undefined,
+  };
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const settings = await getMarketplaceSettings();
+  const cssVars = marketplaceCssVars(settings) as CSSProperties;
+
   return (
-    <html lang="tr" className={`${display.variable} ${body.variable}`}>
+    <html
+      lang={settings.default_locale || "tr"}
+      className={`${display.variable} ${body.variable}`}
+      style={cssVars}
+    >
       <body className="min-h-screen bg-mesh font-sans text-ink">
-        <Header />
+        <Header
+          branding={{
+            shortName: settings.short_name,
+            logoUrl: settings.logo_url,
+          }}
+        />
         <main>{children}</main>
-        <Footer />
+        <Footer
+          branding={{
+            marketplaceName: settings.marketplace_name,
+            shortName: settings.short_name,
+            logoUrl: settings.logo_dark_url || settings.logo_url,
+            tagline: settings.tagline,
+            seoDescription: settings.seo_description,
+          }}
+        />
       </body>
     </html>
   );

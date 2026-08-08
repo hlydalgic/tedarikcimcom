@@ -11,9 +11,15 @@ import {
   X,
   ChevronDown,
 } from "lucide-react";
+import { BrandMark } from "@/components/branding/BrandMark";
 import { mockNavCategories } from "@/lib/mock-data";
 
-export function Header() {
+export type HeaderBranding = {
+  shortName: string;
+  logoUrl: string | null;
+};
+
+export function Header({ branding }: { branding: HeaderBranding }) {
   const [query, setQuery] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [catsOpen, setCatsOpen] = useState(false);
@@ -30,11 +36,11 @@ export function Header() {
           <Menu className="h-5 w-5" />
         </button>
 
-        <Link href="/" className="shrink-0">
-          <span className="font-display text-xl font-bold tracking-tight text-primary md:text-2xl">
-            tedarik<span className="text-accent">cim</span>
-          </span>
-        </Link>
+        <BrandMark
+          shortName={branding.shortName}
+          logoUrl={branding.logoUrl}
+          className="text-xl md:text-2xl"
+        />
 
         <form
           className="relative mx-auto hidden min-w-0 flex-1 md:block"
@@ -127,7 +133,6 @@ export function Header() {
         </div>
       </div>
 
-      {/* Mobile search */}
       <div className="border-t border-border/60 px-4 py-2 md:hidden">
         <form className="relative" onSubmit={(e) => e.preventDefault()} role="search">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
@@ -150,9 +155,11 @@ export function Header() {
           />
           <div className="absolute inset-y-0 left-0 flex w-[82%] max-w-xs flex-col bg-surface p-5 shadow-lift animate-fade-in">
             <div className="mb-6 flex items-center justify-between">
-              <span className="font-display text-lg font-bold text-primary">
-                tedarik<span className="text-accent">cim</span>
-              </span>
+              <BrandMark
+                shortName={branding.shortName}
+                logoUrl={branding.logoUrl}
+                className="text-lg"
+              />
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}

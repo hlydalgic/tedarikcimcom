@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandMark } from "@/components/branding/BrandMark";
 
 const footerColumns = [
   {
@@ -35,18 +36,33 @@ const footerColumns = [
   },
 ];
 
-export function Footer() {
+export type FooterBranding = {
+  marketplaceName: string;
+  shortName: string;
+  logoUrl: string | null;
+  tagline: string | null;
+  seoDescription: string | null;
+};
+
+export function Footer({ branding }: { branding: FooterBranding }) {
+  const blurb =
+    branding.seoDescription?.trim() ||
+    branding.tagline?.trim() ||
+    "Doğrulanmış satıcılardan teknik ürünleri güvenle bulun.";
+
   return (
     <footer className="border-t border-border bg-ink text-white">
       <div className="mx-auto max-w-7xl px-4 py-12 md:px-6 lg:px-8 lg:py-16">
         <div className="grid gap-10 md:grid-cols-[1.4fr_repeat(4,1fr)]">
           <div>
-            <Link href="/" className="font-display text-2xl font-bold tracking-tight">
-              tedarik<span className="text-accent">cim</span>
-            </Link>
+            <BrandMark
+              shortName={branding.shortName}
+              logoUrl={branding.logoUrl}
+              invert
+              className="text-2xl"
+            />
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-white/65">
-              Türkiye&apos;nin teknik ürünler pazaryeri. Boru, vana, hırdavat ve
-              daha fazlasını güvenle tedarik edin.
+              {blurb}
             </p>
           </div>
 
@@ -70,7 +86,10 @@ export function Footer() {
         </div>
 
         <div className="mt-12 flex flex-col gap-3 border-t border-white/10 pt-6 text-xs text-white/45 sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} tedarikcim. Tüm hakları saklıdır.</p>
+          <p>
+            © {new Date().getFullYear()} {branding.marketplaceName}. Tüm hakları
+            saklıdır.
+          </p>
           <p>Güvenli ödeme · iyzico Pazaryeri</p>
         </div>
       </div>
