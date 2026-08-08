@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import type { CSSProperties } from "react";
 import { Figtree, Outfit } from "next/font/google";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
 import {
   getMarketplaceSettings,
   marketplaceCssVars,
@@ -56,23 +54,8 @@ export default async function RootLayout({
       className={`${display.variable} ${body.variable}`}
       style={cssVars}
     >
-      <body className="min-h-screen bg-mesh font-sans text-ink">
-        <Header
-          branding={{
-            shortName: settings.short_name,
-            logoUrl: settings.logo_url,
-          }}
-        />
-        <main>{children}</main>
-        <Footer
-          branding={{
-            marketplaceName: settings.marketplace_name,
-            shortName: settings.short_name,
-            logoUrl: settings.logo_dark_url || settings.logo_url,
-            tagline: settings.tagline,
-            seoDescription: settings.seo_description,
-          }}
-        />
+      <body className="min-h-screen bg-mesh font-sans text-ink antialiased">
+        {children}
       </body>
     </html>
   );
