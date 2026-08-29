@@ -5,10 +5,16 @@ import { getSellerOrderDetail } from "@/lib/orders/queries";
 import { formatPrice } from "@/lib/format";
 import { SELLER_ORDER_STATUS_LABELS } from "@/lib/orders/types";
 import {
+  GeliverShipForm,
   InvoiceUploadForm,
+  ShipmentInfoLinks,
   ShipOrderForm,
 } from "@/components/seller/SellerOrderActions";
 import { InvoiceDownloadButton } from "@/components/orders/BuyerOrderActions";
+import {
+  isShippingIntegrationEnabled,
+  getShippingProvider,
+} from "@/lib/shipping";
 
 type PageProps = { params: { id: string } };
 
@@ -29,6 +35,10 @@ export default async function PanelSiparisDetailPage({ params }: PageProps) {
   };
 
   const canShip = order.status === "PAID" || order.status === "PROCESSING";
+  const geliverEnabled = isShippingIntegrationEnabled();
+  const carriers = geliverEnabled
+    ? await getShippingProvider().listCarriers()
+    : [];
 
   return (
     <div>
@@ -74,15 +84,16 @@ export default async function PanelSiparisDetailPage({ params }: PageProps) {
         </li>
       </ul>
 
-      {order.tracking_code ? (
-        <p className="mt-4 text-sm text-ink-muted">
-          Takip kodu:{" "}
-          <span className="font-semibold text-ink">{order.tracking_code}</span>
-        </p>
+      {order.shipment?.tracking_code ? (
+        <ShipmentInfoLinks shipment={order.shipment} />
       ) : null}
 
       {canShip && !order.tracking_code ? (
-        <ShipOrderForm sellerOrderId={order.id} />
+        geliverEnabled ? (
+          <GeliverShipForm sellerOrderId={order.id} carriers={carriers} />
+        ) : (
+          <ShipOrderForm sellerOrderId={order.id} />
+        )
       ) : null}
 
       {order.invoice?.document_path ? (

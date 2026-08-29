@@ -14,6 +14,7 @@ import {
   buildVerifyEmail,
   buildBuyerOrderConfirmationEmail,
   buildSellerNewOrderEmail,
+  buildBuyerShipmentTrackingEmail,
 } from "@/lib/email/templates/auth";
 import { formatPrice } from "@/lib/format";
 
@@ -192,6 +193,28 @@ export async function sendSellerNewOrderNotification(input: {
     shopName: input.shopName,
     orderNumber: input.orderNumber,
     suborderNumber: input.suborderNumber,
+  });
+  return sendEmail(input.to, mail.subject, mail.html);
+}
+
+export async function sendBuyerShipmentTrackingEmail(input: {
+  to: string;
+  orderNumber: string;
+  suborderNumber: string;
+  shopName: string;
+  trackingNumber: string;
+  trackingUrl?: string | null;
+  carrierName?: string;
+}) {
+  const brand = await getEmailBrand();
+  const mail = buildBuyerShipmentTrackingEmail({
+    brand,
+    orderNumber: input.orderNumber,
+    suborderNumber: input.suborderNumber,
+    shopName: input.shopName,
+    trackingNumber: input.trackingNumber,
+    trackingUrl: input.trackingUrl,
+    carrierName: input.carrierName,
   });
   return sendEmail(input.to, mail.subject, mail.html);
 }

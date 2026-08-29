@@ -235,3 +235,44 @@ export function buildSellerNewOrderEmail(params: {
     html: buildEmailLayout(content, params.brand),
   };
 }
+
+export function buildBuyerShipmentTrackingEmail(params: {
+  brand: EmailBrand;
+  orderNumber: string;
+  suborderNumber: string;
+  shopName: string;
+  trackingNumber: string;
+  trackingUrl?: string | null;
+  carrierName?: string;
+}) {
+  const trackLink = params.trackingUrl
+    ? emailButton(
+        params.trackingUrl,
+        "Kargoyu takip et",
+        params.brand.primaryColor
+      )
+    : "";
+  const content = `
+    ${emailHeading("Siparişiniz kargoya verildi")}
+    ${emailParagraph("Merhaba,")}
+    ${emailParagraph(
+      `<strong>${escapeHtml(params.shopName)}</strong> mağazasından verdiğiniz sipariş kargoya verildi.`
+    )}
+    ${emailParagraph(
+      `<strong>Sipariş:</strong> ${escapeHtml(params.orderNumber)}<br/>
+       <strong>Alt sipariş:</strong> ${escapeHtml(params.suborderNumber)}<br/>
+       ${params.carrierName ? `<strong>Kargo:</strong> ${escapeHtml(params.carrierName)}<br/>` : ""}
+       <strong>Takip no:</strong> ${escapeHtml(params.trackingNumber)}`
+    )}
+    ${trackLink}
+    ${emailButton(
+      `${params.brand.siteUrl}/hesabim/siparisler/${encodeURIComponent(params.orderNumber)}`,
+      "Sipariş detayı",
+      params.brand.primaryColor
+    )}
+  `;
+  return {
+    subject: `Kargo takip ${params.trackingNumber} — ${params.brand.marketplaceName}`,
+    html: buildEmailLayout(content, params.brand),
+  };
+}

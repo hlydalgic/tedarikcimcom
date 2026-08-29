@@ -68,6 +68,16 @@ export const SELLER_ORDER_STATUS_LABELS: Record<string, string> = {
   DISPUTED: "Anlaşmazlık",
 };
 
+export const SHIPMENT_STATUS_LABELS: Record<string, string> = {
+  NOT_APPLICABLE: "Kargo yok",
+  AWAITING_SHIPMENT: "Kargo bekleniyor",
+  LABEL_CREATED: "Etiket oluşturuldu",
+  IN_TRANSIT: "Yolda",
+  DELIVERED: "Teslim edildi",
+  RETURNED: "İade edildi",
+  FAILED: "Başarısız",
+};
+
 /** Flat shipping options used until carrier integration (Phase 8). */
 export function estimateShopShipping(
   items: { shippingType: string; shippingPrice: number | null; quantity: number }[]

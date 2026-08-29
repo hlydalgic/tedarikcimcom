@@ -2,6 +2,8 @@ import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { isShippingIntegrationEnabled } from "@/lib/shipping";
+import { syncSellerOrderShipment } from "@/lib/shipping/sync";
 
 export type BuyerOrderListItem = {
   id: string;
@@ -25,6 +27,15 @@ export type OrderItemDetail = {
   product_id: string;
 };
 
+export type OrderShipmentInfo = {
+  tracking_code: string | null;
+  tracking_url: string | null;
+  label_url: string | null;
+  carrier_code: string | null;
+  status: string;
+  geliver_shipment_id: string | null;
+};
+
 export type SellerOrderDetail = {
   id: string;
   suborder_number: string;
@@ -41,6 +52,7 @@ export type SellerOrderDetail = {
   seller_net_amount: number;
   items: OrderItemDetail[];
   tracking_code: string | null;
+  shipment: OrderShipmentInfo | null;
   invoice: {
     id: string;
     invoice_number: string | null;
@@ -70,6 +82,52 @@ export type BuyerOrderDetail = {
 function unwrapOne<T>(value: T | T[] | null | undefined): T | null {
   if (value == null) return null;
   return Array.isArray(value) ? value[0] ?? null : value;
+}
+
+type ShipmentRow = {
+  tracking_code: string | null;
+  tracking_url: string | null;
+  label_url: string | null;
+  carrier_code: string | null;
+  status: string;
+  geliver_shipment_id: string | null;
+};
+
+function mapShipmentRow(row: ShipmentRow | null | undefined): OrderShipmentInfo | null {
+  if (!row) return null;
+  return {
+    tracking_code: row.tracking_code,
+    tracking_url: row.tracking_url,
+    label_url: row.label_url,
+    carrier_code: row.carrier_code,
+    status: row.status,
+    geliver_shipment_id: row.geliver_shipment_id,
+  };
+}
+
+async function loadSellerOrderShipment(
+  sellerOrderId: string,
+  syncLive: boolean
+): Promise<OrderShipmentInfo | null> {
+  if (syncLive && isShippingIntegrationEnabled()) {
+    try {
+      await syncSellerOrderShipment(sellerOrderId);
+    } catch {
+      /* live sync best-effort */
+    }
+  }
+
+  const supabase = createClient();
+  const { data: shipments } = await supabase
+    .from("shipments")
+    .select(
+      "tracking_code, tracking_url, label_url, carrier_code, status, geliver_shipment_id"
+    )
+    .eq("seller_order_id", sellerOrderId)
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  return mapShipmentRow(shipments?.[0] as ShipmentRow | undefined);
 }
 
 export async function listBuyerOrders(): Promise<BuyerOrderListItem[]> {
@@ -174,12 +232,7 @@ async function hydrateOrderDetail(
       )
       .eq("seller_order_id", so.id);
 
-    const { data: shipments } = await supabase
-      .from("shipments")
-      .select("tracking_code")
-      .eq("seller_order_id", so.id)
-      .not("tracking_code", "is", null)
-      .limit(1);
+    const shipment = await loadSellerOrderShipment(String(so.id), true);
 
     const { data: invoices } = await supabase
       .from("invoices")
@@ -213,7 +266,8 @@ async function hydrateOrderDetail(
         status: it.status,
         product_id: it.product_id,
       })),
-      tracking_code: shipments?.[0]?.tracking_code ?? null,
+      tracking_code: shipment?.tracking_code ?? null,
+      shipment,
       invoice: invoices?.[0]
         ? {
             id: invoices[0].id,
@@ -341,12 +395,7 @@ export async function getSellerOrderDetail(
     )
     .eq("seller_order_id", so.id);
 
-  const { data: shipments } = await supabase
-    .from("shipments")
-    .select("tracking_code")
-    .eq("seller_order_id", so.id)
-    .not("tracking_code", "is", null)
-    .limit(1);
+  const shipment = await loadSellerOrderShipment(so.id, false);
 
   const { data: invoices } = await supabase
     .from("invoices")
@@ -380,7 +429,8 @@ export async function getSellerOrderDetail(
       status: it.status,
       product_id: it.product_id,
     })),
-    tracking_code: shipments?.[0]?.tracking_code ?? null,
+    tracking_code: shipment?.tracking_code ?? null,
+    shipment,
     invoice: invoices?.[0]
       ? {
           id: invoices[0].id,

@@ -14,6 +14,7 @@ import {
   CancelOrderButton,
   InvoiceDownloadButton,
 } from "@/components/orders/BuyerOrderActions";
+import { OrderTrackingPanel } from "@/components/shipping/OrderTrackingPanel";
 
 type PageProps = { params: { order_number: string } };
 
@@ -108,11 +109,14 @@ export default async function BuyerOrderDetailPage({ params }: PageProps) {
                 </li>
               ))}
             </ul>
-            {so.tracking_code ? (
-              <p className="mt-3 text-xs text-ink-muted">
-                Kargo takip:{" "}
-                <span className="font-semibold text-ink">{so.tracking_code}</span>
-              </p>
+            {so.shipment?.tracking_code || so.shipment?.geliver_shipment_id ? (
+              <OrderTrackingPanel
+                sellerOrderId={so.id}
+                suborderNumber={so.suborder_number}
+                shipmentStatus={so.shipment_status}
+                orderStatus={so.status}
+                shipment={so.shipment}
+              />
             ) : null}
             {so.invoice?.document_path ? (
               <div className="mt-3">
