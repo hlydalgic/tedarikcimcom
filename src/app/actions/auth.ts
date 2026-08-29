@@ -11,6 +11,7 @@ import {
   sendVerifyEmail,
 } from "@/lib/email/send";
 import { enforceFormRateLimit } from "@/lib/security/request";
+import { passwordChangeSchema } from "@/lib/validation/password";
 import { getClientErrorMessage, logServerError } from "@/lib/security/errors";
 
 export type AuthActionState = {
@@ -246,14 +247,15 @@ export async function updatePassword(
   _prev: AuthActionState,
   formData: FormData
 ): Promise<AuthActionState> {
-  const password = String(formData.get("password") ?? "");
-  const confirm = String(formData.get("password_confirm") ?? "");
+  const rate = enforceFormRateLimit("auth.update-password", 5, 15 * 60 * 1000);
+  if (!rate.allowed) return { error: rate.message };
 
-  if (password.length < 8) {
-    return { error: "Şifre en az 8 karakter olmalı." };
-  }
-  if (password !== confirm) {
-    return { error: "Şifreler eşleşmiyor." };
+  const parsed = passwordChangeSchema.safeParse({
+    password: formData.get("password"),
+    password_confirm: formData.get("password_confirm"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Geçersiz şifre." };
   }
 
   const supabase = createClient();
@@ -265,7 +267,9 @@ export async function updatePassword(
     return { error: "Oturum bulunamadı. Bağlantıyı yeniden isteyin." };
   }
 
-  const { error } = await supabase.auth.updateUser({ password });
+  const { error } = await supabase.auth.updateUser({
+    password: parsed.data.password,
+  });
   if (error) {
     return { error: "Şifre güncellenemedi." };
   }

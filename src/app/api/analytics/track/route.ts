@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { trackEventForCurrentUser } from "@/lib/analytics/events";
 import { ANALYTICS_EVENTS } from "@/lib/analytics/types";
+import { enforceApiRateLimit } from "@/lib/security/api-rate-limit";
 
 const bodySchema = z.object({
   eventName: z.enum(ANALYTICS_EVENTS),
@@ -12,6 +13,9 @@ const bodySchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const limited = enforceApiRateLimit(request, "analytics.track", 120, 60_000);
+  if (limited) return limited;
+
   let json: unknown;
   try {
     json = await request.json();

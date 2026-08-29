@@ -448,7 +448,7 @@ export async function createSignedInvoiceUrl(documentPath: string) {
   const admin = getSupabaseAdmin();
   const { data, error } = await admin.storage
     .from("invoices")
-    .createSignedUrl(documentPath, 60 * 10);
+    .createSignedUrl(documentPath, 60 * 5);
   if (error) throw new Error(error.message);
   return data.signedUrl;
 }

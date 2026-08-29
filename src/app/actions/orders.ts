@@ -11,6 +11,7 @@ import {
 import type { CheckoutPayload } from "@/lib/orders/types";
 import { createSignedInvoiceUrl } from "@/lib/orders/queries";
 import { trackEvent } from "@/lib/analytics/events";
+import { checkoutPayloadSchema } from "@/lib/validation/checkout";
 
 export type CheckoutResult =
   | { ok: true; orderNumber: string; grandTotal: number }
@@ -21,20 +22,27 @@ export async function placeOrder(
 ): Promise<CheckoutResult> {
   const user = await requireUser("/odeme");
 
-  if (!payload.items?.length) {
-    return { ok: false, error: "Sepetiniz boş." };
-  }
-  if (!payload.shipping_address?.full_name || !payload.billing_address?.full_name) {
-    return { ok: false, error: "Teslimat ve fatura adresi zorunludur." };
+  const parsed = checkoutPayloadSchema.safeParse(payload);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? "Geçersiz checkout verisi.",
+    };
   }
 
+  const valid = parsed.data;
   const supabase = createClient();
   const mockPaymentId = `mock_${Date.now()}_${user.id.slice(0, 8)}`;
 
   const { data, error } = await supabase.rpc("create_order_from_checkout", {
     p_buyer_id: user.id,
     p_payload: {
-      ...payload,
+      items: valid.items,
+      shipping_address: valid.shipping_address,
+      billing_address: valid.billing_address,
+      billing_type: valid.billing_type,
+      notes: valid.notes ?? null,
+      currency: valid.currency,
       mock_payment: true,
       mock_payment_id: mockPaymentId,
     },
@@ -67,7 +75,7 @@ export async function placeOrder(
         fullName: buyer.full_name,
         orderNumber,
         grandTotal,
-        currency: payload.currency || "TRY",
+        currency: valid.currency || "TRY",
       });
     }
 

@@ -27,3 +27,7 @@ export async function getUserRoles(
 export function isAdminRole(roles: string[]): boolean {
   return roles.includes("admin");
 }
+
+export function isSellerRole(roles: string[]): boolean {
+  return roles.includes("seller");
+}

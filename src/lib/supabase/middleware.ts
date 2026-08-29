@@ -1,6 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { getUserRoles, isAdminRole } from "@/lib/auth/get-user-roles";
+import {
+  getUserRoles,
+  isAdminRole,
+  isSellerRole,
+} from "@/lib/auth/get-user-roles";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -54,14 +58,91 @@ export async function updateSession(request: NextRequest) {
 
   if (
     pathname.startsWith("/hesabim") ||
-    pathname.startsWith("/satici-ol") ||
-    pathname.startsWith("/panel")
+    pathname.startsWith("/satici-ol")
   ) {
     if (!user) {
       const loginUrl = request.nextUrl.clone();
       loginUrl.pathname = "/giris";
       loginUrl.searchParams.set("redirect", pathname);
       return NextResponse.redirect(loginUrl);
+    }
+  }
+
+  if (pathname.startsWith("/panel")) {
+    if (!user) {
+      const loginUrl = request.nextUrl.clone();
+      loginUrl.pathname = "/giris";
+      loginUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    const roles = await getUserRoles(supabase, user.id);
+    const { data: shop } = await supabase
+      .from("shops")
+      .select("status")
+      .eq("owner_id", user.id)
+      .is("archived_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const hasActiveSellerAccess =
+      isSellerRole(roles) && shop?.status === "active";
+
+    const isPendingPage =
+      pathname === "/panel/beklemede" ||
+      pathname.startsWith("/panel/beklemede/");
+
+    if (isPendingPage) {
+      if (hasActiveSellerAccess) {
+        const panelUrl = request.nextUrl.clone();
+        panelUrl.pathname = "/panel";
+        panelUrl.search = "";
+        return NextResponse.redirect(panelUrl);
+      }
+
+      const { data: pendingApp } = await supabase
+        .from("seller_applications")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("status", "pending")
+        .maybeSingle();
+
+      const canWait =
+        pendingApp != null ||
+        shop?.status === "pending" ||
+        (isSellerRole(roles) && shop != null);
+
+      if (!canWait) {
+        const redirectUrl = request.nextUrl.clone();
+        redirectUrl.pathname = "/satici-ol";
+        redirectUrl.search = "";
+        return NextResponse.redirect(redirectUrl);
+      }
+
+      return supabaseResponse;
+    }
+
+    if (!hasActiveSellerAccess) {
+      const { data: pendingApp } = await supabase
+        .from("seller_applications")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("status", "pending")
+        .maybeSingle();
+
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.search = "";
+      if (
+        pendingApp != null ||
+        shop?.status === "pending" ||
+        (isSellerRole(roles) && shop != null)
+      ) {
+        redirectUrl.pathname = "/panel/beklemede";
+      } else {
+        redirectUrl.pathname = "/satici-ol";
+      }
+      return NextResponse.redirect(redirectUrl);
     }
   }
 

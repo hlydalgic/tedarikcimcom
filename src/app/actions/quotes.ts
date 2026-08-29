@@ -3,11 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth/require-user";
+import { requireSeller } from "@/lib/auth/require-seller";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import {
-  getMarketplaceFeatures,
-  isFeatureEnabled,
-} from "@/lib/marketplace/settings";
+import { ensureQuotesEnabled } from "@/lib/marketplace/feature-guards";
 import { listUserAddresses } from "@/lib/cart/queries";
 import type { AddressSnapshot } from "@/lib/orders/types";
 import { formatPrice } from "@/lib/format";
@@ -18,13 +16,12 @@ import {
   sendSellerNewQuoteRequestEmail,
 } from "@/lib/email/send";
 import { trackEvent } from "@/lib/analytics/events";
-
-async function ensureQuotesEnabled() {
-  const features = await getMarketplaceFeatures();
-  if (!isFeatureEnabled(features, "quotes_enabled")) {
-    throw new Error("Teklif sistemi kapalı.");
-  }
-}
+import {
+  createQuoteRequestSchema,
+  placeQuoteOrderSchema,
+  quoteIdSchema,
+  submitSellerQuoteSchema,
+} from "@/lib/validation/quotes";
 
 function addressToSnapshot(addr: {
   full_name: string;
@@ -50,25 +47,26 @@ export async function createQuoteRequest(input: {
   addressId: string;
   note?: string;
 }): Promise<{ ok: true; requestId: string } | { ok: false; error: string }> {
-  try {
-    await ensureQuotesEnabled();
-  } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : "Kapalı" };
+  const guard = await ensureQuotesEnabled();
+  if (!guard.ok) return { ok: false, error: guard.error };
+
+  const parsed = createQuoteRequestSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? "Geçersiz teklif talebi.",
+    };
   }
 
   const user = await requireUser();
-  const qty = Math.max(1, Math.floor(input.quantity));
-  if (!input.addressId) {
-    return { ok: false, error: "Teslimat adresi seçin." };
-  }
-
+  const { productId, quantity, addressId, note } = parsed.data;
   const supabase = createClient();
   await supabase.rpc("expire_old_quotes");
 
   const { data: product, error: pErr } = await supabase
     .from("products")
     .select("id, title, shipping_type, status, seller_id, shop_id")
-    .eq("id", input.productId)
+    .eq("id", productId)
     .maybeSingle();
 
   if (pErr || !product) return { ok: false, error: "Ürün bulunamadı." };
@@ -82,7 +80,7 @@ export async function createQuoteRequest(input: {
   const { data: addr } = await supabase
     .from("addresses")
     .select("full_name, phone, city, district, address_line, postal_code")
-    .eq("id", input.addressId)
+    .eq("id", addressId)
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -93,9 +91,9 @@ export async function createQuoteRequest(input: {
     .insert({
       customer_id: user.id,
       product_id: product.id,
-      quantity: qty,
+      quantity,
       delivery_address: addressToSnapshot(addr),
-      note: input.note?.trim() || null,
+      note: note?.trim() || null,
       status: "open",
     })
     .select("id")
@@ -128,7 +126,7 @@ export async function createQuoteRequest(input: {
       await sendSellerNewQuoteRequestEmail({
         to: seller.email,
         productTitle: product.title,
-        quantity: qty,
+        quantity,
         requestId: row.id,
       });
     }
@@ -156,18 +154,25 @@ export async function submitSellerQuote(input: {
   estimatedDays?: number;
   note?: string;
 }): Promise<{ ok: true } | { ok: false; error: string }> {
-  const user = await requireUser("/panel/teklifler");
-  const price = Number(input.price);
-  if (!Number.isFinite(price) || price < 0) {
-    return { ok: false, error: "Geçerli bir fiyat girin." };
+  const guard = await ensureQuotesEnabled();
+  if (!guard.ok) return { ok: false, error: guard.error };
+
+  const parsed = submitSellerQuoteSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? "Geçersiz teklif.",
+    };
   }
 
+  const seller = await requireSeller("/panel/teklifler");
+  const { quoteRequestId, price, estimatedDays, note } = parsed.data;
   const supabase = createClient();
 
   const { data: req } = await supabase
     .from("quote_requests")
     .select("id, status, product_id, products(seller_id, shop_id)")
-    .eq("id", input.quoteRequestId)
+    .eq("id", quoteRequestId)
     .maybeSingle();
 
   if (!req) return { ok: false, error: "Talep bulunamadı." };
@@ -176,15 +181,15 @@ export async function submitSellerQuote(input: {
   }
 
   const product = Array.isArray(req.products) ? req.products[0] : req.products;
-  if (!product || product.seller_id !== user.id) {
+  if (!product || product.seller_id !== seller.userId) {
     return { ok: false, error: "Yetkisiz." };
   }
 
   const { data: existing } = await supabase
     .from("seller_quotes")
     .select("id, status")
-    .eq("quote_request_id", input.quoteRequestId)
-    .eq("seller_id", user.id)
+    .eq("quote_request_id", quoteRequestId)
+    .eq("seller_id", seller.userId)
     .maybeSingle();
 
   if (existing && existing.status === "accepted") {
@@ -192,12 +197,12 @@ export async function submitSellerQuote(input: {
   }
 
   const payload = {
-    quote_request_id: input.quoteRequestId,
-    seller_id: user.id,
+    quote_request_id: quoteRequestId,
+    seller_id: seller.userId,
     shop_id: product.shop_id,
     price,
-    estimated_days: input.estimatedDays ?? null,
-    note: input.note?.trim() || null,
+    estimated_days: estimatedDays ?? null,
+    note: note?.trim() || null,
     status: "quoted" as const,
   };
 
@@ -218,7 +223,7 @@ export async function submitSellerQuote(input: {
   await supabase
     .from("quote_requests")
     .update({ status: "quoted" })
-    .eq("id", input.quoteRequestId)
+    .eq("id", quoteRequestId)
     .in("status", ["open", "quoted"]);
 
   try {
@@ -226,7 +231,7 @@ export async function submitSellerQuote(input: {
     const { data: full } = await admin
       .from("quote_requests")
       .select("customer_id, product_id")
-      .eq("id", input.quoteRequestId)
+      .eq("id", quoteRequestId)
       .maybeSingle();
 
     const { data: prod } = full
@@ -249,7 +254,7 @@ export async function submitSellerQuote(input: {
         productTitle: prod.title,
         shopName: shop.name,
         price: formatPrice(price),
-        requestId: input.quoteRequestId,
+        requestId: quoteRequestId,
       });
     }
   } catch {
@@ -257,9 +262,9 @@ export async function submitSellerQuote(input: {
   }
 
   revalidatePath("/panel/teklifler");
-  revalidatePath(`/panel/teklifler/${input.quoteRequestId}`);
+  revalidatePath(`/panel/teklifler/${quoteRequestId}`);
   revalidatePath("/hesabim/teklifler");
-  revalidatePath(`/hesabim/teklifler/${input.quoteRequestId}`);
+  revalidatePath(`/hesabim/teklifler/${quoteRequestId}`);
 
   return { ok: true };
 }
@@ -267,11 +272,19 @@ export async function submitSellerQuote(input: {
 export async function acceptSellerQuote(
   sellerQuoteId: string
 ): Promise<{ ok: true; checkoutUrl: string } | { ok: false; error: string }> {
+  const guard = await ensureQuotesEnabled();
+  if (!guard.ok) return { ok: false, error: guard.error };
+
+  const idParsed = quoteIdSchema.safeParse(sellerQuoteId);
+  if (!idParsed.success) {
+    return { ok: false, error: "Geçersiz teklif." };
+  }
+
   await requireUser("/hesabim/teklifler");
   const supabase = createClient();
 
   const { error } = await supabase.rpc("accept_seller_quote", {
-    p_seller_quote_id: sellerQuoteId,
+    p_seller_quote_id: idParsed.data,
   });
 
   if (error) return { ok: false, error: error.message };
@@ -279,20 +292,28 @@ export async function acceptSellerQuote(
   revalidatePath("/hesabim/teklifler");
   return {
     ok: true,
-    checkoutUrl: `/odeme/teklif/${sellerQuoteId}`,
+    checkoutUrl: `/odeme/teklif/${idParsed.data}`,
   };
 }
 
 export async function rejectSellerQuote(
   sellerQuoteId: string
 ): Promise<{ ok: true } | { ok: false; error: string }> {
+  const guard = await ensureQuotesEnabled();
+  if (!guard.ok) return { ok: false, error: guard.error };
+
+  const idParsed = quoteIdSchema.safeParse(sellerQuoteId);
+  if (!idParsed.success) {
+    return { ok: false, error: "Geçersiz teklif." };
+  }
+
   await requireUser("/hesabim/teklifler");
   const supabase = createClient();
 
   const { data: sq } = await supabase
     .from("seller_quotes")
     .select("id, quote_request_id, status, quote_requests(customer_id, status)")
-    .eq("id", sellerQuoteId)
+    .eq("id", idParsed.data)
     .maybeSingle();
 
   if (!sq) return { ok: false, error: "Teklif bulunamadı." };
@@ -315,7 +336,7 @@ export async function rejectSellerQuote(
   const { error } = await supabase
     .from("seller_quotes")
     .update({ status: "rejected" })
-    .eq("id", sellerQuoteId);
+    .eq("id", idParsed.data);
 
   if (error) return { ok: false, error: error.message };
 
@@ -327,13 +348,21 @@ export async function rejectSellerQuote(
 export async function cancelQuoteRequest(
   requestId: string
 ): Promise<{ ok: true } | { ok: false; error: string }> {
+  const guard = await ensureQuotesEnabled();
+  if (!guard.ok) return { ok: false, error: guard.error };
+
+  const idParsed = quoteIdSchema.safeParse(requestId);
+  if (!idParsed.success) {
+    return { ok: false, error: "Geçersiz talep." };
+  }
+
   await requireUser("/hesabim/teklifler");
   const supabase = createClient();
 
   const { data: req } = await supabase
     .from("quote_requests")
     .select("id, status, customer_id")
-    .eq("id", requestId)
+    .eq("id", idParsed.data)
     .maybeSingle();
 
   const {
@@ -351,13 +380,13 @@ export async function cancelQuoteRequest(
   await supabase
     .from("seller_quotes")
     .update({ status: "cancelled" })
-    .eq("quote_request_id", requestId)
+    .eq("quote_request_id", idParsed.data)
     .in("status", ["open", "quoted"]);
 
   const { error } = await supabase
     .from("quote_requests")
     .update({ status: "cancelled" })
-    .eq("id", requestId);
+    .eq("id", idParsed.data);
 
   if (error) return { ok: false, error: error.message };
 
@@ -376,17 +405,28 @@ export async function placeQuoteOrder(input: {
   billingType: "individual" | "corporate";
   notes?: string;
 }): Promise<QuoteCheckoutResult> {
+  const guard = await ensureQuotesEnabled();
+  if (!guard.ok) return { ok: false, error: guard.error };
+
+  const parsed = placeQuoteOrderSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? "Geçersiz ödeme verisi.",
+    };
+  }
+
   const user = await requireUser();
   const supabase = createClient();
   const mockPaymentId = `mock_quote_${Date.now()}_${user.id.slice(0, 8)}`;
 
   const { data, error } = await supabase.rpc("create_order_from_quote", {
     p_buyer_id: user.id,
-    p_seller_quote_id: input.sellerQuoteId,
+    p_seller_quote_id: parsed.data.sellerQuoteId,
     p_payload: {
-      billing_address: input.billingAddress,
-      billing_type: input.billingType,
-      notes: input.notes ?? null,
+      billing_address: parsed.data.billingAddress,
+      billing_type: parsed.data.billingType,
+      notes: parsed.data.notes ?? null,
       mock_payment: true,
       mock_payment_id: mockPaymentId,
     },
@@ -429,6 +469,9 @@ export async function placeQuoteOrder(input: {
 }
 
 export async function getQuoteRequestAddresses() {
+  const guard = await ensureQuotesEnabled();
+  if (!guard.ok) return [];
+
   await requireUser();
   return listUserAddresses();
 }

@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth/require-user";
+import { enforceFormRateLimit } from "@/lib/security/request";
+import { passwordChangeSchema } from "@/lib/validation/password";
 
 export type ProfileActionState = {
   error?: string;
@@ -88,19 +90,23 @@ export async function changePassword(
   _prev: ProfileActionState,
   formData: FormData
 ): Promise<ProfileActionState> {
-  await requireUser("/hesabim/profil");
-  const password = String(formData.get("password") ?? "");
-  const confirm = String(formData.get("password_confirm") ?? "");
+  const rate = enforceFormRateLimit("profile.change-password", 5, 15 * 60 * 1000);
+  if (!rate.allowed) return { error: rate.message };
 
-  if (password.length < 8) {
-    return { error: "Şifre en az 8 karakter olmalı." };
-  }
-  if (password !== confirm) {
-    return { error: "Şifreler eşleşmiyor." };
+  await requireUser("/hesabim/profil");
+
+  const parsed = passwordChangeSchema.safeParse({
+    password: formData.get("password"),
+    password_confirm: formData.get("password_confirm"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Geçersiz şifre." };
   }
 
   const supabase = createClient();
-  const { error } = await supabase.auth.updateUser({ password });
+  const { error } = await supabase.auth.updateUser({
+    password: parsed.data.password,
+  });
   if (error) return { error: "Şifre değiştirilemedi." };
 
   return { success: "Şifreniz güncellendi." };

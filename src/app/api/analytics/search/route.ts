@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { logSearchEvent } from "@/lib/analytics/events";
 import { createClient } from "@/lib/supabase/server";
+import { enforceApiRateLimit } from "@/lib/security/api-rate-limit";
 
 const bodySchema = z.object({
   query: z.string().trim().min(2).max(200),
@@ -11,6 +12,9 @@ const bodySchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const limited = enforceApiRateLimit(request, "analytics.search", 60, 60_000);
+  if (limited) return limited;
+
   let json: unknown;
   try {
     json = await request.json();

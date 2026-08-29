@@ -207,9 +207,30 @@ export async function refreshOrderTracking(
   | { ok: true; statusCode: string; isDelivered: boolean }
   | { ok: false; error: string }
 > {
-  await requireUser();
+  const user = await requireUser();
   if (!isShippingIntegrationEnabled()) {
     return { ok: false, error: "Kargo takibi yapılandırılmamış." };
+  }
+
+  const supabase = createClient();
+  const { data: sellerOrder, error: soErr } = await supabase
+    .from("seller_orders")
+    .select("id, seller_id, orders(buyer_id)")
+    .eq("id", sellerOrderId)
+    .maybeSingle();
+
+  if (soErr || !sellerOrder) {
+    return { ok: false, error: "Sipariş bulunamadı." };
+  }
+
+  const order = Array.isArray(sellerOrder.orders)
+    ? sellerOrder.orders[0]
+    : sellerOrder.orders;
+  const isBuyer = order?.buyer_id === user.id;
+  const isSeller = sellerOrder.seller_id === user.id;
+
+  if (!isBuyer && !isSeller) {
+    return { ok: false, error: "Bu siparişi görüntüleme yetkiniz yok." };
   }
 
   try {

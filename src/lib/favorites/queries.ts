@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
+import { ensureFavoritesEnabled } from "@/lib/marketplace/feature-guards";
 import type { CatalogProductListItem } from "@/lib/catalog/types";
 
 function unwrapRelation<T>(value: T | T[] | null | undefined): T | null {
@@ -9,6 +10,9 @@ function unwrapRelation<T>(value: T | T[] | null | undefined): T | null {
 }
 
 export async function listUserFavorites(): Promise<CatalogProductListItem[]> {
+  const guard = await ensureFavoritesEnabled();
+  if (!guard.ok) return [];
+
   const supabase = createClient();
   const {
     data: { user },
@@ -83,6 +87,9 @@ export async function listUserFavorites(): Promise<CatalogProductListItem[]> {
 }
 
 export async function isProductFavorited(productId: string): Promise<boolean> {
+  const guard = await ensureFavoritesEnabled();
+  if (!guard.ok) return false;
+
   const supabase = createClient();
   const {
     data: { user },
@@ -100,6 +107,9 @@ export async function isProductFavorited(productId: string): Promise<boolean> {
 }
 
 export async function listUserFavoriteIds(): Promise<Set<string>> {
+  const guard = await ensureFavoritesEnabled();
+  if (!guard.ok) return new Set();
+
   const supabase = createClient();
   const {
     data: { user },

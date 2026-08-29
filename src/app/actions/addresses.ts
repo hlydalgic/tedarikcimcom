@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth/require-user";
+import { addressInputSchema } from "@/lib/validation/addresses";
 
 export type AddressActionResult =
   | { ok: true; id: string }
@@ -20,38 +21,43 @@ export async function createAddress(input: {
   is_default_billing?: boolean;
 }): Promise<AddressActionResult> {
   const user = await requireUser("/odeme");
-  const supabase = createClient();
-
-  if (!input.full_name.trim() || !input.phone.trim() || !input.city || !input.district || !input.address_line.trim()) {
-    return { ok: false, error: "Adres alanlarını eksiksiz doldurun." };
+  const parsed = addressInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? "Geçersiz adres.",
+    };
   }
 
-  if (input.is_default_shipping) {
+  const data = parsed.data;
+  const supabase = createClient();
+
+  if (data.is_default_shipping) {
     await supabase
       .from("addresses")
       .update({ is_default_shipping: false })
       .eq("user_id", user.id);
   }
-  if (input.is_default_billing) {
+  if (data.is_default_billing) {
     await supabase
       .from("addresses")
       .update({ is_default_billing: false })
       .eq("user_id", user.id);
   }
 
-  const { data, error } = await supabase
+  const { data: row, error } = await supabase
     .from("addresses")
     .insert({
       user_id: user.id,
-      title: input.title?.trim() || null,
-      full_name: input.full_name.trim(),
-      phone: input.phone.trim(),
-      city: input.city,
-      district: input.district,
-      address_line: input.address_line.trim(),
-      postal_code: input.postal_code?.trim() || null,
-      is_default_shipping: Boolean(input.is_default_shipping),
-      is_default_billing: Boolean(input.is_default_billing),
+      title: data.title?.trim() || null,
+      full_name: data.full_name,
+      phone: data.phone,
+      city: data.city,
+      district: data.district,
+      address_line: data.address_line,
+      postal_code: data.postal_code?.trim() || null,
+      is_default_shipping: Boolean(data.is_default_shipping),
+      is_default_billing: Boolean(data.is_default_billing),
     })
     .select("id")
     .single();
@@ -59,5 +65,5 @@ export async function createAddress(input: {
   if (error) return { ok: false, error: error.message };
   revalidatePath("/odeme");
   revalidatePath("/hesabim");
-  return { ok: true, id: data.id };
+  return { ok: true, id: row.id };
 }

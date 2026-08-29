@@ -29,7 +29,9 @@ export async function POST(request: Request) {
     headers[key.toLowerCase()] = value;
   });
 
-  const verifyEnabled = process.env.GELIVER_WEBHOOK_VERIFY === "true";
+  const verifyEnabled =
+    process.env.GELIVER_WEBHOOK_VERIFY === "true" ||
+    process.env.NODE_ENV === "production";
   const valid = verifyWebhookSignature(rawBody, headers, {
     enableVerification: verifyEnabled,
     secret: process.env.GELIVER_WEBHOOK_SECRET?.trim(),

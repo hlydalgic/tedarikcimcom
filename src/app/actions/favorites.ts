@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { getMarketplaceFeatures, isFeatureEnabled } from "@/lib/marketplace/settings";
+import { ensureFavoritesEnabled } from "@/lib/marketplace/feature-guards";
 import { trackEvent } from "@/lib/analytics/events";
 
 export type FavoriteActionResult =
@@ -12,10 +12,8 @@ export type FavoriteActionResult =
 export async function toggleFavorite(
   productId: string
 ): Promise<FavoriteActionResult> {
-  const features = await getMarketplaceFeatures();
-  if (!isFeatureEnabled(features, "favorites_enabled")) {
-    return { ok: false, error: "Favoriler bu pazaryerinde kapalı." };
-  }
+  const guard = await ensureFavoritesEnabled();
+  if (!guard.ok) return { ok: false, error: guard.error };
 
   const supabase = createClient();
   const {
