@@ -12,7 +12,10 @@ import {
   buildSellerApprovedEmail,
   buildSellerRejectedEmail,
   buildVerifyEmail,
+  buildBuyerOrderConfirmationEmail,
+  buildSellerNewOrderEmail,
 } from "@/lib/email/templates/auth";
+import { formatPrice } from "@/lib/format";
 
 async function sendEmail(to: string, subject: string, html: string) {
   if (!process.env.RESEND_API_KEY) {
@@ -154,6 +157,41 @@ export async function sendProductRejectedEmail(input: {
     brand,
     productTitle: input.productTitle,
     reason: input.reason,
+  });
+  return sendEmail(input.to, mail.subject, mail.html);
+}
+
+export async function sendBuyerOrderConfirmation(input: {
+  to: string;
+  fullName?: string | null;
+  orderNumber: string;
+  grandTotal: number;
+  currency: string;
+}) {
+  const brand = await getEmailBrand();
+  const mail = buildBuyerOrderConfirmationEmail({
+    brand,
+    fullName: input.fullName,
+    orderNumber: input.orderNumber,
+    grandTotal: formatPrice(input.grandTotal, input.currency),
+  });
+  return sendEmail(input.to, mail.subject, mail.html);
+}
+
+export async function sendSellerNewOrderNotification(input: {
+  to: string;
+  sellerName?: string | null;
+  shopName: string;
+  orderNumber: string;
+  suborderNumber: string;
+}) {
+  const brand = await getEmailBrand();
+  const mail = buildSellerNewOrderEmail({
+    brand,
+    sellerName: input.sellerName,
+    shopName: input.shopName,
+    orderNumber: input.orderNumber,
+    suborderNumber: input.suborderNumber,
   });
   return sendEmail(input.to, mail.subject, mail.html);
 }

@@ -289,7 +289,7 @@ export async function getProductBySlug(
     .from("products")
     .select(
       `id, title, slug, description, price, compare_at_price, currency, stock, sku,
-       shipping_type, shipping_price, condition, category_id, brand_id, shop_id,
+       shipping_type, shipping_price, condition, category_id, brand_id, shop_id, seller_id,
        published_at,
        brands(id, name, slug),
        shops(id, name, slug, description, logo_url, banner_url, rating_avg, rating_count),
@@ -380,6 +380,7 @@ export async function getProductBySlug(
     shop_rating_avg: shop.rating_avg,
     shop_rating_count: shop.rating_count,
     shop_product_count: shopProductCount ?? 0,
+    seller_id: String(product.seller_id),
     images: (images ?? []).map(
       (img: {
         id: string;

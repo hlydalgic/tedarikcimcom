@@ -174,3 +174,64 @@ export function buildProductRejectedEmail(params: {
     html: buildEmailLayout(content, params.brand),
   };
 }
+
+export function buildBuyerOrderConfirmationEmail(params: {
+  brand: EmailBrand;
+  fullName?: string | null;
+  orderNumber: string;
+  grandTotal: string;
+}) {
+  const greeting = params.fullName
+    ? `Merhaba ${escapeHtml(params.fullName)},`
+    : "Merhaba,";
+  const content = `
+    ${emailHeading("Siparişiniz alındı")}
+    ${emailParagraph(greeting)}
+    ${emailParagraph(
+      `<strong>${escapeHtml(params.brand.marketplaceName)}</strong> üzerinden verdiğiniz sipariş onaylandı.`
+    )}
+    ${emailParagraph(
+      `<strong>Sipariş no:</strong> ${escapeHtml(params.orderNumber)}<br/><strong>Toplam:</strong> ${escapeHtml(params.grandTotal)}`
+    )}
+    ${emailButton(
+      `${params.brand.siteUrl}/siparis/${encodeURIComponent(params.orderNumber)}`,
+      "Siparişi görüntüle",
+      params.brand.primaryColor
+    )}
+  `;
+  return {
+    subject: `Sipariş onaylandı ${params.orderNumber} — ${params.brand.marketplaceName}`,
+    html: buildEmailLayout(content, params.brand),
+  };
+}
+
+export function buildSellerNewOrderEmail(params: {
+  brand: EmailBrand;
+  sellerName?: string | null;
+  shopName: string;
+  orderNumber: string;
+  suborderNumber: string;
+}) {
+  const greeting = params.sellerName
+    ? `Merhaba ${escapeHtml(params.sellerName)},`
+    : "Merhaba,";
+  const content = `
+    ${emailHeading("Yeni siparişiniz var")}
+    ${emailParagraph(greeting)}
+    ${emailParagraph(
+      `<strong>${escapeHtml(params.shopName)}</strong> mağazanıza yeni bir sipariş geldi.`
+    )}
+    ${emailParagraph(
+      `<strong>Sipariş:</strong> ${escapeHtml(params.orderNumber)}<br/><strong>Alt sipariş:</strong> ${escapeHtml(params.suborderNumber)}`
+    )}
+    ${emailButton(
+      `${params.brand.siteUrl}/panel/siparisler`,
+      "Siparişleri aç",
+      params.brand.primaryColor
+    )}
+  `;
+  return {
+    subject: `Yeni sipariş ${params.suborderNumber} — ${params.brand.marketplaceName}`,
+    html: buildEmailLayout(content, params.brand),
+  };
+}

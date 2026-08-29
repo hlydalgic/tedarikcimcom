@@ -15,10 +15,13 @@ export default async function HesabimLayout({
   const favoritesEnabled = isFeatureEnabled(features, "favorites_enabled");
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10 md:py-14">
-      <nav className="mb-8 flex gap-4 text-sm">
+    <div className="mx-auto max-w-4xl px-4 py-10 md:py-14">
+      <nav className="mb-8 flex flex-wrap gap-4 text-sm">
         <Link href="/hesabim/profil" className="font-semibold text-primary">
           Profil
+        </Link>
+        <Link href="/hesabim/siparisler" className="text-ink-muted hover:text-primary">
+          Siparişler
         </Link>
         {favoritesEnabled ? (
           <Link href="/hesabim/favoriler" className="text-ink-muted hover:text-primary">

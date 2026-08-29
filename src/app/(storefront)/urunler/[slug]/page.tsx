@@ -61,7 +61,6 @@ export default async function ProductDetailPage({ params }: PageProps) {
 
   const favoritesEnabled = isFeatureEnabled(features, "favorites_enabled");
   const quotesEnabled = isFeatureEnabled(features, "quotes_enabled");
-  const inStock = product.stock > 0;
 
   return (
     <>
@@ -132,9 +131,23 @@ export default async function ProductDetailPage({ params }: PageProps) {
 
             <div className="mt-6">
               <ProductActions
-                inStock={inStock}
-                shippingType={product.shipping_type}
                 quotesEnabled={quotesEnabled}
+                product={{
+                  id: product.id,
+                  slug: product.slug,
+                  title: product.title,
+                  imageUrl: product.images[0]?.url ?? null,
+                  price: product.price,
+                  currency: product.currency,
+                  stock: product.stock,
+                  shopId: product.shop_id,
+                  shopName: product.shop_name,
+                  shopSlug: product.shop_slug,
+                  sellerId: product.seller_id,
+                  brandName: product.brand_name,
+                  shippingType: product.shipping_type,
+                  shippingPrice: product.shipping_price,
+                }}
               />
             </div>
 

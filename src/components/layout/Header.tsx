@@ -11,6 +11,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { BrandMark } from "@/components/branding/BrandMark";
+import { CartBadge } from "@/components/cart/CartBadge";
 import { SearchBar } from "@/components/catalog/SearchBar";
 import type { NavCategory } from "@/lib/catalog/types";
 
@@ -88,9 +89,7 @@ export function Header({ branding, navCategories, favoritesEnabled }: HeaderProp
           >
             <ShoppingCart className="h-5 w-5" />
             <span className="hidden lg:inline">Sepet</span>
-            <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded bg-accent px-1 text-[10px] font-bold text-white">
-              0
-            </span>
+            <CartBadge />
           </Link>
         </nav>
       </div>

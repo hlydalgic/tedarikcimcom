@@ -113,6 +113,7 @@ export type ProductDetail = {
   shop_rating_avg: number | null;
   shop_rating_count: number;
   shop_product_count: number;
+  seller_id: string;
   images: { id: string; url: string; alt_text: string | null; is_primary: boolean }[];
   published_at: string | null;
 };
