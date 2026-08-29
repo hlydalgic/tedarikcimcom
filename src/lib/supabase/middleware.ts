@@ -52,5 +52,17 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
+  if (
+    pathname.startsWith("/hesabim") ||
+    pathname.startsWith("/satici-ol")
+  ) {
+    if (!user) {
+      const loginUrl = request.nextUrl.clone();
+      loginUrl.pathname = "/giris";
+      loginUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
   return supabaseResponse;
 }

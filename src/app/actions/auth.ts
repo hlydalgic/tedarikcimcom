@@ -1,20 +1,73 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { getUserRoles, isAdminRole } from "@/lib/auth/get-user-roles";
+import { getSiteUrl } from "@/lib/email/resend";
+import {
+  sendPasswordResetEmail,
+  sendVerifyEmail,
+} from "@/lib/email/send";
+import { enforceFormRateLimit } from "@/lib/security/request";
+import { getClientErrorMessage, logServerError } from "@/lib/security/errors";
 
 export type AuthActionState = {
   error?: string;
+  success?: string;
 };
+
+const registerSchema = z
+  .object({
+    email: z.string().trim().email("Geçerli bir e-posta girin."),
+    password: z
+      .string()
+      .min(8, "Şifre en az 8 karakter olmalı.")
+      .max(72, "Şifre çok uzun."),
+    full_name: z.string().trim().min(2, "Ad soyad gerekli.").max(120),
+    account_type: z.enum(["individual", "corporate"]),
+    company_name: z.string().trim().optional().nullable(),
+    tax_number: z.string().trim().optional().nullable(),
+    tax_office: z.string().trim().optional().nullable(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.account_type === "corporate") {
+      if (!data.company_name || data.company_name.length < 2) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Şirket adı gerekli.",
+          path: ["company_name"],
+        });
+      }
+      const tax = (data.tax_number ?? "").replace(/\s/g, "");
+      if (!/^\d{10,11}$/.test(tax)) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Vergi no 10 veya 11 haneli olmalı.",
+          path: ["tax_number"],
+        });
+      }
+      if (!data.tax_office || data.tax_office.length < 2) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Vergi dairesi gerekli.",
+          path: ["tax_office"],
+        });
+      }
+    }
+  });
 
 export async function signIn(
   _prev: AuthActionState,
   formData: FormData
 ): Promise<AuthActionState> {
+  const rate = enforceFormRateLimit("auth.signin", 8, 15 * 60 * 1000);
+  if (!rate.allowed) return { error: rate.message };
+
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
-  const redirectTo = String(formData.get("redirect") ?? "/admin");
+  const redirectTo = String(formData.get("redirect") ?? "/");
 
   if (!email || !password) {
     return { error: "E-posta ve şifre gerekli." };
@@ -35,15 +88,189 @@ export async function signIn(
     return { error: "Oturum açılamadı." };
   }
 
-  // Admin panel redirect only if admin; otherwise home
-  if (redirectTo.startsWith("/admin")) {
+  const safeRedirect = redirectTo.startsWith("/") ? redirectTo : "/";
+
+  if (safeRedirect.startsWith("/admin")) {
     const roles = await getUserRoles(supabase, user.id);
     if (!isAdminRole(roles)) {
       redirect("/");
     }
   }
 
-  redirect(redirectTo.startsWith("/") ? redirectTo : "/admin");
+  redirect(safeRedirect);
+}
+
+export async function signUp(
+  _prev: AuthActionState,
+  formData: FormData
+): Promise<AuthActionState> {
+  const rate = enforceFormRateLimit("auth.signup", 5, 15 * 60 * 1000);
+  if (!rate.allowed) return { error: rate.message };
+
+  const parsed = registerSchema.safeParse({
+    email: formData.get("email"),
+    password: formData.get("password"),
+    full_name: formData.get("full_name"),
+    account_type: formData.get("account_type") || "individual",
+    company_name: String(formData.get("company_name") ?? "") || null,
+    tax_number: String(formData.get("tax_number") ?? "") || null,
+    tax_office: String(formData.get("tax_office") ?? "") || null,
+  });
+
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Geçersiz form." };
+  }
+
+  const data = parsed.data;
+  const siteUrl = getSiteUrl();
+  const meta = {
+    full_name: data.full_name,
+    account_type: data.account_type,
+    company_name:
+      data.account_type === "corporate" ? data.company_name : null,
+    tax_number: data.account_type === "corporate" ? data.tax_number : null,
+    tax_office: data.account_type === "corporate" ? data.tax_office : null,
+  };
+
+  try {
+    const admin = getSupabaseAdmin();
+    const { data: created, error: createError } =
+      await admin.auth.admin.createUser({
+        email: data.email,
+        password: data.password,
+        email_confirm: false,
+        user_metadata: meta,
+      });
+
+    if (createError) {
+      if (
+        createError.message.toLowerCase().includes("already") ||
+        createError.message.toLowerCase().includes("registered")
+      ) {
+        return { error: "Bu e-posta ile kayıtlı bir hesap var." };
+      }
+      logServerError("auth/signup-create", createError);
+      return {
+        error: getClientErrorMessage(
+          "Kayıt oluşturulamadı.",
+          createError.message
+        ),
+      };
+    }
+
+    // Ensure public.users profile fields (trigger may race)
+    if (created.user) {
+      await admin.from("users").upsert({
+        id: created.user.id,
+        email: data.email,
+        full_name: data.full_name,
+        account_type: data.account_type,
+        company_name: meta.company_name,
+        tax_number: meta.tax_number,
+        tax_office: meta.tax_office,
+      });
+    }
+
+    const { data: linkData, error: linkError } =
+      await admin.auth.admin.generateLink({
+        type: "signup",
+        email: data.email,
+        password: data.password,
+        options: {
+          redirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent("/giris")}`,
+          data: meta,
+        },
+      });
+
+    if (linkError || !linkData.properties?.action_link) {
+      logServerError("auth/signup-link", linkError);
+      return {
+        error:
+          "Hesap oluşturuldu ancak doğrulama e-postası gönderilemedi. Destek ile iletişime geçin.",
+      };
+    }
+
+    await sendVerifyEmail({
+      to: data.email,
+      fullName: data.full_name,
+      verifyUrl: linkData.properties.action_link,
+    });
+  } catch (err) {
+    logServerError("auth/signup", err);
+    return { error: "Kayıt sırasında bir hata oluştu." };
+  }
+
+  redirect("/giris?registered=1");
+}
+
+export async function requestPasswordReset(
+  _prev: AuthActionState,
+  formData: FormData
+): Promise<AuthActionState> {
+  const rate = enforceFormRateLimit("auth.reset", 5, 15 * 60 * 1000);
+  if (!rate.allowed) return { error: rate.message };
+
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  if (!z.string().email().safeParse(email).success) {
+    return { error: "Geçerli bir e-posta girin." };
+  }
+
+  const siteUrl = getSiteUrl();
+  const successMessage =
+    "E-posta adresinize sıfırlama bağlantısı gönderildi (hesap varsa).";
+
+  try {
+    const admin = getSupabaseAdmin();
+    const { data: linkData, error } = await admin.auth.admin.generateLink({
+      type: "recovery",
+      email,
+      options: {
+        redirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent("/sifre-sifirla/yeni")}`,
+      },
+    });
+
+    if (!error && linkData.properties?.action_link) {
+      await sendPasswordResetEmail({
+        to: email,
+        resetUrl: linkData.properties.action_link,
+      });
+    }
+  } catch (err) {
+    logServerError("auth/password-reset", err);
+  }
+
+  return { success: successMessage };
+}
+
+export async function updatePassword(
+  _prev: AuthActionState,
+  formData: FormData
+): Promise<AuthActionState> {
+  const password = String(formData.get("password") ?? "");
+  const confirm = String(formData.get("password_confirm") ?? "");
+
+  if (password.length < 8) {
+    return { error: "Şifre en az 8 karakter olmalı." };
+  }
+  if (password !== confirm) {
+    return { error: "Şifreler eşleşmiyor." };
+  }
+
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "Oturum bulunamadı. Bağlantıyı yeniden isteyin." };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) {
+    return { error: "Şifre güncellenemedi." };
+  }
+
+  redirect("/giris?reset=1");
 }
 
 export async function signOut() {

@@ -4,7 +4,12 @@ import { BrandMark } from "@/components/branding/BrandMark";
 import { getMarketplaceSettings } from "@/lib/marketplace/settings";
 
 type GirisPageProps = {
-  searchParams: { redirect?: string };
+  searchParams: {
+    redirect?: string;
+    registered?: string;
+    reset?: string;
+    error?: string;
+  };
 };
 
 export default async function GirisPage({ searchParams }: GirisPageProps) {
@@ -12,7 +17,17 @@ export default async function GirisPage({ searchParams }: GirisPageProps) {
   const redirectTo =
     searchParams.redirect && searchParams.redirect.startsWith("/")
       ? searchParams.redirect
-      : "/admin";
+      : "/";
+
+  let notice: string | null = null;
+  if (searchParams.registered === "1") {
+    notice =
+      "Kayıt başarılı. E-postanızdaki doğrulama bağlantısına tıklayın, ardından giriş yapın.";
+  } else if (searchParams.reset === "1") {
+    notice = "Şifreniz güncellendi. Yeni şifrenizle giriş yapabilirsiniz.";
+  } else if (searchParams.error === "auth") {
+    notice = null;
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-16">
@@ -24,13 +39,18 @@ export default async function GirisPage({ searchParams }: GirisPageProps) {
             className="text-2xl"
           />
           <h1 className="mt-4 font-display text-xl font-bold text-ink">
-            Yönetim girişi
+            Giriş yap
           </h1>
           <p className="mt-1 text-sm text-ink-muted">
-            Admin paneline erişmek için oturum açın.
+            {settings.marketplace_name} hesabınıza giriş yapın.
           </p>
         </div>
-        <LoginForm redirectTo={redirectTo} />
+        {searchParams.error === "auth" ? (
+          <p className="mb-4 text-sm text-error" role="alert">
+            Doğrulama bağlantısı geçersiz veya süresi dolmuş.
+          </p>
+        ) : null}
+        <LoginForm redirectTo={redirectTo} notice={notice} />
         <p className="mt-6 text-center text-sm text-ink-muted">
           <Link href="/" className="font-medium text-primary hover:text-primary-hover">
             Mağazaya dön
