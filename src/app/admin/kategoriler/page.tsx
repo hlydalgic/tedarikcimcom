@@ -1,10 +1,21 @@
-import { AdminPlaceholder } from "@/components/admin/AdminPlaceholder";
+import { CategoryBuilder } from "@/components/admin/categories/CategoryBuilder";
+import { getCategoryTree, listCategories } from "@/lib/categories/queries";
 
-export default function AdminCategoriesPage() {
+type PageProps = {
+  searchParams: { id?: string };
+};
+
+export default async function AdminCategoriesPage({ searchParams }: PageProps) {
+  const [tree, flat] = await Promise.all([
+    getCategoryTree({ includeArchived: false }),
+    listCategories({ includeArchived: false }),
+  ]);
+
   return (
-    <AdminPlaceholder
-      title="Kategoriler"
-      description="Category Builder — taxonomy ağacı ve attribute atamaları."
+    <CategoryBuilder
+      initialTree={tree}
+      flatCategories={flat}
+      selectedId={searchParams.id}
     />
   );
 }
