@@ -276,3 +276,75 @@ export function buildBuyerShipmentTrackingEmail(params: {
     html: buildEmailLayout(content, params.brand),
   };
 }
+
+export function buildQuoteRequestReceivedEmail(params: {
+  brand: EmailBrand;
+  productTitle: string;
+}) {
+  const content = `
+    ${emailHeading("Nakliye teklif talebiniz alındı")}
+    ${emailParagraph("Merhaba,")}
+    ${emailParagraph(
+      `<strong>${escapeHtml(params.productTitle)}</strong> için nakliye teklif talebiniz kaydedildi. Satıcı teklif verdiğinde bilgilendirileceksiniz.`
+    )}
+    ${emailButton(
+      `${params.brand.siteUrl}/hesabim/teklifler`,
+      "Tekliflerimi görüntüle",
+      params.brand.primaryColor
+    )}
+  `;
+  return {
+    subject: `Teklif talebiniz alındı — ${params.brand.marketplaceName}`,
+    html: buildEmailLayout(content, params.brand),
+  };
+}
+
+export function buildSellerNewQuoteRequestEmail(params: {
+  brand: EmailBrand;
+  productTitle: string;
+  quantity: number;
+  requestId: string;
+}) {
+  const content = `
+    ${emailHeading("Yeni nakliye teklif talebi")}
+    ${emailParagraph("Merhaba,")}
+    ${emailParagraph(
+      `<strong>${escapeHtml(params.productTitle)}</strong> ürününüz için ${params.quantity} adet nakliye teklif talebi geldi.`
+    )}
+    ${emailButton(
+      `${params.brand.siteUrl}/panel/teklifler/${params.requestId}`,
+      "Talebi görüntüle",
+      params.brand.primaryColor
+    )}
+  `;
+  return {
+    subject: `Yeni nakliye talebi — ${params.brand.marketplaceName}`,
+    html: buildEmailLayout(content, params.brand),
+  };
+}
+
+export function buildBuyerQuoteReadyEmail(params: {
+  brand: EmailBrand;
+  productTitle: string;
+  shopName: string;
+  price: string;
+  requestId: string;
+}) {
+  const content = `
+    ${emailHeading("Nakliye teklifiniz hazır")}
+    ${emailParagraph("Merhaba,")}
+    ${emailParagraph(
+      `<strong>${escapeHtml(params.shopName)}</strong> mağazası <strong>${escapeHtml(params.productTitle)}</strong> için nakliye teklifi verdi.`
+    )}
+    ${emailParagraph(`<strong>Nakliye ücreti:</strong> ${escapeHtml(params.price)}`)}
+    ${emailButton(
+      `${params.brand.siteUrl}/hesabim/teklifler/${params.requestId}`,
+      "Teklifi incele",
+      params.brand.primaryColor
+    )}
+  `;
+  return {
+    subject: `Nakliye teklifi hazır — ${params.brand.marketplaceName}`,
+    html: buildEmailLayout(content, params.brand),
+  };
+}

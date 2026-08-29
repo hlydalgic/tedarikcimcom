@@ -15,6 +15,9 @@ import {
   buildBuyerOrderConfirmationEmail,
   buildSellerNewOrderEmail,
   buildBuyerShipmentTrackingEmail,
+  buildQuoteRequestReceivedEmail,
+  buildSellerNewQuoteRequestEmail,
+  buildBuyerQuoteReadyEmail,
 } from "@/lib/email/templates/auth";
 import { formatPrice } from "@/lib/format";
 
@@ -215,6 +218,52 @@ export async function sendBuyerShipmentTrackingEmail(input: {
     trackingNumber: input.trackingNumber,
     trackingUrl: input.trackingUrl,
     carrierName: input.carrierName,
+  });
+  return sendEmail(input.to, mail.subject, mail.html);
+}
+
+export async function sendQuoteRequestReceivedEmail(input: {
+  to: string;
+  productTitle: string;
+}) {
+  const brand = await getEmailBrand();
+  const mail = buildQuoteRequestReceivedEmail({
+    brand,
+    productTitle: input.productTitle,
+  });
+  return sendEmail(input.to, mail.subject, mail.html);
+}
+
+export async function sendSellerNewQuoteRequestEmail(input: {
+  to: string;
+  productTitle: string;
+  quantity: number;
+  requestId: string;
+}) {
+  const brand = await getEmailBrand();
+  const mail = buildSellerNewQuoteRequestEmail({
+    brand,
+    productTitle: input.productTitle,
+    quantity: input.quantity,
+    requestId: input.requestId,
+  });
+  return sendEmail(input.to, mail.subject, mail.html);
+}
+
+export async function sendBuyerQuoteReadyEmail(input: {
+  to: string;
+  productTitle: string;
+  shopName: string;
+  price: string;
+  requestId: string;
+}) {
+  const brand = await getEmailBrand();
+  const mail = buildBuyerQuoteReadyEmail({
+    brand,
+    productTitle: input.productTitle,
+    shopName: input.shopName,
+    price: input.price,
+    requestId: input.requestId,
   });
   return sendEmail(input.to, mail.subject, mail.html);
 }

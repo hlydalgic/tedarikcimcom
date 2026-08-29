@@ -13,6 +13,7 @@ export default async function HesabimLayout({
   await requireUser("/hesabim/profil");
   const features = await getMarketplaceFeatures();
   const favoritesEnabled = isFeatureEnabled(features, "favorites_enabled");
+  const quotesEnabled = isFeatureEnabled(features, "quotes_enabled");
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 md:py-14">
@@ -23,6 +24,11 @@ export default async function HesabimLayout({
         <Link href="/hesabim/siparisler" className="text-ink-muted hover:text-primary">
           Siparişler
         </Link>
+        {quotesEnabled ? (
+          <Link href="/hesabim/teklifler" className="text-ink-muted hover:text-primary">
+            Teklifler
+          </Link>
+        ) : null}
         {favoritesEnabled ? (
           <Link href="/hesabim/favoriler" className="text-ink-muted hover:text-primary">
             Favoriler

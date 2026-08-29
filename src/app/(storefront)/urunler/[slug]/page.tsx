@@ -16,6 +16,8 @@ import {
   isFeatureEnabled,
 } from "@/lib/marketplace/settings";
 import { isProductFavorited } from "@/lib/favorites/queries";
+import { listUserAddresses } from "@/lib/cart/queries";
+import { createClient } from "@/lib/supabase/server";
 import { formatPrice } from "@/lib/format";
 import { Breadcrumb } from "@/components/catalog/Breadcrumb";
 import { FavoriteButton } from "@/components/catalog/FavoriteButton";
@@ -61,6 +63,12 @@ export default async function ProductDetailPage({ params }: PageProps) {
 
   const favoritesEnabled = isFeatureEnabled(features, "favorites_enabled");
   const quotesEnabled = isFeatureEnabled(features, "quotes_enabled");
+
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const addresses = user ? await listUserAddresses() : [];
 
   return (
     <>
@@ -132,6 +140,8 @@ export default async function ProductDetailPage({ params }: PageProps) {
             <div className="mt-6">
               <ProductActions
                 quotesEnabled={quotesEnabled}
+                addresses={addresses}
+                isLoggedIn={Boolean(user)}
                 product={{
                   id: product.id,
                   slug: product.slug,

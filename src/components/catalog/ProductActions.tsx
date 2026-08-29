@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { ShoppingCart, Truck, Check } from "lucide-react";
+import { ShoppingCart, Check } from "lucide-react";
 import { useCartStore } from "@/lib/cart/store";
+import { QuoteRequestModal } from "@/components/quotes/QuoteRequestModal";
+import type { AddressRow } from "@/lib/orders/types";
 
 type ProductActionsProps = {
   product: {
@@ -23,9 +24,16 @@ type ProductActionsProps = {
     shippingPrice: number | null;
   };
   quotesEnabled: boolean;
+  addresses: AddressRow[];
+  isLoggedIn: boolean;
 };
 
-export function ProductActions({ product, quotesEnabled }: ProductActionsProps) {
+export function ProductActions({
+  product,
+  quotesEnabled,
+  addresses,
+  isLoggedIn,
+}: ProductActionsProps) {
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
@@ -57,54 +65,60 @@ export function ProductActions({ product, quotesEnabled }: ProductActionsProps) 
       </div>
 
       <div className="flex flex-col gap-2 sm:flex-row">
-        <button
-          type="button"
-          disabled={!inStock}
-          className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
-          onClick={() => {
-            addItem({
-              productId: product.id,
-              slug: product.slug,
-              title: product.title,
-              imageUrl: product.imageUrl,
-              unitPrice: product.price,
-              currency: product.currency,
-              stock: product.stock,
-              shopId: product.shopId,
-              shopName: product.shopName,
-              shopSlug: product.shopSlug,
-              sellerId: product.sellerId,
-              brandName: product.brandName,
-              shippingType: product.shippingType,
-              shippingPrice: product.shippingPrice,
-              quantity: qty,
-            });
-            setAdded(true);
-            setTimeout(() => setAdded(false), 2000);
-          }}
-        >
-          {added ? (
-            <>
-              <Check className="h-4 w-4" />
-              Eklendi
-            </>
-          ) : (
-            <>
-              <ShoppingCart className="h-4 w-4" />
-              Sepete Ekle
-            </>
-          )}
-        </button>
-        {showQuote ? (
-          <Link
-            href="#nakliye-teklifi"
-            className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-primary px-5 py-3 text-sm font-semibold text-primary transition hover:bg-primary-soft"
+        {!showQuote ? (
+          <button
+            type="button"
+            disabled={!inStock}
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={() => {
+              addItem({
+                productId: product.id,
+                slug: product.slug,
+                title: product.title,
+                imageUrl: product.imageUrl,
+                unitPrice: product.price,
+                currency: product.currency,
+                stock: product.stock,
+                shopId: product.shopId,
+                shopName: product.shopName,
+                shopSlug: product.shopSlug,
+                sellerId: product.sellerId,
+                brandName: product.brandName,
+                shippingType: product.shippingType,
+                shippingPrice: product.shippingPrice,
+                quantity: qty,
+              });
+              setAdded(true);
+              setTimeout(() => setAdded(false), 2000);
+            }}
           >
-            <Truck className="h-4 w-4" />
-            Nakliye Teklifi Al
-          </Link>
-        ) : null}
+            {added ? (
+              <>
+                <Check className="h-4 w-4" />
+                Eklendi
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="h-4 w-4" />
+                Sepete Ekle
+              </>
+            )}
+          </button>
+        ) : (
+          <QuoteRequestModal
+            productId={product.id}
+            productTitle={product.title}
+            maxQuantity={product.stock}
+            addresses={addresses}
+            isLoggedIn={isLoggedIn}
+          />
+        )}
       </div>
+      {showQuote ? (
+        <p className="text-xs text-ink-muted">
+          Bu ürün için nakliye ücreti satıcı teklifi ile belirlenir.
+        </p>
+      ) : null}
     </div>
   );
 }

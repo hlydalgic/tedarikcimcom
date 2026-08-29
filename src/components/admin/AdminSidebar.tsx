@@ -14,6 +14,7 @@ import {
   Tag,
   Ruler,
   LogOut,
+  FileText,
 } from "lucide-react";
 import { signOut } from "@/app/actions/auth";
 
@@ -65,6 +66,12 @@ const NAV_ITEMS = [
     href: "/admin/siparisler",
     icon: ShoppingBag,
     match: (pathname: string) => pathname.startsWith("/admin/siparisler"),
+  },
+  {
+    label: "Teklifler",
+    href: "/admin/teklifler",
+    icon: FileText,
+    match: (pathname: string) => pathname.startsWith("/admin/teklifler"),
   },
   {
     label: "Satıcılar",

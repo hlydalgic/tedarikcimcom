@@ -10,6 +10,7 @@ import {
   Wallet,
   Store,
   LogOut,
+  FileText,
 } from "lucide-react";
 import { signOut } from "@/app/actions/auth";
 
@@ -38,6 +39,12 @@ const NAV = [
     href: "/panel/siparisler",
     icon: ShoppingBag,
     match: (p: string) => p.startsWith("/panel/siparisler"),
+  },
+  {
+    label: "Nakliye Teklifleri",
+    href: "/panel/teklifler",
+    icon: FileText,
+    match: (p: string) => p.startsWith("/panel/teklifler"),
   },
   {
     label: "Hakediş",
