@@ -9,6 +9,14 @@ import {
   type CategoryActionState,
 } from "@/app/actions/categories";
 import { slugifyCategoryName, type CategoryRow } from "@/lib/categories/types";
+import type {
+  AttributeRow,
+  CategoryAttributeRow,
+  CategoryFilterRow,
+  UnitRow,
+} from "@/lib/attributes/types";
+import { CategoryAttributesTab } from "@/components/admin/categories/CategoryAttributesTab";
+import { CategoryFiltersTab } from "@/components/admin/categories/CategoryFiltersTab";
 
 const TABS = [
   "GENEL",
@@ -37,9 +45,14 @@ type Props = {
   category?: CategoryRow;
   parentId?: string | null;
   flatCategories: CategoryRow[];
+  attributes?: AttributeRow[];
+  categoryAttributes?: CategoryAttributeRow[];
+  categoryFilters?: CategoryFilterRow[];
+  units?: UnitRow[];
   onCreated?: (id: string) => void;
   onMoved?: () => void;
   onError?: (message: string) => void;
+  onMessage?: (message: string) => void;
   onMove?: (newParentId: string | null) => void;
 };
 
@@ -63,9 +76,14 @@ export function CategoryDetailPanel({
   category,
   parentId = null,
   flatCategories,
+  attributes = [],
+  categoryAttributes = [],
+  categoryFilters = [],
+  units = [],
   onCreated,
   onMoved,
   onError,
+  onMessage,
   onMove,
 }: Props) {
   const [tab, setTab] = useState<Tab>("GENEL");
@@ -382,6 +400,36 @@ export function CategoryDetailPanel({
               />
             </div>
           </form>
+        ) : tab === "ÖZELLİKLER" ? (
+          mode === "edit" && category ? (
+            <CategoryAttributesTab
+              categoryId={category.id}
+              categoryAttributes={categoryAttributes}
+              attributes={attributes}
+              units={units}
+              onMessage={(msg) => onMessage?.(msg)}
+              onError={(msg) => onError?.(msg)}
+            />
+          ) : (
+            <p className="text-sm text-ink-muted">
+              Önce kategoriyi oluşturun, sonra özellik ekleyin.
+            </p>
+          )
+        ) : tab === "FİLTRELER" ? (
+          mode === "edit" && category ? (
+            <CategoryFiltersTab
+              categoryId={category.id}
+              categoryFilters={categoryFilters}
+              categoryAttributes={categoryAttributes}
+              attributes={attributes}
+              onMessage={(msg) => onMessage?.(msg)}
+              onError={(msg) => onError?.(msg)}
+            />
+          ) : (
+            <p className="text-sm text-ink-muted">
+              Önce kategoriyi oluşturun, sonra filtre ekleyin.
+            </p>
+          )
         ) : tab === "SEO" ? (
           <form action={formAction} className="mx-auto max-w-2xl space-y-4">
             {mode === "edit" && category ? (

@@ -13,6 +13,12 @@ import {
   ArrowDown,
 } from "lucide-react";
 import type { CategoryRow, CategoryTreeNode } from "@/lib/categories/types";
+import type {
+  AttributeRow,
+  CategoryAttributeRow,
+  CategoryFilterRow,
+  UnitRow,
+} from "@/lib/attributes/types";
 import {
   archiveCategory,
   moveCategory,
@@ -23,6 +29,10 @@ import { CategoryDetailPanel } from "@/components/admin/categories/CategoryDetai
 type Props = {
   initialTree: CategoryTreeNode[];
   flatCategories: CategoryRow[];
+  attributes: AttributeRow[];
+  categoryAttributes: CategoryAttributeRow[];
+  categoryFilters: CategoryFilterRow[];
+  units: UnitRow[];
   selectedId?: string;
 };
 
@@ -184,6 +194,10 @@ function TreeNode({
 export function CategoryBuilder({
   initialTree,
   flatCategories,
+  attributes,
+  categoryAttributes,
+  categoryFilters,
+  units,
   selectedId: initialSelectedId,
 }: Props) {
   const [selectedId, setSelectedId] = useState<string | undefined>(
@@ -329,6 +343,10 @@ export function CategoryBuilder({
             mode="create"
             parentId={createParentId}
             flatCategories={flatCategories}
+            attributes={attributes}
+            categoryAttributes={categoryAttributes}
+            categoryFilters={categoryFilters}
+            units={units}
             onCreated={(id) => {
               setSelectedId(id);
               setMode("view");
@@ -342,8 +360,17 @@ export function CategoryBuilder({
             mode="edit"
             category={selected}
             flatCategories={flatCategories}
+            attributes={attributes}
+            categoryAttributes={categoryAttributes}
+            categoryFilters={categoryFilters}
+            units={units}
             onMoved={() => {
               setMessage("Kategori taşındı.");
+              router.refresh();
+            }}
+            onMessage={(msg) => {
+              setError(null);
+              setMessage(msg);
               router.refresh();
             }}
             onError={setError}
