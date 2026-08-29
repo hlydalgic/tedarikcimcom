@@ -15,7 +15,7 @@ const footerColumns = [
     links: [
       { label: "Hesabım", href: "/hesabim" },
       { label: "Siparişlerim", href: "/hesabim/siparislerim" },
-      { label: "Favorilerim", href: "/hesabim/favorilerim" },
+      { label: "Favorilerim", href: "/hesabim/favoriler" },
     ],
   },
   {

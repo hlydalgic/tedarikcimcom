@@ -5,24 +5,43 @@ import { useState } from "react";
 import {
   Heart,
   Menu,
-  Search,
   ShoppingCart,
   User,
   X,
   ChevronDown,
 } from "lucide-react";
 import { BrandMark } from "@/components/branding/BrandMark";
-import { mockNavCategories } from "@/lib/mock-data";
+import { SearchBar } from "@/components/catalog/SearchBar";
+import type { NavCategory } from "@/lib/catalog/types";
 
 export type HeaderBranding = {
   shortName: string;
   logoUrl: string | null;
 };
 
-export function Header({ branding }: { branding: HeaderBranding }) {
-  const [query, setQuery] = useState("");
+type HeaderProps = {
+  branding: HeaderBranding;
+  navCategories: NavCategory[];
+  favoritesEnabled: boolean;
+};
+
+function categoryHref(cat: NavCategory, all: NavCategory[]): string {
+  const parts: string[] = [cat.slug];
+  let current = cat;
+  while (current.parent_id) {
+    const parent = all.find((c) => c.id === current.parent_id);
+    if (!parent) break;
+    parts.unshift(parent.slug);
+    current = parent;
+  }
+  return `/kategoriler/${parts.join("/")}`;
+}
+
+export function Header({ branding, navCategories, favoritesEnabled }: HeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [catsOpen, setCatsOpen] = useState(false);
+
+  const topNav = navCategories.filter((c) => !c.parent_id).slice(0, 8);
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/80 bg-surface/95 backdrop-blur-md">
@@ -42,45 +61,27 @@ export function Header({ branding }: { branding: HeaderBranding }) {
           className="text-xl md:text-2xl"
         />
 
-        <form
-          className="relative mx-auto hidden min-w-0 flex-1 md:block"
-          onSubmit={(e) => e.preventDefault()}
-          role="search"
-        >
-          <label htmlFor="header-search" className="sr-only">
-            Ürün, marka veya kategori ara
-          </label>
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
-          <input
-            id="header-search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Boru, vana, hortum, marka veya SKU ara…"
-            className="h-11 w-full rounded-xl border border-border bg-background pl-10 pr-28 text-sm text-ink outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
-          />
-          <button
-            type="submit"
-            className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg bg-primary px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-primary-hover"
-          >
-            Ara
-          </button>
-        </form>
+        <div className="hidden min-w-0 flex-1 md:block">
+          <SearchBar />
+        </div>
 
         <nav className="ml-auto flex items-center gap-0.5 md:gap-1" aria-label="Hesap">
           <Link
-            href="/hesabim"
+            href="/hesabim/profil"
             className="inline-flex h-10 items-center gap-1.5 rounded-lg px-2.5 text-sm font-medium text-ink transition hover:bg-background"
           >
             <User className="h-5 w-5" />
             <span className="hidden lg:inline">Hesap</span>
           </Link>
-          <Link
-            href="/hesabim/favorilerim"
-            className="inline-flex h-10 items-center gap-1.5 rounded-lg px-2.5 text-sm font-medium text-ink transition hover:bg-background"
-          >
-            <Heart className="h-5 w-5" />
-            <span className="hidden lg:inline">Favoriler</span>
-          </Link>
+          {favoritesEnabled ? (
+            <Link
+              href="/hesabim/favoriler"
+              className="inline-flex h-10 items-center gap-1.5 rounded-lg px-2.5 text-sm font-medium text-ink transition hover:bg-background"
+            >
+              <Heart className="h-5 w-5" />
+              <span className="hidden lg:inline">Favoriler</span>
+            </Link>
+          ) : null}
           <Link
             href="/sepet"
             className="relative inline-flex h-10 items-center gap-1.5 rounded-lg px-2.5 text-sm font-medium text-ink transition hover:bg-background"
@@ -103,14 +104,23 @@ export function Header({ branding }: { branding: HeaderBranding }) {
               className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-white transition hover:bg-primary-hover"
             >
               Kategoriler
-              <ChevronDown className={`h-4 w-4 transition ${catsOpen ? "rotate-180" : ""}`} />
+              <ChevronDown
+                className={`h-4 w-4 transition ${catsOpen ? "rotate-180" : ""}`}
+              />
             </button>
             {catsOpen ? (
               <div className="absolute left-0 top-full z-40 mt-2 w-56 overflow-hidden rounded-xl border border-border bg-surface shadow-soft">
-                {mockNavCategories.map((cat) => (
+                <Link
+                  href="/kategoriler"
+                  className="block px-4 py-2.5 text-sm font-semibold text-primary hover:bg-primary-soft"
+                  onClick={() => setCatsOpen(false)}
+                >
+                  Tüm kategoriler
+                </Link>
+                {topNav.map((cat) => (
                   <Link
-                    key={cat.slug}
-                    href={`/kategori/${cat.slug}`}
+                    key={cat.id}
+                    href={categoryHref(cat, navCategories)}
                     className="block px-4 py-2.5 text-sm text-ink transition hover:bg-primary-soft"
                     onClick={() => setCatsOpen(false)}
                   >
@@ -121,10 +131,10 @@ export function Header({ branding }: { branding: HeaderBranding }) {
             ) : null}
           </div>
 
-          {mockNavCategories.map((cat) => (
+          {topNav.map((cat) => (
             <Link
-              key={cat.slug}
-              href={`/kategori/${cat.slug}`}
+              key={cat.id}
+              href={categoryHref(cat, navCategories)}
               className="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-ink-muted transition hover:bg-background hover:text-ink"
             >
               {cat.name}
@@ -134,15 +144,7 @@ export function Header({ branding }: { branding: HeaderBranding }) {
       </div>
 
       <div className="border-t border-border/60 px-4 py-2 md:hidden">
-        <form className="relative" onSubmit={(e) => e.preventDefault()} role="search">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Ürün veya kategori ara…"
-            className="h-10 w-full rounded-xl border border-border bg-background pl-9 pr-3 text-sm outline-none focus:border-primary"
-          />
-        </form>
+        <SearchBar compact />
       </div>
 
       {mobileOpen ? (
@@ -173,10 +175,10 @@ export function Header({ branding }: { branding: HeaderBranding }) {
               Kategoriler
             </p>
             <div className="flex flex-col gap-1">
-              {mockNavCategories.map((cat) => (
+              {topNav.map((cat) => (
                 <Link
-                  key={cat.slug}
-                  href={`/kategori/${cat.slug}`}
+                  key={cat.id}
+                  href={categoryHref(cat, navCategories)}
                   className="rounded-lg px-3 py-2.5 text-sm font-medium text-ink hover:bg-primary-soft"
                   onClick={() => setMobileOpen(false)}
                 >

@@ -3,6 +3,7 @@ import { CategoryGrid } from "@/components/home/CategoryGrid";
 import { FeaturedProducts } from "@/components/home/FeaturedProducts";
 import { TrustSection } from "@/components/home/TrustSection";
 import { SellerCta } from "@/components/home/SellerCta";
+import { RecentlyViewedStrip } from "@/components/catalog/RecentlyViewedStrip";
 import { getMarketplaceSettings } from "@/lib/marketplace/settings";
 
 export default async function HomePage() {
@@ -21,6 +22,7 @@ export default async function HomePage() {
       />
       <CategoryGrid />
       <FeaturedProducts />
+      <RecentlyViewedStrip />
       <TrustSection />
       <SellerCta />
     </>

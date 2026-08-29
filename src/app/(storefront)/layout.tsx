@@ -1,13 +1,22 @@
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { getMarketplaceSettings } from "@/lib/marketplace/settings";
+import { listNavCategories } from "@/lib/catalog/queries";
+import {
+  getMarketplaceFeatures,
+  getMarketplaceSettings,
+  isFeatureEnabled,
+} from "@/lib/marketplace/settings";
 
 export default async function StorefrontLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const settings = await getMarketplaceSettings();
+  const [settings, navCategories, features] = await Promise.all([
+    getMarketplaceSettings(),
+    listNavCategories(),
+    getMarketplaceFeatures(),
+  ]);
 
   return (
     <>
@@ -16,6 +25,8 @@ export default async function StorefrontLayout({
           shortName: settings.short_name,
           logoUrl: settings.logo_url,
         }}
+        navCategories={navCategories}
+        favoritesEnabled={isFeatureEnabled(features, "favorites_enabled")}
       />
       <main>{children}</main>
       <Footer
