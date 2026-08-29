@@ -19,45 +19,14 @@ export type AuthActionState = {
   success?: string;
 };
 
-const registerSchema = z
-  .object({
-    email: z.string().trim().email("Geçerli bir e-posta girin."),
-    password: z
-      .string()
-      .min(8, "Şifre en az 8 karakter olmalı.")
-      .max(72, "Şifre çok uzun."),
-    full_name: z.string().trim().min(2, "Ad soyad gerekli.").max(120),
-    account_type: z.enum(["individual", "corporate"]),
-    company_name: z.string().trim().optional().nullable(),
-    tax_number: z.string().trim().optional().nullable(),
-    tax_office: z.string().trim().optional().nullable(),
-  })
-  .superRefine((data, ctx) => {
-    if (data.account_type === "corporate") {
-      if (!data.company_name || data.company_name.length < 2) {
-        ctx.addIssue({
-          code: "custom",
-          message: "Şirket adı gerekli.",
-          path: ["company_name"],
-        });
-      }
-      const tax = (data.tax_number ?? "").replace(/\s/g, "");
-      if (!/^\d{10,11}$/.test(tax)) {
-        ctx.addIssue({
-          code: "custom",
-          message: "Vergi no 10 veya 11 haneli olmalı.",
-          path: ["tax_number"],
-        });
-      }
-      if (!data.tax_office || data.tax_office.length < 2) {
-        ctx.addIssue({
-          code: "custom",
-          message: "Vergi dairesi gerekli.",
-          path: ["tax_office"],
-        });
-      }
-    }
-  });
+const registerSchema = z.object({
+  email: z.string().trim().email("Geçerli bir e-posta girin."),
+  password: z
+    .string()
+    .min(8, "Şifre en az 8 karakter olmalı.")
+    .max(72, "Şifre çok uzun."),
+  full_name: z.string().trim().min(2, "Ad soyad gerekli.").max(120),
+});
 
 export async function signIn(
   _prev: AuthActionState,
@@ -112,10 +81,6 @@ export async function signUp(
     email: formData.get("email"),
     password: formData.get("password"),
     full_name: formData.get("full_name"),
-    account_type: formData.get("account_type") || "individual",
-    company_name: String(formData.get("company_name") ?? "") || null,
-    tax_number: String(formData.get("tax_number") ?? "") || null,
-    tax_office: String(formData.get("tax_office") ?? "") || null,
   });
 
   if (!parsed.success) {
@@ -126,11 +91,6 @@ export async function signUp(
   const siteUrl = getSiteUrl();
   const meta = {
     full_name: data.full_name,
-    account_type: data.account_type,
-    company_name:
-      data.account_type === "corporate" ? data.company_name : null,
-    tax_number: data.account_type === "corporate" ? data.tax_number : null,
-    tax_office: data.account_type === "corporate" ? data.tax_office : null,
   };
 
   try {
@@ -165,10 +125,6 @@ export async function signUp(
         id: created.user.id,
         email: data.email,
         full_name: data.full_name,
-        account_type: data.account_type,
-        company_name: meta.company_name,
-        tax_number: meta.tax_number,
-        tax_office: meta.tax_office,
       });
     }
 

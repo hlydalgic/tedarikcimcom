@@ -200,10 +200,6 @@ export async function approveSellerApplication(
     .update({
       roles,
       phone: app.phone ?? undefined,
-      company_name: app.company_name,
-      tax_number: app.tax_number,
-      tax_office: app.tax_office,
-      account_type: "corporate",
     })
     .eq("id", app.user_id);
 

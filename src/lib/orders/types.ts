@@ -6,6 +6,7 @@ export type AddressSnapshot = {
   district: string;
   address_line: string;
   postal_code?: string;
+  tc_no?: string;
   company_name?: string;
   tax_number?: string;
   tax_office?: string;

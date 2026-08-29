@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth/require-user";
-import { listUserAddresses } from "@/lib/cart/queries";
 import { getQuoteCheckoutDetail } from "@/lib/quotes/queries";
 import { getMarketplaceSettings } from "@/lib/marketplace/settings";
 import { QuoteCheckoutClient } from "@/components/quotes/QuoteCheckoutClient";
@@ -20,8 +19,6 @@ export default async function QuoteCheckoutPage({ params }: PageProps) {
   const detail = await getQuoteCheckoutDetail(params.quote_id);
   if (!detail) notFound();
 
-  const addresses = await listUserAddresses();
-
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 md:px-6">
       <h1 className="font-display text-2xl font-bold text-ink">
@@ -31,7 +28,7 @@ export default async function QuoteCheckoutPage({ params }: PageProps) {
         Kabul ettiğiniz nakliye teklifi ile siparişinizi tamamlayın.
       </p>
       <div className="mt-8">
-        <QuoteCheckoutClient detail={detail} addresses={addresses} />
+        <QuoteCheckoutClient detail={detail} />
       </div>
     </div>
   );

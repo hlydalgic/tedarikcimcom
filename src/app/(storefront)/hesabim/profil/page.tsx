@@ -7,9 +7,7 @@ export default async function ProfilPage() {
   const supabase = createClient();
   const { data: profile } = await supabase
     .from("users")
-    .select(
-      "full_name, phone, email, account_type, company_name, tax_number, tax_office"
-    )
+    .select("full_name, phone, email")
     .eq("id", authUser.id)
     .maybeSingle();
 
@@ -21,10 +19,6 @@ export default async function ProfilPage() {
           email: profile?.email ?? authUser.email,
           full_name: profile?.full_name ?? null,
           phone: profile?.phone ?? null,
-          account_type: profile?.account_type ?? "individual",
-          company_name: profile?.company_name ?? null,
-          tax_number: profile?.tax_number ?? null,
-          tax_office: profile?.tax_office ?? null,
         }}
       />
     </div>

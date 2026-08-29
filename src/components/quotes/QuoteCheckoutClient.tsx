@@ -5,21 +5,33 @@ import { useRouter } from "next/navigation";
 import { placeQuoteOrder } from "@/app/actions/quotes";
 import { formatPrice } from "@/lib/format";
 import type { QuoteCheckoutDetail } from "@/lib/quotes/types";
-import type { AddressRow } from "@/lib/orders/types";
+import type { AddressSnapshot } from "@/lib/orders/types";
+import {
+  BillingDetailsSection,
+  buildBillingSnapshot,
+  emptyBillingForm,
+  validateBillingInput,
+} from "@/components/checkout/BillingDetailsSection";
 
 type Props = {
   detail: QuoteCheckoutDetail;
-  addresses: AddressRow[];
 };
 
-export function QuoteCheckoutClient({ detail, addresses }: Props) {
+export function QuoteCheckoutClient({ detail }: Props) {
   const router = useRouter();
   const [pending, start] = useTransition();
+  const [error, setError] = useState<string | null>(null);
   const [billingSame, setBillingSame] = useState(true);
+  const [billingType, setBillingType] = useState<"individual" | "corporate">(
+    "individual"
+  );
+  const [billingForm, setBillingForm] = useState(emptyBillingForm());
+  const [notes, setNotes] = useState("");
+
   const subtotal = detail.unit_price * detail.quantity;
   const grandTotal = subtotal + detail.shipping_price;
 
-  const deliverySnapshot = {
+  const deliverySnapshot: AddressSnapshot = {
     full_name: detail.delivery_address.full_name,
     phone: detail.delivery_address.phone,
     city: detail.delivery_address.city,
@@ -59,92 +71,68 @@ export function QuoteCheckoutClient({ detail, addresses }: Props) {
           {deliverySnapshot.address_line}, {deliverySnapshot.district}/
           {deliverySnapshot.city}
         </p>
-      </div>
 
-      <form
-        className="rounded-2xl border border-border bg-surface p-4 text-sm"
-        onSubmit={(e) => {
-          e.preventDefault();
-          const fd = new FormData(e.currentTarget);
-          const billingId = billingSame
-            ? null
-            : String(fd.get("billingId") || "");
-          const billing = billingSame
-            ? deliverySnapshot
-            : (() => {
-                const a = addresses.find((x) => x.id === billingId);
-                if (!a) return deliverySnapshot;
-                return {
-                  full_name: a.full_name,
-                  phone: a.phone,
-                  city: a.city,
-                  district: a.district,
-                  address_line: a.address_line,
-                  postal_code: a.postal_code ?? undefined,
-                };
-              })();
-
-          start(async () => {
-            const result = await placeQuoteOrder({
-              sellerQuoteId: detail.quote_id,
-              billingAddress: billing,
-              billingType:
-                (fd.get("billingType") as "individual" | "corporate") ||
-                "individual",
-              notes: String(fd.get("notes") || ""),
-            });
-            if (!result.ok) alert(result.error);
-            else router.push(`/hesabim/siparisler/${result.orderNumber}`);
-          });
-        }}
-      >
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={billingSame}
-            onChange={(e) => setBillingSame(e.target.checked)}
-          />
-          Fatura adresi teslimat ile aynı
-        </label>
-
-        {!billingSame && addresses.length ? (
-          <select
-            name="billingId"
-            className="mt-3 h-10 w-full rounded-lg border border-border bg-background px-3"
-            defaultValue={addresses[0]?.id}
-          >
-            {addresses.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.full_name}, {a.district}/{a.city}
-              </option>
-            ))}
-          </select>
+        {error ? (
+          <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+            {error}
+          </p>
         ) : null}
 
-        <select
-          name="billingType"
-          className="mt-3 h-10 w-full rounded-lg border border-border bg-background px-3"
-          defaultValue="individual"
-        >
-          <option value="individual">Bireysel fatura</option>
-          <option value="corporate">Kurumsal fatura</option>
-        </select>
+        <BillingDetailsSection
+          billingSame={billingSame}
+          onBillingSameChange={setBillingSame}
+          billingType={billingType}
+          onBillingTypeChange={setBillingType}
+          billingForm={billingForm}
+          onBillingFormChange={(patch) =>
+            setBillingForm((prev) => ({ ...prev, ...patch }))
+          }
+        />
 
         <textarea
-          name="notes"
           rows={2}
           placeholder="Sipariş notu (opsiyonel)"
-          className="mt-3 w-full rounded-lg border border-border bg-background px-3 py-2"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          className="mt-4 w-full rounded-lg border border-border bg-background px-3 py-2"
         />
 
         <button
-          type="submit"
+          type="button"
           disabled={pending}
+          onClick={() => {
+            const billingError = validateBillingInput(
+              billingSame,
+              billingType,
+              billingForm
+            );
+            if (billingError) {
+              setError(billingError);
+              return;
+            }
+            const billing = buildBillingSnapshot(
+              billingSame,
+              billingType,
+              deliverySnapshot,
+              billingForm
+            );
+            setError(null);
+            start(async () => {
+              const result = await placeQuoteOrder({
+                sellerQuoteId: detail.quote_id,
+                billingAddress: billing.billing_address,
+                billingType: billing.billing_type,
+                notes: notes.trim() || undefined,
+              });
+              if (!result.ok) setError(result.error);
+              else router.push(`/hesabim/siparisler/${result.orderNumber}`);
+            });
+          }}
           className="mt-4 h-11 w-full rounded-xl bg-primary text-sm font-semibold text-white hover:bg-primary-hover disabled:opacity-60"
         >
           {pending ? "Ödeme alınıyor…" : "Mock ödeme ile siparişi tamamla"}
         </button>
-      </form>
+      </div>
     </div>
   );
 }

@@ -16,6 +16,12 @@ import type { AddressRow } from "@/lib/orders/types";
 import { TR_CITIES } from "@/lib/orders/tr-cities";
 import { createAddress } from "@/app/actions/addresses";
 import { placeOrder } from "@/app/actions/orders";
+import {
+  BillingDetailsSection,
+  buildBillingSnapshot,
+  emptyBillingForm,
+  validateBillingInput,
+} from "@/components/checkout/BillingDetailsSection";
 
 type CheckoutClientProps = {
   addresses: AddressRow[];
@@ -48,12 +54,10 @@ export function CheckoutClient({ addresses }: CheckoutClientProps) {
     addresses.find((a) => a.is_default_shipping)?.id ?? addresses[0]?.id ?? ""
   );
   const [billingSame, setBillingSame] = useState(true);
-  const [billingId, setBillingId] = useState(
-    addresses.find((a) => a.is_default_billing)?.id ?? addresses[0]?.id ?? ""
-  );
   const [billingType, setBillingType] = useState<"individual" | "corporate">(
     "individual"
   );
+  const [billingForm, setBillingForm] = useState(emptyBillingForm());
   const [showNewAddress, setShowNewAddress] = useState(!addresses.length);
   const [city, setCity] = useState(TR_CITIES[0]?.city ?? "");
   const districts = useMemo(
@@ -92,10 +96,17 @@ export function CheckoutClient({ addresses }: CheckoutClientProps) {
     return a ? addressToSnapshot(a) : null;
   }
 
-  function selectedBilling(): AddressSnapshot | null {
-    if (billingSame) return selectedShipping();
-    const a = addresses.find((x) => x.id === billingId);
-    return a ? addressToSnapshot(a) : null;
+  function resolveBilling():
+    | { billing_type: "individual" | "corporate"; billing_address: AddressSnapshot }
+    | null {
+    const shipping = selectedShipping();
+    if (!shipping) return null;
+    const billingError = validateBillingInput(billingSame, billingType, billingForm);
+    if (billingError) {
+      setError(billingError);
+      return null;
+    }
+    return buildBillingSnapshot(billingSame, billingType, shipping, billingForm);
   }
 
   return (
@@ -240,58 +251,16 @@ export function CheckoutClient({ addresses }: CheckoutClientProps) {
               </form>
             ) : null}
 
-            <div className="mt-6 border-t border-border pt-4">
-              <h3 className="text-sm font-semibold text-ink">Fatura tipi</h3>
-              <div className="mt-2 flex gap-4 text-sm">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    checked={billingType === "individual"}
-                    onChange={() => setBillingType("individual")}
-                  />
-                  Bireysel
-                </label>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    checked={billingType === "corporate"}
-                    onChange={() => setBillingType("corporate")}
-                  />
-                  Kurumsal
-                </label>
-              </div>
-              <label className="mt-3 flex items-center gap-2 text-sm text-ink">
-                <input
-                  type="checkbox"
-                  checked={billingSame}
-                  onChange={(e) => setBillingSame(e.target.checked)}
-                />
-                Fatura adresi teslimat ile aynı
-              </label>
-              {!billingSame && addresses.length ? (
-                <div className="mt-3 space-y-2">
-                  {addresses.map((a) => (
-                    <label
-                      key={a.id}
-                      className={`flex cursor-pointer gap-3 rounded-xl border p-3 text-sm ${
-                        billingId === a.id
-                          ? "border-primary bg-primary-soft"
-                          : "border-border"
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        checked={billingId === a.id}
-                        onChange={() => setBillingId(a.id)}
-                      />
-                      <span>
-                        {a.full_name} — {a.district}/{a.city}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              ) : null}
-            </div>
+            <BillingDetailsSection
+              billingSame={billingSame}
+              onBillingSameChange={setBillingSame}
+              billingType={billingType}
+              onBillingTypeChange={setBillingType}
+              billingForm={billingForm}
+              onBillingFormChange={(patch) =>
+                setBillingForm((prev) => ({ ...prev, ...patch }))
+              }
+            />
 
             <button
               type="button"
@@ -301,10 +270,7 @@ export function CheckoutClient({ addresses }: CheckoutClientProps) {
                   setError("Teslimat adresi seçin veya ekleyin.");
                   return;
                 }
-                if (!selectedBilling()) {
-                  setError("Fatura adresi seçin.");
-                  return;
-                }
+                if (!resolveBilling()) return;
                 setError(null);
                 setStep(2);
               }}
@@ -384,9 +350,9 @@ export function CheckoutClient({ addresses }: CheckoutClientProps) {
                 className="h-11 rounded-xl bg-primary px-5 text-sm font-semibold text-white hover:bg-primary-hover disabled:opacity-60"
                 onClick={() => {
                   const shipping = selectedShipping();
-                  const billing = selectedBilling();
+                  const billing = resolveBilling();
                   if (!shipping || !billing) {
-                    setError("Adres bilgileri eksik.");
+                    if (!shipping) setError("Adres bilgileri eksik.");
                     return;
                   }
                   setError(null);
@@ -402,13 +368,8 @@ export function CheckoutClient({ addresses }: CheckoutClientProps) {
                       })),
                       shop_shipping,
                       shipping_address: shipping,
-                      billing_address: {
-                        ...billing,
-                        ...(billingType === "corporate"
-                          ? { company_name: billing.full_name }
-                          : {}),
-                      },
-                      billing_type: billingType,
+                      billing_address: billing.billing_address,
+                      billing_type: billing.billing_type,
                       currency: items[0]?.currency ?? "TRY",
                       mock_payment: true,
                     });
