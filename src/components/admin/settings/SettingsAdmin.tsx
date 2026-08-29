@@ -98,6 +98,7 @@ export function SettingsAdmin({ settings, features }: Props) {
   const [seoDescription, setSeoDescription] = useState(
     settings.seo_description ?? ""
   );
+  const [siteUrl, setSiteUrl] = useState(settings.site_url ?? "");
   const [social, setSocial] = useState<Record<string, string>>(() => {
     const base: Record<string, string> = {};
     for (const k of SOCIAL_KEYS) {
@@ -139,6 +140,7 @@ export function SettingsAdmin({ settings, features }: Props) {
         companyName: companyName || null,
         seoTitle: seoTitle || null,
         seoDescription: seoDescription || null,
+        siteUrl: siteUrl || null,
         socialLinks: social,
       });
       if (result.error) setError(result.error);
@@ -287,6 +289,18 @@ export function SettingsAdmin({ settings, features }: Props) {
               onChange={(e) => setCompanyName(e.target.value)}
               className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm"
             />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="mb-1.5 block text-sm font-medium">Site URL</label>
+            <input
+              value={siteUrl}
+              onChange={(e) => setSiteUrl(e.target.value)}
+              placeholder="https://www.ornek.com"
+              className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm"
+            />
+            <p className="mt-1 text-xs text-ink-muted">
+              Sitemap, canonical ve Open Graph için. Boş bırakılırsa NEXT_PUBLIC_SITE_URL kullanılır.
+            </p>
           </div>
           <div className="sm:col-span-2">
             <label className="mb-1.5 block text-sm font-medium">SEO title</label>

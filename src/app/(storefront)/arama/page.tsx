@@ -12,18 +12,32 @@ import { Breadcrumb } from "@/components/catalog/Breadcrumb";
 import { Pagination } from "@/components/catalog/Pagination";
 import { ProductGrid } from "@/components/catalog/ProductGrid";
 import { SortSelect } from "@/components/catalog/SortSelect";
+import { SearchPageTracker } from "@/components/analytics/SearchPageTracker";
+import { buildPageMetadata } from "@/lib/seo/metadata";
+import { getSiteUrl } from "@/lib/seo/site-url";
+
+export const revalidate = 300;
 
 type PageProps = {
   searchParams: Record<string, string | string[] | undefined>;
 };
 
 export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
-  const settings = await getMarketplaceSettings();
+  const [settings, siteUrl] = await Promise.all([
+    getMarketplaceSettings(),
+    getSiteUrl(),
+  ]);
   const q = typeof searchParams.q === "string" ? searchParams.q : "";
   const title = q ? `"${q}" arama sonuçları` : "Arama";
-  return {
+
+  return buildPageMetadata({
     title: `${title} | ${settings.marketplace_name}`,
-  };
+    description: q ? `"${q}" için arama sonuçları` : settings.seo_description,
+    siteName: settings.marketplace_name,
+    canonicalPath: q ? `/arama?q=${encodeURIComponent(q)}` : "/arama",
+    siteUrl,
+    noIndex: true,
+  });
 }
 
 export default async function SearchPage({ searchParams }: PageProps) {
@@ -50,6 +64,10 @@ export default async function SearchPage({ searchParams }: PageProps) {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 md:px-6 lg:px-8">
+      {q.length >= 2 ? (
+        <SearchPageTracker query={q} resultCount={result.total} />
+      ) : null}
+
       <Breadcrumb items={[{ name: "Arama" }]} />
 
       <h1 className="font-display text-2xl font-bold text-ink md:text-3xl">
@@ -85,6 +103,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
               products={result.items}
               favoritesEnabled={favoritesEnabled}
               favoriteIds={favoriteIds}
+              searchQuery={q}
             />
             <Suspense fallback={null}>
               <Pagination page={page} pageSize={result.pageSize} total={result.total} />

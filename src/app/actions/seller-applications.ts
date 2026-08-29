@@ -13,6 +13,7 @@ import {
   sendSellerRejected,
 } from "@/lib/email/send";
 import { enforceFormRateLimit } from "@/lib/security/request";
+import { trackEvent } from "@/lib/analytics/events";
 
 export type SellerAppActionState = {
   error?: string;
@@ -119,6 +120,14 @@ export async function submitSellerApplication(
 
   revalidatePath("/satici-ol");
   revalidatePath("/admin/saticilar/basvurular");
+
+  void trackEvent({
+    eventName: "seller_signup_completed",
+    sessionId: `user:${user.id}`,
+    userId: user.id,
+    properties: { company_name: d.company_name },
+  });
+
   return { success: "Başvurunuz alındı. E-posta ile bilgilendirileceksiniz." };
 }
 

@@ -9,9 +9,13 @@ import type {
   AdminSellerListItem,
   AdminSettlementRow,
   AdminUserRow,
+  AnalyticsEventCountRow,
+  AnalyticsFunnelRow,
   FinancialReportRow,
   GmvTrendRow,
   PlatformOpsSettings,
+  SearchAnalyticsRow,
+  ZeroResultSearchRow,
 } from "@/lib/admin/types";
 
 function unwrapOne<T>(value: T | T[] | null | undefined): T | null {
@@ -543,4 +547,71 @@ export async function getSellerSettlementReport(
   }
 
   return Array.from(map.values()).sort((a, b) => b.total_net - a.total_net);
+}
+
+export async function getSearchAnalytics(
+  days = 30
+): Promise<SearchAnalyticsRow[]> {
+  const admin = getSupabaseAdmin();
+  const { data, error } = await admin.rpc("admin_get_search_analytics", {
+    p_days: days,
+  });
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((r: Record<string, unknown>) => ({
+    query: String(r.query),
+    search_count: Number(r.search_count),
+    avg_result_count: Number(r.avg_result_count),
+    click_count: Number(r.click_count),
+    click_rate: Number(r.click_rate),
+  }));
+}
+
+export async function getZeroResultSearches(
+  days = 30
+): Promise<ZeroResultSearchRow[]> {
+  const admin = getSupabaseAdmin();
+  const { data, error } = await admin.rpc("admin_get_zero_result_searches", {
+    p_days: days,
+  });
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((r: Record<string, unknown>) => ({
+    query: String(r.query),
+    search_count: Number(r.search_count),
+  }));
+}
+
+export async function getAnalyticsEventCounts(
+  days = 30
+): Promise<AnalyticsEventCountRow[]> {
+  const admin = getSupabaseAdmin();
+  const { data, error } = await admin.rpc("admin_get_analytics_event_counts", {
+    p_days: days,
+  });
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((r: Record<string, unknown>) => ({
+    event_name: String(r.event_name),
+    event_count: Number(r.event_count),
+  }));
+}
+
+export async function getAnalyticsFunnel(
+  days = 30
+): Promise<AnalyticsFunnelRow> {
+  const admin = getSupabaseAdmin();
+  const { data, error } = await admin.rpc("admin_get_analytics_funnel", {
+    p_days: days,
+  });
+  if (error) throw new Error(error.message);
+  const row = (Array.isArray(data) ? data[0] : data) as Record<
+    string,
+    unknown
+  > | null;
+  return {
+    view_product: Number(row?.view_product ?? 0),
+    add_to_cart: Number(row?.add_to_cart ?? 0),
+    begin_checkout: Number(row?.begin_checkout ?? 0),
+    purchase: Number(row?.purchase ?? 0),
+    view_to_cart_rate: Number(row?.view_to_cart_rate ?? 0),
+    cart_to_purchase_rate: Number(row?.cart_to_purchase_rate ?? 0),
+  };
 }

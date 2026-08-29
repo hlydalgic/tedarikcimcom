@@ -27,6 +27,33 @@ export type PlatformOpsSettings = {
   payout_hold_days: number;
 };
 
+export type SearchAnalyticsRow = {
+  query: string;
+  search_count: number;
+  avg_result_count: number;
+  click_count: number;
+  click_rate: number;
+};
+
+export type ZeroResultSearchRow = {
+  query: string;
+  search_count: number;
+};
+
+export type AnalyticsEventCountRow = {
+  event_name: string;
+  event_count: number;
+};
+
+export type AnalyticsFunnelRow = {
+  view_product: number;
+  add_to_cart: number;
+  begin_checkout: number;
+  purchase: number;
+  view_to_cart_rate: number;
+  cart_to_purchase_rate: number;
+};
+
 export type AdminSellerListItem = {
   id: string;
   name: string;

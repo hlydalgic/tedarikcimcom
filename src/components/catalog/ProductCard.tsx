@@ -1,19 +1,21 @@
 import Image from "next/image";
-import Link from "next/link";
 import type { CatalogProductListItem } from "@/lib/catalog/types";
 import { formatPrice } from "@/lib/format";
 import { FavoriteButton } from "@/components/catalog/FavoriteButton";
+import { ProductLink } from "@/components/catalog/ProductLink";
 
 type ProductCardProps = {
   product: CatalogProductListItem;
   favoritesEnabled?: boolean;
   initialFavorited?: boolean;
+  searchQuery?: string;
 };
 
 export function ProductCard({
   product,
   favoritesEnabled = false,
   initialFavorited = false,
+  searchQuery,
 }: ProductCardProps) {
   const inStock = product.stock > 0;
   const imageUrl =
@@ -22,8 +24,10 @@ export function ProductCard({
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-surface transition duration-300 hover:border-primary/25 hover:shadow-soft">
-      <Link
+      <ProductLink
         href={`/urunler/${product.slug}`}
+        searchQuery={searchQuery}
+        productId={product.id}
         className="relative block aspect-[4/3] overflow-hidden bg-background"
       >
         <Image
@@ -47,23 +51,27 @@ export function ProductCard({
             />
           </div>
         ) : null}
-      </Link>
+      </ProductLink>
 
       <div className="flex flex-1 flex-col p-4">
         {product.brand_name ? (
           <p className="text-xs font-medium text-ink-muted">{product.brand_name}</p>
         ) : null}
-        <Link href={`/urunler/${product.slug}`}>
+        <ProductLink
+          href={`/urunler/${product.slug}`}
+          searchQuery={searchQuery}
+          productId={product.id}
+        >
           <h3 className="mt-1 line-clamp-2 text-sm font-semibold leading-snug text-ink transition group-hover:text-primary">
             {product.title}
           </h3>
-        </Link>
-        <Link
+        </ProductLink>
+        <ProductLink
           href={`/magaza/${product.shop_slug}`}
-          className="mt-1 text-xs text-ink-muted hover:text-primary"
+          className="mt-1 block text-xs text-ink-muted hover:text-primary"
         >
           {product.shop_name}
-        </Link>
+        </ProductLink>
 
         <div className="mt-auto flex items-end justify-between gap-2 pt-4">
           <div>
@@ -77,12 +85,14 @@ export function ProductCard({
               </p>
             ) : null}
           </div>
-          <Link
+          <ProductLink
             href={`/urunler/${product.slug}`}
+            searchQuery={searchQuery}
+            productId={product.id}
             className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white transition hover:bg-primary-hover"
           >
             İncele
-          </Link>
+          </ProductLink>
         </div>
       </div>
     </article>

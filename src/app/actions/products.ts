@@ -14,6 +14,7 @@ import {
   sendProductApprovedEmail,
   sendProductRejectedEmail,
 } from "@/lib/email/send";
+import { trackEvent } from "@/lib/analytics/events";
 
 export type ProductActionState = {
   error?: string;
@@ -33,6 +34,7 @@ function revalidateSeller(productId?: string) {
   revalidatePath("/panel/urunler/ekle");
   revalidatePath("/admin/urunler");
   revalidatePath("/admin/urunler/bekleyen");
+  revalidatePath("/sitemap.xml");
   if (productId) revalidatePath(`/panel/urunler/${productId}`);
 }
 
@@ -294,6 +296,14 @@ export async function createProduct(
   }
 
   revalidateSeller(product.id);
+  if (data.submitForReview && status === "ACTIVE") {
+    void trackEvent({
+      eventName: "product_published",
+      sessionId: `user:${ctx.userId}`,
+      userId: ctx.userId,
+      properties: { product_id: product.id },
+    });
+  }
   return {
     success: data.submitForReview
       ? status === "ACTIVE"
@@ -416,6 +426,14 @@ export async function approveProduct(
   }
 
   revalidateSeller(productId);
+
+  void trackEvent({
+    eventName: "product_published",
+    sessionId: `admin:${ctx.userId}`,
+    userId: ctx.userId,
+    properties: { product_id: productId },
+  });
+
   return { success: "Ürün onaylandı." };
 }
 

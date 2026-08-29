@@ -14,6 +14,10 @@ import { Pagination } from "@/components/catalog/Pagination";
 import { ProductGrid } from "@/components/catalog/ProductGrid";
 import { SortSelect } from "@/components/catalog/SortSelect";
 import { Breadcrumb } from "@/components/catalog/Breadcrumb";
+import { buildPageMetadata } from "@/lib/seo/metadata";
+import { getSiteUrl } from "@/lib/seo/site-url";
+
+export const revalidate = 300;
 
 type PageProps = {
   params: { slug: string };
@@ -35,17 +39,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const shop = await getShopBySlug(params.slug);
   if (!shop) return { title: "Mağaza bulunamadı" };
 
-  const settings = await getMarketplaceSettings();
-  return {
+  const [settings, siteUrl] = await Promise.all([
+    getMarketplaceSettings(),
+    getSiteUrl(),
+  ]);
+
+  return buildPageMetadata({
     title: `${shop.name} | ${settings.marketplace_name}`,
-    description: shop.description ?? undefined,
-    openGraph: {
-      title: shop.name,
-      description: shop.description ?? undefined,
-      siteName: settings.marketplace_name,
-      images: shop.banner_url ? [{ url: shop.banner_url }] : undefined,
-    },
-  };
+    description: shop.description,
+    siteName: settings.marketplace_name,
+    canonicalPath: `/magaza/${params.slug}`,
+    siteUrl,
+    imageUrl: shop.banner_url ?? shop.logo_url,
+  });
 }
 
 export default async function ShopPage({ params, searchParams }: PageProps) {

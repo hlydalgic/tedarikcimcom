@@ -20,6 +20,8 @@ import {
   BarChart3,
   ScrollText,
   RotateCcw,
+  Search,
+  LineChart,
 } from "lucide-react";
 import { signOut } from "@/app/actions/auth";
 
@@ -107,6 +109,18 @@ const NAV_ITEMS = [
     href: "/admin/raporlar",
     icon: BarChart3,
     match: (pathname: string) => pathname.startsWith("/admin/raporlar"),
+  },
+  {
+    label: "Analitik",
+    href: "/admin/analitik",
+    icon: LineChart,
+    match: (pathname: string) => pathname.startsWith("/admin/analitik"),
+  },
+  {
+    label: "Arama analitiği",
+    href: "/admin/arama-analitigi",
+    icon: Search,
+    match: (pathname: string) => pathname.startsWith("/admin/arama-analitigi"),
   },
   {
     label: "Loglar",

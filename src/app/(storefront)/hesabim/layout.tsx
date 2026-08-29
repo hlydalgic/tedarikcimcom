@@ -1,9 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { requireUser } from "@/lib/auth/require-user";
 import {
   getMarketplaceFeatures,
   isFeatureEnabled,
 } from "@/lib/marketplace/settings";
+
+export const metadata: Metadata = {
+  title: "Hesabım",
+  robots: { index: false, follow: false },
+};
 
 export default async function HesabimLayout({
   children,

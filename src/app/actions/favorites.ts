@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getMarketplaceFeatures, isFeatureEnabled } from "@/lib/marketplace/settings";
+import { trackEvent } from "@/lib/analytics/events";
 
 export type FavoriteActionResult =
   | { ok: true; favorited: boolean }
@@ -51,5 +52,11 @@ export async function toggleFavorite(
 
   if (error) return { ok: false, error: error.message };
   revalidatePath("/hesabim/favoriler");
+  void trackEvent({
+    eventName: "add_to_favorite",
+    sessionId: `user:${user.id}`,
+    userId: user.id,
+    properties: { product_id: productId },
+  });
   return { ok: true, favorited: true };
 }

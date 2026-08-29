@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ShoppingCart, Check } from "lucide-react";
 import { useCartStore } from "@/lib/cart/store";
+import { trackClientEvent } from "@/lib/analytics/client";
 import { QuoteRequestModal } from "@/components/quotes/QuoteRequestModal";
 import type { AddressRow } from "@/lib/orders/types";
 
@@ -86,6 +87,10 @@ export function ProductActions({
                 brandName: product.brandName,
                 shippingType: product.shippingType,
                 shippingPrice: product.shippingPrice,
+                quantity: qty,
+              });
+              void trackClientEvent("add_to_cart", {
+                product_id: product.id,
                 quantity: qty,
               });
               setAdded(true);

@@ -16,6 +16,13 @@ import { FilterSidebar } from "@/components/catalog/FilterSidebar";
 import { Pagination } from "@/components/catalog/Pagination";
 import { ProductGrid } from "@/components/catalog/ProductGrid";
 import { SortSelect } from "@/components/catalog/SortSelect";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { CategoryFilterTracker } from "@/components/analytics/CategoryFilterTracker";
+import { buildPageMetadata } from "@/lib/seo/metadata";
+import { buildBreadcrumbListJsonLd } from "@/lib/seo/json-ld";
+import { getSiteUrl } from "@/lib/seo/site-url";
+
+export const revalidate = 300;
 
 type PageProps = {
   params: { slug: string[] };
@@ -37,20 +44,23 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const category = await getCategoryBySlugPath(params.slug);
   if (!category) return { title: "Kategori bulunamadı" };
 
-  const settings = await getMarketplaceSettings();
+  const [settings, siteUrl] = await Promise.all([
+    getMarketplaceSettings(),
+    getSiteUrl(),
+  ]);
   const title = category.seo_title ?? category.name;
   const description =
     category.seo_description ?? category.description ?? settings.seo_description;
+  const canonicalPath = `/kategoriler/${params.slug.join("/")}`;
 
-  return {
+  return buildPageMetadata({
     title: `${title} | ${settings.marketplace_name}`,
-    description: description ?? undefined,
-    openGraph: {
-      title: `${title} | ${settings.marketplace_name}`,
-      description: description ?? undefined,
-      siteName: settings.marketplace_name,
-    },
-  };
+    description,
+    siteName: settings.marketplace_name,
+    canonicalPath,
+    siteUrl,
+    imageUrl: category.image_url,
+  });
 }
 
 export default async function CategoryPage({ params, searchParams }: PageProps) {
@@ -61,7 +71,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
   const urlParams = toURLSearchParams(searchParams);
   const { filters, sort, page } = parseFiltersFromSearchParams(urlParams, filterDefs);
 
-  const [result, crumbs, features, favoriteIds] = await Promise.all([
+  const [result, crumbs, features, favoriteIds, siteUrl] = await Promise.all([
     filterProducts({
       categoryId: category.id,
       filters,
@@ -72,12 +82,33 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
     getCategoryBreadcrumb(category.id),
     getMarketplaceFeatures(),
     listUserFavoriteIds(),
+    getSiteUrl(),
   ]);
 
   const favoritesEnabled = isFeatureEnabled(features, "favorites_enabled");
+  const categoryPath = `/kategoriler/${params.slug.join("/")}`;
+
+  const breadcrumbJsonLd = buildBreadcrumbListJsonLd(
+    [
+      { name: "Ana sayfa", href: "/" },
+      ...crumbs.map((c, i) => ({
+        name: c.name,
+        href:
+          i < crumbs.length - 1
+            ? buildCategoryHref(crumbs.slice(0, i + 1))
+            : categoryPath,
+      })),
+    ],
+    siteUrl
+  );
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 md:px-6 lg:px-8">
+      <JsonLd data={breadcrumbJsonLd} />
+      <Suspense fallback={null}>
+        <CategoryFilterTracker />
+      </Suspense>
+
       <Breadcrumb
         items={crumbs.map((c, i) => ({
           name: c.name,

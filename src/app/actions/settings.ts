@@ -13,6 +13,7 @@ function revalidateSite() {
   revalidatePath("/", "layout");
   revalidatePath("/admin");
   revalidatePath("/admin/ayarlar");
+  revalidatePath("/sitemap.xml");
 }
 
 export async function updateMarketplaceSettings(input: {
@@ -29,6 +30,7 @@ export async function updateMarketplaceSettings(input: {
   companyName?: string | null;
   seoTitle?: string | null;
   seoDescription?: string | null;
+  siteUrl?: string | null;
   socialLinks: Record<string, string>;
 }): Promise<SettingsActionState> {
   const ctx = await requireAdminClient();
@@ -78,6 +80,7 @@ export async function updateMarketplaceSettings(input: {
     company_name: input.companyName?.trim() || null,
     seo_title: input.seoTitle?.trim() || null,
     seo_description: input.seoDescription?.trim() || null,
+    site_url: input.siteUrl?.trim().replace(/\/$/, "") || null,
     social_links: social,
   };
 

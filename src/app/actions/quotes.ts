@@ -17,6 +17,7 @@ import {
   sendQuoteRequestReceivedEmail,
   sendSellerNewQuoteRequestEmail,
 } from "@/lib/email/send";
+import { trackEvent } from "@/lib/analytics/events";
 
 async function ensureQuotesEnabled() {
   const features = await getMarketplaceFeatures();
@@ -138,6 +139,13 @@ export async function createQuoteRequest(input: {
   revalidatePath("/hesabim/teklifler");
   revalidatePath("/panel/teklifler");
   revalidatePath(`/urunler/${product.id}`);
+
+  void trackEvent({
+    eventName: "quote_request_submitted",
+    sessionId: `user:${user.id}`,
+    userId: user.id,
+    properties: { product_id: product.id, request_id: row.id },
+  });
 
   return { ok: true, requestId: row.id };
 }

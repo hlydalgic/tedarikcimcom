@@ -6,6 +6,7 @@ type ProductGridProps = {
   favoritesEnabled?: boolean;
   favoriteIds?: Set<string>;
   columns?: "default" | "shop";
+  searchQuery?: string;
 };
 
 export function ProductGrid({
@@ -13,6 +14,7 @@ export function ProductGrid({
   favoritesEnabled = false,
   favoriteIds,
   columns = "default",
+  searchQuery,
 }: ProductGridProps) {
   if (!products.length) {
     return (
@@ -38,6 +40,7 @@ export function ProductGrid({
           product={product}
           favoritesEnabled={favoritesEnabled}
           initialFavorited={favoriteIds?.has(product.id)}
+          searchQuery={searchQuery}
         />
       ))}
     </div>

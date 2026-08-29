@@ -26,6 +26,15 @@ import { ProductGallery } from "@/components/catalog/ProductGallery";
 import { ProductGrid } from "@/components/catalog/ProductGrid";
 import { ProductSpecsTable } from "@/components/catalog/ProductSpecsTable";
 import { RecentlyViewedStrip } from "@/components/catalog/RecentlyViewedStrip";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { buildPageMetadata } from "@/lib/seo/metadata";
+import {
+  buildBreadcrumbListJsonLd,
+  buildProductJsonLd,
+} from "@/lib/seo/json-ld";
+import { absoluteUrl, getSiteUrl } from "@/lib/seo/site-url";
+
+export const revalidate = 60;
 
 type PageProps = { params: { slug: string } };
 
@@ -33,33 +42,36 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const product = await getProductBySlug(params.slug);
   if (!product) return { title: "Ürün bulunamadı" };
 
-  const settings = await getMarketplaceSettings();
+  const [settings, siteUrl] = await Promise.all([
+    getMarketplaceSettings(),
+    getSiteUrl(),
+  ]);
   const description =
     product.description?.slice(0, 160) ?? settings.seo_description ?? undefined;
 
-  return {
+  return buildPageMetadata({
     title: `${product.title} | ${settings.marketplace_name}`,
     description,
-    openGraph: {
-      title: product.title,
-      description,
-      siteName: settings.marketplace_name,
-      images: product.images[0]?.url ? [{ url: product.images[0].url }] : undefined,
-    },
-  };
+    siteName: settings.marketplace_name,
+    canonicalPath: `/urunler/${params.slug}`,
+    siteUrl,
+    imageUrl: product.images[0]?.url ?? null,
+  });
 }
 
 export default async function ProductDetailPage({ params }: PageProps) {
   const product = await getProductBySlug(params.slug);
   if (!product) notFound();
 
-  const [specs, related, crumbs, features, favorited] = await Promise.all([
-    getProductSpecs(product.id),
-    getRelatedProducts(product.category_id, product.id),
-    getCategoryBreadcrumb(product.category_id),
-    getMarketplaceFeatures(),
-    isProductFavorited(product.id),
-  ]);
+  const [specs, related, crumbs, features, favorited, siteUrl] =
+    await Promise.all([
+      getProductSpecs(product.id),
+      getRelatedProducts(product.category_id, product.id),
+      getCategoryBreadcrumb(product.category_id),
+      getMarketplaceFeatures(),
+      isProductFavorited(product.id),
+      getSiteUrl(),
+    ]);
 
   const favoritesEnabled = isFeatureEnabled(features, "favorites_enabled");
   const quotesEnabled = isFeatureEnabled(features, "quotes_enabled");
@@ -70,8 +82,36 @@ export default async function ProductDetailPage({ params }: PageProps) {
   } = await supabase.auth.getUser();
   const addresses = user ? await listUserAddresses() : [];
 
+  const productUrl = absoluteUrl(siteUrl, `/urunler/${product.slug}`);
+  const breadcrumbItems = [
+    { name: "Ana sayfa", href: "/" },
+    ...crumbs.map((c, i) => ({
+      name: c.name,
+      href:
+        i < crumbs.length - 1
+          ? buildCategoryHref(crumbs.slice(0, i + 1))
+          : `/kategoriler/${product.category_slug}`,
+    })),
+    { name: product.title },
+  ];
+
+  const productJsonLd = buildProductJsonLd({
+    name: product.title,
+    description: product.description,
+    imageUrl: product.images[0]?.url,
+    price: product.price,
+    currency: product.currency,
+    inStock: product.stock > 0,
+    sku: product.sku,
+    url: productUrl,
+    sellerName: product.shop_name,
+  });
+
+  const breadcrumbJsonLd = buildBreadcrumbListJsonLd(breadcrumbItems, siteUrl);
+
   return (
     <>
+      <JsonLd data={[productJsonLd, breadcrumbJsonLd]} />
       <div className="mx-auto max-w-7xl px-4 py-8 md:px-6 lg:px-8">
         <Breadcrumb
           items={[

@@ -1,5 +1,6 @@
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { AnalyticsTracker } from "@/components/analytics/AnalyticsTracker";
 import { listNavCategories } from "@/lib/catalog/queries";
 import {
   getMarketplaceFeatures,
@@ -20,6 +21,7 @@ export default async function StorefrontLayout({
 
   return (
     <>
+      <AnalyticsTracker />
       <Header
         branding={{
           shortName: settings.short_name,

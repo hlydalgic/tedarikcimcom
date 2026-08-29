@@ -20,6 +20,7 @@ export type MarketplaceSettings = {
   seo_title: string | null;
   seo_description: string | null;
   tagline: string | null;
+  site_url: string | null;
   social_links: Record<string, string>;
 };
 
@@ -69,6 +70,7 @@ function fallbackSettings(): MarketplaceSettings {
     seo_title: appName,
     seo_description: null,
     tagline: null,
+    site_url: null,
     social_links: {},
   };
 }
@@ -94,6 +96,7 @@ function mapSettings(row: Record<string, unknown>): MarketplaceSettings {
     seo_title: (row.seo_title as string | null) ?? null,
     seo_description: (row.seo_description as string | null) ?? null,
     tagline: (row.tagline as string | null) ?? null,
+    site_url: (row.site_url as string | null) ?? null,
     social_links:
       social && typeof social === "object" && !Array.isArray(social)
         ? (social as Record<string, string>)

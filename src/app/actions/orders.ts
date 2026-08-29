@@ -10,6 +10,7 @@ import {
 } from "@/lib/email/send";
 import type { CheckoutPayload } from "@/lib/orders/types";
 import { createSignedInvoiceUrl } from "@/lib/orders/queries";
+import { trackEvent } from "@/lib/analytics/events";
 
 export type CheckoutResult =
   | { ok: true; orderNumber: string; grandTotal: number }
@@ -98,6 +99,17 @@ export async function placeOrder(
 
   revalidatePath("/hesabim/siparisler");
   revalidatePath("/panel/siparisler");
+
+  void trackEvent({
+    eventName: "purchase",
+    sessionId: `user:${user.id}`,
+    userId: user.id,
+    properties: {
+      order_number: orderNumber,
+      grand_total: grandTotal,
+    },
+  });
+
   return { ok: true, orderNumber, grandTotal };
 }
 
