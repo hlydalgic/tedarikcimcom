@@ -5,6 +5,8 @@ import { getEmailBrand } from "@/lib/email/utils";
 import { logServerError } from "@/lib/security/errors";
 import {
   buildPasswordResetEmail,
+  buildProductApprovedEmail,
+  buildProductRejectedEmail,
   buildSellerApplicationAdminEmail,
   buildSellerApplicationReceivedEmail,
   buildSellerApprovedEmail,
@@ -125,6 +127,32 @@ export async function sendSellerRejected(input: {
   const mail = buildSellerRejectedEmail({
     brand,
     companyName: input.companyName,
+    reason: input.reason,
+  });
+  return sendEmail(input.to, mail.subject, mail.html);
+}
+
+export async function sendProductApprovedEmail(input: {
+  to: string;
+  productTitle: string;
+}) {
+  const brand = await getEmailBrand();
+  const mail = buildProductApprovedEmail({
+    brand,
+    productTitle: input.productTitle,
+  });
+  return sendEmail(input.to, mail.subject, mail.html);
+}
+
+export async function sendProductRejectedEmail(input: {
+  to: string;
+  productTitle: string;
+  reason: string;
+}) {
+  const brand = await getEmailBrand();
+  const mail = buildProductRejectedEmail({
+    brand,
+    productTitle: input.productTitle,
     reason: input.reason,
   });
   return sendEmail(input.to, mail.subject, mail.html);

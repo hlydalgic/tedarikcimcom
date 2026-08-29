@@ -136,3 +136,41 @@ export function buildSellerRejectedEmail(params: {
     html: buildEmailLayout(content, params.brand),
   };
 }
+
+export function buildProductApprovedEmail(params: {
+  brand: EmailBrand;
+  productTitle: string;
+}) {
+  const content = `
+    ${emailHeading("Ürününüz onaylandı")}
+    ${emailParagraph("Merhaba,")}
+    ${emailParagraph(
+      `<strong>${escapeHtml(params.productTitle)}</strong> ürününüz onaylandı ve ${escapeHtml(params.brand.marketplaceName)} üzerinde yayında.`
+    )}
+    ${emailButton(`${params.brand.siteUrl}/panel/urunler`, "Ürünlerime git", params.brand.primaryColor)}
+  `;
+  return {
+    subject: `Ürün onaylandı — ${params.brand.marketplaceName}`,
+    html: buildEmailLayout(content, params.brand),
+  };
+}
+
+export function buildProductRejectedEmail(params: {
+  brand: EmailBrand;
+  productTitle: string;
+  reason: string;
+}) {
+  const content = `
+    ${emailHeading("Ürününüz reddedildi")}
+    ${emailParagraph("Merhaba,")}
+    ${emailParagraph(
+      `<strong>${escapeHtml(params.productTitle)}</strong> ürününüz incelendi ancak onaylanamadı.`
+    )}
+    ${emailParagraph(`<strong>Gerekçe:</strong> ${escapeHtml(params.reason)}`)}
+    ${emailButton(`${params.brand.siteUrl}/panel/urunler`, "Ürünlerime git", params.brand.primaryColor)}
+  `;
+  return {
+    subject: `Ürün reddedildi — ${params.brand.marketplaceName}`,
+    html: buildEmailLayout(content, params.brand),
+  };
+}

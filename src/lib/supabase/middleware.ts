@@ -54,7 +54,8 @@ export async function updateSession(request: NextRequest) {
 
   if (
     pathname.startsWith("/hesabim") ||
-    pathname.startsWith("/satici-ol")
+    pathname.startsWith("/satici-ol") ||
+    pathname.startsWith("/panel")
   ) {
     if (!user) {
       const loginUrl = request.nextUrl.clone();
