@@ -6,6 +6,29 @@ export type CategoryStatus =
   | "rejected"
   | "archived";
 
+export type ProductCondition = "new" | "refurbished" | "used";
+
+export type ShippingType =
+  | "STANDARD"
+  | "FREE"
+  | "SELLER_DEFINED"
+  | "QUOTE_REQUIRED"
+  | "PICKUP";
+
+export const PRODUCT_CONDITIONS: { value: ProductCondition; label: string }[] = [
+  { value: "new", label: "Sıfır" },
+  { value: "refurbished", label: "Yenilenmiş" },
+  { value: "used", label: "İkinci el" },
+];
+
+export const SHIPPING_TYPES: { value: ShippingType; label: string }[] = [
+  { value: "STANDARD", label: "Standart" },
+  { value: "FREE", label: "Ücretsiz kargo" },
+  { value: "SELLER_DEFINED", label: "Satıcı tanımlı" },
+  { value: "QUOTE_REQUIRED", label: "Teklif gerekli" },
+  { value: "PICKUP", label: "Mağazadan teslim" },
+];
+
 export type CategoryRow = {
   id: string;
   parent_id: string | null;
@@ -23,6 +46,14 @@ export type CategoryRow = {
   show_on_homepage: boolean;
   show_in_nav: boolean;
   commission_rate: number | null;
+  required_image_count: number;
+  brand_required: boolean;
+  sku_required: boolean;
+  barcode_required: boolean;
+  condition_allowed: ProductCondition[];
+  allowed_shipping_types: ShippingType[];
+  product_approval_required: boolean;
+  min_description_length: number;
   created_at: string;
   updated_at: string;
   archived_at: string | null;

@@ -21,6 +21,7 @@ export type AttrActionState = {
 
 function revalidate() {
   revalidatePath("/admin/kategoriler");
+  revalidatePath("/admin/ozellikler");
 }
 
 const optionSchema = z.object({
@@ -711,4 +712,158 @@ export async function reorderCategoryFilter(input: {
 
   revalidate();
   return { success: true };
+}
+
+export async function createGlobalAttribute(input: {
+  name: string;
+  slug?: string;
+  type: AttributeType;
+  unitId?: string | null;
+  required?: boolean;
+  filterable?: boolean;
+  searchable?: boolean;
+  comparable?: boolean;
+  isVariantAttribute?: boolean;
+  showOnCard?: boolean;
+  showOnDetail?: boolean;
+  showInSpecs?: boolean;
+  showInSellerForm?: boolean;
+  sortOrder?: number;
+  placeholder?: string | null;
+  helpText?: string | null;
+  validationRules?: Record<string, unknown>;
+  options?: { label: string; value: string; color_hex?: string | null }[];
+  trueLabel?: string;
+  falseLabel?: string;
+}): Promise<AttrActionState> {
+  const ctx = await requireAdminClient();
+  if (!ctx.ok) return { error: ctx.error };
+
+  if (!ATTRIBUTE_TYPES.includes(input.type)) {
+    return { error: "Geçersiz attribute tipi." };
+  }
+
+  const name = input.name.trim();
+  if (name.length < 2) return { error: "Attribute adı en az 2 karakter olmalı." };
+
+  const slug = (input.slug?.trim() || slugifyAttributeName(name)).slice(0, 80);
+  const validation_rules: Record<string, unknown> = {
+    ...(input.validationRules ?? {}),
+  };
+  if (input.type === "BOOLEAN") {
+    if (input.trueLabel) validation_rules.true_label = input.trueLabel;
+    if (input.falseLabel) validation_rules.false_label = input.falseLabel;
+  }
+
+  const { data: attr, error: attrError } = await ctx.admin
+    .from("attributes")
+    .insert({
+      name,
+      slug,
+      type: input.type,
+      unit_id: input.unitId || null,
+      required: input.required ?? false,
+      filterable: input.filterable ?? false,
+      searchable: input.searchable ?? false,
+      comparable: input.comparable ?? false,
+      is_variant_attribute: input.isVariantAttribute ?? false,
+      show_on_card: input.showOnCard ?? false,
+      show_on_detail: input.showOnDetail ?? true,
+      show_in_specs: input.showInSpecs ?? true,
+      show_in_seller_form: input.showInSellerForm ?? true,
+      sort_order: input.sortOrder ?? 0,
+      placeholder: input.placeholder ?? null,
+      help_text: input.helpText ?? null,
+      validation_rules,
+      status: "active",
+    })
+    .select("*")
+    .single();
+
+  if (attrError) {
+    if (attrError.message.includes("attributes_slug")) {
+      return { error: "Bu slug zaten kullanılıyor." };
+    }
+    return { error: attrError.message };
+  }
+
+  if (
+    (input.type === "SELECT" ||
+      input.type === "MULTI_SELECT" ||
+      input.type === "COLOR") &&
+    input.options?.length
+  ) {
+    const rows = input.options.flatMap((o, i) => {
+      const parsed = optionSchema.safeParse(o);
+      if (!parsed.success) return [];
+      return [
+        {
+          attribute_id: attr.id,
+          label: parsed.data.label,
+          value: parsed.data.value,
+          color_hex: parsed.data.color_hex || null,
+          sort_order: i,
+          status: "active" as const,
+        },
+      ];
+    });
+    if (rows.length) {
+      const { error: optError } = await ctx.admin
+        .from("attribute_options")
+        .insert(rows);
+      if (optError) return { error: optError.message };
+    }
+  }
+
+  await writeAdminLog({
+    admin: ctx.admin,
+    adminUserId: ctx.userId,
+    action: "attribute.create",
+    entityType: "attribute",
+    entityId: attr.id,
+    newData: attr as Record<string, unknown>,
+  });
+
+  revalidate();
+  return { success: true, attributeId: attr.id };
+}
+
+export async function archiveAttribute(
+  attributeId: string
+): Promise<AttrActionState> {
+  const ctx = await requireAdminClient();
+  if (!ctx.ok) return { error: ctx.error };
+
+  const { data: oldRow } = await ctx.admin
+    .from("attributes")
+    .select("*")
+    .eq("id", attributeId)
+    .maybeSingle();
+
+  if (!oldRow) return { error: "Attribute bulunamadı." };
+
+  const { data, error } = await ctx.admin
+    .from("attributes")
+    .update({
+      status: "archived",
+      archived_at: new Date().toISOString(),
+    })
+    .eq("id", attributeId)
+    .select("*")
+    .single();
+
+  if (error) return { error: error.message };
+
+  await writeAdminLog({
+    admin: ctx.admin,
+    adminUserId: ctx.userId,
+    action: "attribute.archive",
+    entityType: "attribute",
+    entityId: attributeId,
+    oldData: oldRow as Record<string, unknown>,
+    newData: data as Record<string, unknown>,
+  });
+
+  revalidate();
+  return { success: true, attributeId };
 }

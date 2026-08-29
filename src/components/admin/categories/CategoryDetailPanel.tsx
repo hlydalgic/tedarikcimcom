@@ -17,6 +17,7 @@ import type {
 } from "@/lib/attributes/types";
 import { CategoryAttributesTab } from "@/components/admin/categories/CategoryAttributesTab";
 import { CategoryFiltersTab } from "@/components/admin/categories/CategoryFiltersTab";
+import { CategoryRulesTab } from "@/components/admin/categories/CategoryRulesTab";
 
 const TABS = [
   "GENEL",
@@ -428,6 +429,18 @@ export function CategoryDetailPanel({
           ) : (
             <p className="text-sm text-ink-muted">
               Önce kategoriyi oluşturun, sonra filtre ekleyin.
+            </p>
+          )
+        ) : tab === "ÜRÜN KURALLARI" ? (
+          mode === "edit" && category ? (
+            <CategoryRulesTab
+              category={category}
+              onMessage={(msg) => onMessage?.(msg)}
+              onError={(msg) => onError?.(msg)}
+            />
+          ) : (
+            <p className="text-sm text-ink-muted">
+              Önce kategoriyi oluşturun, sonra ürün kurallarını ayarlayın.
             </p>
           )
         ) : tab === "SEO" ? (

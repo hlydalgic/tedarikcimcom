@@ -426,3 +426,95 @@ export async function uploadCategoryImage(
   const { data } = ctx.admin.storage.from("category-images").getPublicUrl(path);
   return { url: data.publicUrl };
 }
+
+const PRODUCT_CONDITIONS = ["new", "refurbished", "used"] as const;
+const SHIPPING_TYPES = [
+  "STANDARD",
+  "FREE",
+  "SELLER_DEFINED",
+  "QUOTE_REQUIRED",
+  "PICKUP",
+] as const;
+
+export async function updateCategoryRules(input: {
+  categoryId: string;
+  requiredImageCount: number;
+  brandRequired: boolean;
+  skuRequired: boolean;
+  barcodeRequired: boolean;
+  conditionAllowed: string[];
+  allowedShippingTypes: string[];
+  productApprovalRequired: boolean;
+  minDescriptionLength: number;
+}): Promise<CategoryActionState> {
+  const ctx = await requireAdminClient();
+  if (!ctx.ok) return { error: ctx.error };
+
+  if (
+    !Number.isFinite(input.requiredImageCount) ||
+    input.requiredImageCount < 0
+  ) {
+    return { error: "Min görsel sayısı geçersiz." };
+  }
+  if (
+    !Number.isFinite(input.minDescriptionLength) ||
+    input.minDescriptionLength < 0
+  ) {
+    return { error: "Min açıklama uzunluğu geçersiz." };
+  }
+
+  const conditions = input.conditionAllowed.filter((c) =>
+    (PRODUCT_CONDITIONS as readonly string[]).includes(c)
+  );
+  const shipping = input.allowedShippingTypes.filter((s) =>
+    (SHIPPING_TYPES as readonly string[]).includes(s)
+  );
+
+  if (!conditions.length) {
+    return { error: "En az bir ürün durumu seçilmeli." };
+  }
+  if (!shipping.length) {
+    return { error: "En az bir kargo tipi seçilmeli." };
+  }
+
+  const { data: oldRow } = await ctx.admin
+    .from("categories")
+    .select("*")
+    .eq("id", input.categoryId)
+    .maybeSingle();
+
+  if (!oldRow) return { error: "Kategori bulunamadı." };
+
+  const patch = {
+    required_image_count: Math.floor(input.requiredImageCount),
+    brand_required: input.brandRequired,
+    sku_required: input.skuRequired,
+    barcode_required: input.barcodeRequired,
+    condition_allowed: conditions,
+    allowed_shipping_types: shipping,
+    product_approval_required: input.productApprovalRequired,
+    min_description_length: Math.floor(input.minDescriptionLength),
+  };
+
+  const { data, error } = await ctx.admin
+    .from("categories")
+    .update(patch)
+    .eq("id", input.categoryId)
+    .select("*")
+    .single();
+
+  if (error) return { error: mapDbError(error.message) };
+
+  await writeAdminLog({
+    admin: ctx.admin,
+    adminUserId: ctx.userId,
+    action: "category.rules_updated",
+    entityType: "category",
+    entityId: input.categoryId,
+    oldData: oldRow as Record<string, unknown>,
+    newData: data as Record<string, unknown>,
+  });
+
+  revalidateCategories(input.categoryId);
+  return { success: true, categoryId: input.categoryId };
+}

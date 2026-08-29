@@ -37,6 +37,17 @@ export type UnitRow = {
   category: string;
 };
 
+export const UNIT_CATEGORIES = [
+  "length",
+  "weight",
+  "pressure",
+  "electrical",
+  "volume",
+  "quantity",
+  "temperature",
+  "other",
+] as const;
+
 export type AttributeOptionRow = {
   id: string;
   attribute_id: string;

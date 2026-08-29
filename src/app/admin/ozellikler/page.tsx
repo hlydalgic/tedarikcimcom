@@ -1,10 +1,22 @@
-import { AdminPlaceholder } from "@/components/admin/AdminPlaceholder";
+import { AttributeCatalogAdmin } from "@/components/admin/attributes/AttributeCatalogAdmin";
+import {
+  countAttributeCategoryUsage,
+  listAttributes,
+  listUnits,
+} from "@/lib/attributes/queries";
 
-export default function AdminAttributesPage() {
+export default async function AdminAttributesPage() {
+  const [attributes, units, usageCounts] = await Promise.all([
+    listAttributes(),
+    listUnits(),
+    countAttributeCategoryUsage(),
+  ]);
+
   return (
-    <AdminPlaceholder
-      title="Özellikler"
-      description="Attribute catalog — tip, birim, seçenekler ve validasyon."
+    <AttributeCatalogAdmin
+      attributes={attributes}
+      units={units}
+      usageCounts={usageCounts}
     />
   );
 }

@@ -11,6 +11,8 @@ import {
   ShoppingBag,
   Store,
   Settings,
+  Tag,
+  Ruler,
   LogOut,
 } from "lucide-react";
 import { signOut } from "@/app/actions/auth";
@@ -39,6 +41,18 @@ const NAV_ITEMS = [
     href: "/admin/filtreler",
     icon: Filter,
     match: (pathname: string) => pathname.startsWith("/admin/filtreler"),
+  },
+  {
+    label: "Markalar",
+    href: "/admin/markalar",
+    icon: Tag,
+    match: (pathname: string) => pathname.startsWith("/admin/markalar"),
+  },
+  {
+    label: "Birimler",
+    href: "/admin/birimler",
+    icon: Ruler,
+    match: (pathname: string) => pathname.startsWith("/admin/birimler"),
   },
   {
     label: "Ürünler",

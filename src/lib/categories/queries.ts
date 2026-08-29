@@ -10,7 +10,10 @@ import {
 const CATEGORY_SELECT = `
   id, parent_id, path, depth, name, slug, description, image_url, icon,
   status, sort_order, seo_title, seo_description, show_on_homepage,
-  show_in_nav, commission_rate, created_at, updated_at, archived_at
+  show_in_nav, commission_rate, required_image_count, brand_required,
+  sku_required, barcode_required, condition_allowed, allowed_shipping_types,
+  product_approval_required, min_description_length,
+  created_at, updated_at, archived_at
 `;
 
 export async function listCategories(options?: {

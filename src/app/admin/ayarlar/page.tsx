@@ -1,10 +1,14 @@
-import { AdminPlaceholder } from "@/components/admin/AdminPlaceholder";
+import { SettingsAdmin } from "@/components/admin/settings/SettingsAdmin";
+import {
+  getMarketplaceFeatures,
+  getMarketplaceSettings,
+} from "@/lib/marketplace/settings";
 
-export default function AdminSettingsPage() {
-  return (
-    <AdminPlaceholder
-      title="Ayarlar"
-      description="Marketplace branding, feature flag ve platform ayarları."
-    />
-  );
+export default async function AdminSettingsPage() {
+  const [settings, features] = await Promise.all([
+    getMarketplaceSettings(),
+    getMarketplaceFeatures(),
+  ]);
+
+  return <SettingsAdmin settings={settings} features={features} />;
 }

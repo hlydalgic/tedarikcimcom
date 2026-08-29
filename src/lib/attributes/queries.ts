@@ -75,3 +75,22 @@ export async function listCategoryFilters(): Promise<CategoryFilterRow[]> {
   if (error) throw new Error(error.message);
   return (data ?? []) as CategoryFilterRow[];
 }
+
+/** Count of categories each attribute is assigned to. */
+export async function countAttributeCategoryUsage(): Promise<
+  Record<string, number>
+> {
+  const admin = getSupabaseAdmin();
+  const { data, error } = await admin
+    .from("category_attributes")
+    .select("attribute_id");
+  if (error) throw new Error(error.message);
+
+  const counts: Record<string, number> = {};
+  for (const row of data ?? []) {
+    const id = row.attribute_id as string;
+    counts[id] = (counts[id] ?? 0) + 1;
+  }
+  return counts;
+}
+
