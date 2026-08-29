@@ -15,6 +15,11 @@ import {
   Ruler,
   LogOut,
   FileText,
+  Wallet,
+  Users,
+  BarChart3,
+  ScrollText,
+  RotateCcw,
 } from "lucide-react";
 import { signOut } from "@/app/actions/auth";
 
@@ -78,6 +83,36 @@ const NAV_ITEMS = [
     href: "/admin/saticilar",
     icon: Store,
     match: (pathname: string) => pathname.startsWith("/admin/saticilar"),
+  },
+  {
+    label: "Hakedişler",
+    href: "/admin/hakedisler",
+    icon: Wallet,
+    match: (pathname: string) => pathname.startsWith("/admin/hakedisler"),
+  },
+  {
+    label: "İadeler",
+    href: "/admin/iadeler",
+    icon: RotateCcw,
+    match: (pathname: string) => pathname.startsWith("/admin/iadeler"),
+  },
+  {
+    label: "Kullanıcılar",
+    href: "/admin/kullanicilar",
+    icon: Users,
+    match: (pathname: string) => pathname.startsWith("/admin/kullanicilar"),
+  },
+  {
+    label: "Raporlar",
+    href: "/admin/raporlar",
+    icon: BarChart3,
+    match: (pathname: string) => pathname.startsWith("/admin/raporlar"),
+  },
+  {
+    label: "Loglar",
+    href: "/admin/loglar",
+    icon: ScrollText,
+    match: (pathname: string) => pathname.startsWith("/admin/loglar"),
   },
   {
     label: "Ayarlar",
