@@ -13,6 +13,13 @@ function safeNextPath(raw: string | null): string {
   return raw;
 }
 
+function resolveSuccessPath(next: string, otpType: string | null): string {
+  if (next === "/giris" || otpType === "signup" || otpType === "email") {
+    return "/auth/dogrulandi";
+  }
+  return next;
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const next = safeNextPath(searchParams.get("next"));
@@ -21,7 +28,10 @@ export async function GET(request: NextRequest) {
   const typeRaw = searchParams.get("type");
   const otpType = typeRaw ? normalizeOtpType(typeRaw) : null;
 
-  let response = NextResponse.redirect(authCallbackRedirectUrl(request, next));
+  const successPath = resolveSuccessPath(next, otpType);
+  let response = NextResponse.redirect(
+    authCallbackRedirectUrl(request, successPath)
+  );
   const supabase = createRouteHandlerClient(request, response);
 
   if (tokenHash && otpType) {

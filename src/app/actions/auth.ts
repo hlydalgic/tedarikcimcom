@@ -116,7 +116,7 @@ export async function signUp(
     };
   }
 
-  redirect("/giris?registered=1");
+  return { success: "check_email" };
 }
 
 export async function requestPasswordReset(

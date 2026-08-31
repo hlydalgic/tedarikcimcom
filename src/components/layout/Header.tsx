@@ -2,17 +2,12 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import {
-  Heart,
-  Menu,
-  ShoppingCart,
-  User,
-  X,
-  ChevronDown,
-} from "lucide-react";
+import { Menu, ShoppingCart, X, ChevronDown } from "lucide-react";
 import { BrandMark } from "@/components/branding/BrandMark";
 import { CartBadge } from "@/components/cart/CartBadge";
 import { SearchBar } from "@/components/catalog/SearchBar";
+import { HeaderUserMenu } from "@/components/layout/HeaderUserMenu";
+import type { HeaderUser } from "@/lib/auth/header-user";
 import type { NavCategory } from "@/lib/catalog/types";
 
 export type HeaderBranding = {
@@ -24,6 +19,7 @@ type HeaderProps = {
   branding: HeaderBranding;
   navCategories: NavCategory[];
   favoritesEnabled: boolean;
+  user: HeaderUser | null;
 };
 
 function categoryHref(cat: NavCategory, all: NavCategory[]): string {
@@ -38,7 +34,12 @@ function categoryHref(cat: NavCategory, all: NavCategory[]): string {
   return `/kategoriler/${parts.join("/")}`;
 }
 
-export function Header({ branding, navCategories, favoritesEnabled }: HeaderProps) {
+export function Header({
+  branding,
+  navCategories,
+  favoritesEnabled,
+  user,
+}: HeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [catsOpen, setCatsOpen] = useState(false);
 
@@ -66,23 +67,8 @@ export function Header({ branding, navCategories, favoritesEnabled }: HeaderProp
           <SearchBar />
         </div>
 
-        <nav className="ml-auto flex items-center gap-0.5 md:gap-1" aria-label="Hesap">
-          <Link
-            href="/hesabim/profil"
-            className="inline-flex h-10 items-center gap-1.5 rounded-lg px-2.5 text-sm font-medium text-ink transition hover:bg-background"
-          >
-            <User className="h-5 w-5" />
-            <span className="hidden lg:inline">Hesap</span>
-          </Link>
-          {favoritesEnabled ? (
-            <Link
-              href="/hesabim/favoriler"
-              className="inline-flex h-10 items-center gap-1.5 rounded-lg px-2.5 text-sm font-medium text-ink transition hover:bg-background"
-            >
-              <Heart className="h-5 w-5" />
-              <span className="hidden lg:inline">Favoriler</span>
-            </Link>
-          ) : null}
+        <nav className="ml-auto flex items-center gap-1 md:gap-2" aria-label="Hesap">
+          <HeaderUserMenu user={user} favoritesEnabled={favoritesEnabled} />
           <Link
             href="/sepet"
             className="relative inline-flex h-10 items-center gap-1.5 rounded-lg px-2.5 text-sm font-medium text-ink transition hover:bg-background"

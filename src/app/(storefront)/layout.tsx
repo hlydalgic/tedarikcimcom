@@ -1,6 +1,7 @@
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { AnalyticsTracker } from "@/components/analytics/AnalyticsTracker";
+import { getHeaderUser } from "@/lib/auth/header-user";
 import { listNavCategories } from "@/lib/catalog/queries";
 import {
   getMarketplaceFeatures,
@@ -13,10 +14,11 @@ export default async function StorefrontLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [settings, navCategories, features] = await Promise.all([
+  const [settings, navCategories, features, headerUser] = await Promise.all([
     getMarketplaceSettings(),
     listNavCategories(),
     getMarketplaceFeatures(),
+    getHeaderUser(),
   ]);
 
   return (
@@ -29,6 +31,7 @@ export default async function StorefrontLayout({
         }}
         navCategories={navCategories}
         favoritesEnabled={isFeatureEnabled(features, "favorites_enabled")}
+        user={headerUser}
       />
       <main>{children}</main>
       <Footer
