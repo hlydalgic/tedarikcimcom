@@ -6,7 +6,6 @@ import {
   isSellerRole,
 } from "@/lib/auth/get-user-roles";
 import {
-  buildAdminSubdomainReturnUrl,
   buildAdminSubdomainUrlFromAdminPath,
   getRequestHost,
   getStorefrontBaseUrl,
@@ -94,14 +93,12 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(homeUrl);
   }
 
-  if (pathname.startsWith("/admin")) {
+  if (pathname.startsWith("/admin") && !adminSubdomain) {
     if (!user) {
       const loginUrl = new URL("/giris", getStorefrontBaseUrl(request));
       loginUrl.searchParams.set(
         "redirect",
-        adminSubdomain
-          ? buildAdminSubdomainReturnUrl(request, host)
-          : `${pathname}${request.nextUrl.search}`
+        `${pathname}${request.nextUrl.search}`
       );
       return NextResponse.redirect(loginUrl);
     }

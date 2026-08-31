@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
-import { requireAdmin } from "@/lib/auth/require-admin";
+import { requireAdmin, requireAdminSubdomain } from "@/lib/auth/require-admin";
 import { getMarketplaceSettings } from "@/lib/marketplace/settings";
+import { isAdminSubdomainRequestFromHeaders } from "@/lib/site/admin-subdomain-server";
 
 export const metadata: Metadata = {
   title: "Admin",
@@ -15,7 +16,9 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const admin = await requireAdmin("/admin");
+  const admin = isAdminSubdomainRequestFromHeaders()
+    ? await requireAdminSubdomain()
+    : await requireAdmin("/admin");
   const settings = await getMarketplaceSettings();
 
   return (
