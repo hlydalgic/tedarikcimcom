@@ -6,7 +6,6 @@ import {
   isSellerRole,
 } from "@/lib/auth/get-user-roles";
 import {
-  buildAdminSubdomainUrlFromAdminPath,
   getRequestHost,
   getStorefrontBaseUrl,
   isAdminSubdomainHost,
@@ -21,16 +20,6 @@ export async function updateSession(request: NextRequest) {
   const host = getRequestHost(request);
   const adminSubdomain = isAdminSubdomainHost(host);
   const { pathname: rawPathname } = request.nextUrl;
-
-  if (!adminSubdomain && rawPathname.startsWith("/admin")) {
-    const adminTarget = buildAdminSubdomainUrlFromAdminPath(
-      rawPathname,
-      request.nextUrl.search
-    );
-    if (adminTarget) {
-      return NextResponse.redirect(adminTarget, 308);
-    }
-  }
 
   let rewriteUrl: URL | null = null;
   if (
@@ -91,22 +80,6 @@ export async function updateSession(request: NextRequest) {
     homeUrl.pathname = "/";
     homeUrl.search = "";
     return NextResponse.redirect(homeUrl);
-  }
-
-  if (pathname.startsWith("/admin") && !adminSubdomain) {
-    if (!user) {
-      const loginUrl = new URL("/giris", getStorefrontBaseUrl(request));
-      loginUrl.searchParams.set(
-        "redirect",
-        `${pathname}${request.nextUrl.search}`
-      );
-      return NextResponse.redirect(loginUrl);
-    }
-
-    const roles = await getUserRoles(supabase, user.id);
-    if (!isAdminRole(roles)) {
-      return NextResponse.redirect(new URL("/", getStorefrontBaseUrl(request)));
-    }
   }
 
   if (adminSubdomain && !pathname.startsWith("/admin")) {

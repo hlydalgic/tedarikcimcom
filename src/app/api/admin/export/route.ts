@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/auth/require-admin";
+import { notFound } from "next/navigation";
+import { requireAdminSubdomain } from "@/lib/auth/require-admin";
+import { isAdminSubdomainRequestFromHeaders } from "@/lib/site/admin-subdomain-server";
 import {
   getFinancialReport,
   getSellerSettlementReport,
