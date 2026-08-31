@@ -147,10 +147,123 @@ export const sellerApplicationStep5Schema = z.object({
   }),
 });
 
-export const sellerApplicationFullSchema = sellerApplicationStep1Schema
-  .merge(sellerApplicationStep2Schema)
-  .merge(sellerApplicationStep3Schema)
-  .merge(sellerApplicationStep5Schema);
+export const sellerApplicationFullSchema = z
+  .object({
+    company_type: z.enum(COMPANY_TYPES, {
+      message: "Şirket türü seçin.",
+    }),
+    company_name: z
+      .string()
+      .trim()
+      .min(2, "Şirket adı / unvan en az 2 karakter olmalı.")
+      .max(200),
+    tax_number: z.string().trim().min(1, "Vergi kimlik numarası gerekli."),
+    tax_office: z
+      .string()
+      .trim()
+      .min(2, "Vergi dairesi gerekli.")
+      .max(120),
+    activity_city: z.string().trim().min(1, "İl seçin."),
+    activity_district: z.string().trim().min(1, "İlçe seçin."),
+    activity_address: z
+      .string()
+      .trim()
+      .min(5, "Faaliyet adresi en az 5 karakter olmalı.")
+      .max(500),
+    shop_name: z
+      .string()
+      .trim()
+      .min(2, "Mağaza adı en az 2 karakter olmalı.")
+      .max(120),
+    category_ids: z
+      .array(z.string().uuid())
+      .min(1, "En az bir kategori seçin."),
+    phone: z
+      .string()
+      .trim()
+      .min(10, "Telefon numarası gerekli.")
+      .max(30),
+    billing_same_as_activity: z.boolean(),
+    billing_city: z.string().trim().optional(),
+    billing_district: z.string().trim().optional(),
+    billing_address: z.string().trim().optional(),
+    return_city: z.string().trim().min(1, "İade/depo ili seçin."),
+    return_district: z.string().trim().min(1, "İade/depo ilçesi seçin."),
+    return_address: z
+      .string()
+      .trim()
+      .min(5, "İade/depo adresi en az 5 karakter olmalı.")
+      .max(500),
+    e_invoice_declared: z.boolean(),
+    iban: ibanSchema,
+    bank_name: z
+      .string()
+      .trim()
+      .min(2, "Banka adı gerekli.")
+      .max(120),
+    seller_contract_accepted: z.boolean(),
+    e_invoice_confirmed: z.boolean(),
+    kvkk_accepted: z.boolean(),
+  })
+  .superRefine((data, ctx) => {
+    validateTaxNumber(data.company_type, data.tax_number, ctx);
+
+    if (!data.billing_same_as_activity) {
+      if (!data.billing_city?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Fatura ili seçin.",
+          path: ["billing_city"],
+        });
+      }
+      if (!data.billing_district?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Fatura ilçesi seçin.",
+          path: ["billing_district"],
+        });
+      }
+      if (
+        !data.billing_address?.trim() ||
+        data.billing_address.trim().length < 5
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Fatura adresi en az 5 karakter olmalı.",
+          path: ["billing_address"],
+        });
+      }
+    }
+
+    if (!data.e_invoice_declared) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "e-Fatura / e-Arşiv mükellefi olduğunuzu onaylamalısınız.",
+        path: ["e_invoice_declared"],
+      });
+    }
+    if (!data.seller_contract_accepted) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Satıcı sözleşmesini onaylamalısınız.",
+        path: ["seller_contract_accepted"],
+      });
+    }
+    if (!data.e_invoice_confirmed) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "e-Fatura / e-Arşiv mükellefi olduğunuzu onaylamalısınız.",
+        path: ["e_invoice_confirmed"],
+      });
+    }
+    if (!data.kvkk_accepted) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "KVKK aydınlatma metnini onaylamalısınız.",
+        path: ["kvkk_accepted"],
+      });
+    }
+  });
 
 export type SellerApplicationFormData = z.infer<
   typeof sellerApplicationFullSchema
