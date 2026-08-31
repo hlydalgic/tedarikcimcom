@@ -12,7 +12,10 @@ import {
 import { rowsToXlsxBuffer } from "@/lib/admin/export-xlsx";
 
 export async function GET(request: Request) {
-  await requireAdmin("/admin");
+  if (!isAdminSubdomainRequestFromHeaders()) {
+    notFound();
+  }
+  await requireAdminSubdomain();
   const url = new URL(request.url);
   const type = url.searchParams.get("type") ?? "gmv";
   const from =
