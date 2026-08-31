@@ -5,6 +5,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { getUserRoles, isAdminRole } from "@/lib/auth/get-user-roles";
+import { buildAuthCallbackUrl } from "@/lib/auth/callback-url";
 import { getSiteUrl } from "@/lib/email/resend";
 import {
   sendPasswordResetEmail,
@@ -139,7 +140,11 @@ export async function signUp(
         },
       });
 
-    if (linkError || !linkData.properties?.action_link) {
+    const verifyUrl = linkData?.properties
+      ? buildAuthCallbackUrl(linkData.properties, "/giris")
+      : null;
+
+    if (linkError || !verifyUrl) {
       logServerError("auth/signup-link", linkError);
       return {
         error:
@@ -150,7 +155,7 @@ export async function signUp(
     await sendVerifyEmail({
       to: data.email,
       fullName: data.full_name,
-      verifyUrl: linkData.properties.action_link,
+      verifyUrl,
     });
   } catch (err) {
     logServerError("auth/signup", err);
@@ -186,10 +191,14 @@ export async function requestPasswordReset(
       },
     });
 
-    if (!error && linkData.properties?.action_link) {
+    const resetUrl = linkData?.properties
+      ? buildAuthCallbackUrl(linkData.properties, "/sifre-sifirla/yeni")
+      : null;
+
+    if (!error && resetUrl) {
       await sendPasswordResetEmail({
         to: email,
-        resetUrl: linkData.properties.action_link,
+        resetUrl,
       });
     }
   } catch (err) {

@@ -1,32 +1,56 @@
-import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { NextRequest, NextResponse } from "next/server";
+import { logServerError } from "@/lib/security/errors";
+import {
+  authCallbackRedirectUrl,
+  createRouteHandlerClient,
+  normalizeOtpType,
+} from "@/lib/supabase/route-handler";
 
-export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+function safeNextPath(raw: string | null): string {
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) {
+    return "/";
+  }
+  return raw;
+}
+
+export async function GET(request: NextRequest) {
+  const { searchParams } = request.nextUrl;
+  const next = safeNextPath(searchParams.get("next"));
   const code = searchParams.get("code");
   const tokenHash = searchParams.get("token_hash");
-  const type = searchParams.get("type");
-  const nextRaw = searchParams.get("next") ?? "/";
-  const next = nextRaw.startsWith("/") ? nextRaw : "/";
+  const typeRaw = searchParams.get("type");
+  const otpType = typeRaw ? normalizeOtpType(typeRaw) : null;
 
-  const supabase = createClient();
+  let response = NextResponse.redirect(authCallbackRedirectUrl(request, next));
+  const supabase = createRouteHandlerClient(request, response);
+
+  if (tokenHash && otpType) {
+    const { error } = await supabase.auth.verifyOtp({
+      type: otpType,
+      token_hash: tokenHash,
+    });
+
+    if (!error) {
+      return response;
+    }
+
+    logServerError("auth/callback-verifyOtp", error);
+    return NextResponse.redirect(
+      authCallbackRedirectUrl(request, "/giris?error=auth")
+    );
+  }
 
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
+
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
+      return response;
     }
+
+    logServerError("auth/callback-exchangeCode", error);
   }
 
-  if (tokenHash && type) {
-    const { error } = await supabase.auth.verifyOtp({
-      type: type as "signup" | "recovery" | "email",
-      token_hash: tokenHash,
-    });
-    if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
-    }
-  }
-
-  return NextResponse.redirect(`${origin}/giris?error=auth`);
+  return NextResponse.redirect(
+    authCallbackRedirectUrl(request, "/giris?error=auth")
+  );
 }
