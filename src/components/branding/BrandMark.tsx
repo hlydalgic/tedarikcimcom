@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { splitBrandShortName } from "@/lib/branding/split-short-name";
 
 type BrandMarkProps = {
   shortName: string;
@@ -8,6 +9,43 @@ type BrandMarkProps = {
   href?: string;
   invert?: boolean;
 };
+
+function Wordmark({
+  shortName,
+  className,
+  invert,
+}: {
+  shortName: string;
+  className?: string;
+  invert?: boolean;
+}) {
+  const { lead, tail } = splitBrandShortName(shortName);
+
+  if (!tail) {
+    return (
+      <span
+        className={`font-display font-normal tracking-tight ${
+          invert ? "text-white" : "text-primary"
+        } ${className ?? ""}`}
+      >
+        {shortName.toLocaleLowerCase("tr")}
+      </span>
+    );
+  }
+
+  return (
+    <span className={`font-display tracking-tight ${className ?? ""}`}>
+      <span
+        className={`font-normal ${invert ? "text-white" : "text-primary"}`}
+      >
+        {lead.toLocaleLowerCase("tr")}
+      </span>
+      <span className="font-bold text-accent">
+        {tail.toLocaleLowerCase("tr")}
+      </span>
+    </span>
+  );
+}
 
 export function BrandMark({
   shortName,
@@ -26,13 +64,7 @@ export function BrandMark({
       priority
     />
   ) : (
-    <span
-      className={`font-display font-bold tracking-tight ${
-        invert ? "text-white" : "text-primary"
-      } ${className}`}
-    >
-      {shortName}
-    </span>
+    <Wordmark shortName={shortName} className={className} invert={invert} />
   );
 
   return (

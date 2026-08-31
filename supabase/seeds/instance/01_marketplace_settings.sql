@@ -1,7 +1,4 @@
--- =============================================================================
--- Instance seed: marketplace branding (this deployment = tedarikcim)
--- Swap this file for other white-label instances
--- =============================================================================
+-- Instance seed: marketplace branding (AhadaBuldum deployment)
 
 INSERT INTO public.marketplace_settings (
   marketplace_name,
@@ -23,23 +20,23 @@ INSERT INTO public.marketplace_settings (
   tagline,
   social_links
 ) VALUES (
-  'tedarikcim',
-  'tedarikcim',
+  'AhadaBuldum',
+  'AhadaBuldum',
   NULL,
   NULL,
   NULL,
   '#0A4D8C',
   '#1A6B9A',
   '#FF6B1A',
-  'destek@tedarikcim.com',
+  'destek@ahadabuldum.com',
   NULL,
-  'tedarikcim',
+  'AhadaBuldum',
   'TRY',
   'TR',
   'tr',
-  'Türkiye''nin Teknik Ürünler Pazaryeri',
-  'Boru, vana, hırdavat ve altyapı malzemelerini doğrulanmış satıcılardan güvenle tedarik edin.',
-  'Boru, hırdavat, vana ve daha fazlası — güvenilir satıcılardan tek platformda',
+  'AhadaBuldum — Türkiye''nin Teknik Ürünler Pazaryeri',
+  'Boru, hırdavat, vana ve altyapı malzemeleri — güvenilir satıcılardan tek platformda',
+  'Teknik ürünleri güvenle, hızla, doğru yerden bul.',
   '{}'::JSONB
 )
 ON CONFLICT ((true)) DO UPDATE SET

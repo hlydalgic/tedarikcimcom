@@ -24,6 +24,7 @@ import {
   LineChart,
 } from "lucide-react";
 import { signOut } from "@/app/actions/auth";
+import { BrandMark } from "@/components/branding/BrandMark";
 
 const NAV_ITEMS = [
   {
@@ -147,9 +148,7 @@ export function AdminSidebar({ shortName, email }: AdminSidebarProps) {
   return (
     <aside className="flex w-64 shrink-0 flex-col border-r border-border bg-surface">
       <div className="border-b border-border px-5 py-5">
-        <Link href="/admin" className="font-display text-lg font-bold text-primary">
-          {shortName}
-        </Link>
+        <BrandMark shortName={shortName} href="/admin" className="text-lg" />
         <p className="mt-1 text-xs font-medium uppercase tracking-wide text-ink-muted">
           Admin
         </p>
