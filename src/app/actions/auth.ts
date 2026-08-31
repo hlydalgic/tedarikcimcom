@@ -5,7 +5,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { getUserRoles, isAdminRole } from "@/lib/auth/get-user-roles";
-import { buildAuthCallbackUrl } from "@/lib/auth/callback-url";
+import { buildSignupVerifyUrl, buildRecoveryVerifyUrl } from "@/lib/auth/callback-url";
 import { getSiteUrl } from "@/lib/email/resend";
 import {
   sendPasswordResetEmail,
@@ -140,9 +140,8 @@ export async function signUp(
         },
       });
 
-    const verifyUrl = linkData?.properties
-      ? buildAuthCallbackUrl(linkData.properties, "/giris")
-      : null;
+    const tokenHash = linkData?.properties?.hashed_token?.trim();
+    const verifyUrl = tokenHash ? buildSignupVerifyUrl(tokenHash) : null;
 
     if (linkError || !verifyUrl) {
       logServerError("auth/signup-link", linkError);
@@ -191,9 +190,8 @@ export async function requestPasswordReset(
       },
     });
 
-    const resetUrl = linkData?.properties
-      ? buildAuthCallbackUrl(linkData.properties, "/sifre-sifirla/yeni")
-      : null;
+    const tokenHash = linkData?.properties?.hashed_token?.trim();
+    const resetUrl = tokenHash ? buildRecoveryVerifyUrl(tokenHash) : null;
 
     if (!error && resetUrl) {
       await sendPasswordResetEmail({

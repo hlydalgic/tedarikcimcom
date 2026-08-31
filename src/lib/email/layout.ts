@@ -2,6 +2,7 @@ import {
   escapeHtml,
   type EmailBrand,
 } from "@/lib/email/utils";
+import { getResendFromEmail } from "@/lib/email/resend";
 
 export function emailButton(
   href: string,
@@ -35,9 +36,12 @@ export function buildEmailLayout(content: string, brand: EmailBrand): string {
     ? `<img src="${escapeHtml(brand.logoUrl)}" alt="${name}" height="36" style="height: 36px; width: auto; display: block;" />`
     : `<span style="font-family: Georgia, 'Times New Roman', serif; font-size: 20px; font-weight: 700; color: ${escapeHtml(brand.primaryColor)};">${name}</span>`;
 
-  const support = brand.supportEmail
-    ? `<a href="mailto:${escapeHtml(brand.supportEmail)}" style="color: ${escapeHtml(brand.primaryColor)}; text-decoration: none;">${escapeHtml(brand.supportEmail)}</a>`
-    : "";
+  const footerEmail = getResendFromEmail();
+  const support = footerEmail
+    ? `<a href="mailto:${escapeHtml(footerEmail)}" style="color: ${escapeHtml(brand.primaryColor)}; text-decoration: none;">${escapeHtml(footerEmail)}</a>`
+    : brand.supportEmail
+      ? `<a href="mailto:${escapeHtml(brand.supportEmail)}" style="color: ${escapeHtml(brand.primaryColor)}; text-decoration: none;">${escapeHtml(brand.supportEmail)}</a>`
+      : "";
 
   return `<!DOCTYPE html>
 <html lang="tr">
