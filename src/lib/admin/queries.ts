@@ -101,7 +101,7 @@ export async function listAdminSellers(
   let query = admin
     .from("shops")
     .select(
-      `id, name, slug, status, moderation_mode, seller_id, created_at,
+      `id, name, slug, status, moderation_mode, owner_id, created_at,
        users(email, full_name),
        products(count),
        seller_orders(count)`
@@ -132,7 +132,7 @@ export async function listAdminSellers(
       slug: row.slug,
       status: row.status,
       moderation_mode: row.moderation_mode,
-      seller_id: row.seller_id,
+      seller_id: row.owner_id,
       seller_name: user?.full_name ?? null,
       seller_email: user?.email ?? null,
       product_count: Number(productCount),

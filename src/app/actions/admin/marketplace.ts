@@ -133,7 +133,7 @@ export async function adminCancelOrder(orderId: string, reason?: string) {
     .eq("id", orderId)
     .maybeSingle();
 
-  const { error } = await ctx.admin.rpc("cancel_order", { p_order_id: orderId });
+  const { error } = await ctx.session.rpc("cancel_order", { p_order_id: orderId });
   if (error) return { ok: false, error: error.message };
 
   await writeAdminLog({
@@ -161,7 +161,7 @@ export async function releaseSettlement(settlementId: string) {
     .eq("id", settlementId)
     .maybeSingle();
 
-  const { error } = await ctx.admin.rpc("admin_release_settlement", {
+  const { error } = await ctx.session.rpc("admin_release_settlement", {
     p_settlement_id: settlementId,
   });
   if (error) return { ok: false, error: error.message };
@@ -190,7 +190,7 @@ export async function holdSettlement(settlementId: string) {
     .eq("id", settlementId)
     .maybeSingle();
 
-  const { error } = await ctx.admin.rpc("admin_hold_settlement", {
+  const { error } = await ctx.session.rpc("admin_hold_settlement", {
     p_settlement_id: settlementId,
   });
   if (error) return { ok: false, error: error.message };

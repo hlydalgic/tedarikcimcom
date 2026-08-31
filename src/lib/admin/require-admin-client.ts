@@ -6,7 +6,7 @@ import { getUserRoles, isAdminRole } from "@/lib/auth/get-user-roles";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type AdminClientContext =
-  | { ok: true; userId: string; admin: SupabaseClient }
+  | { ok: true; userId: string; admin: SupabaseClient; session: SupabaseClient }
   | { ok: false; error: string };
 
 export async function requireAdminClient(): Promise<AdminClientContext> {
@@ -25,7 +25,12 @@ export async function requireAdminClient(): Promise<AdminClientContext> {
   }
 
   try {
-    return { ok: true, userId: user.id, admin: getSupabaseAdmin() };
+    return {
+      ok: true,
+      userId: user.id,
+      admin: getSupabaseAdmin(),
+      session: supabase,
+    };
   } catch {
     return { ok: false, error: "Admin istemcisi başlatılamadı." };
   }
