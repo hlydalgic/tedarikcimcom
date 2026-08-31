@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { mergeSupabaseCookieOptions } from "@/lib/supabase/cookie-options";
 
 export function createClient() {
   const cookieStore = cookies();
@@ -15,13 +16,14 @@ export function createClient() {
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options);
+              cookieStore.set(name, value, mergeSupabaseCookieOptions(options));
             });
           } catch {
             // Called from a Server Component — ignore if middleware refreshes sessions.
           }
         },
       },
+      cookieOptions: mergeSupabaseCookieOptions(),
     }
   );
 }

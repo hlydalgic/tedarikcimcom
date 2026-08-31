@@ -5,9 +5,35 @@ import {
   isAdminRole,
   isSellerRole,
 } from "@/lib/auth/get-user-roles";
+import {
+  buildAdminSubdomainReturnUrl,
+  getRequestHost,
+  getStorefrontBaseUrl,
+  isAdminSubdomainHost,
+  mapAdminSubdomainPath,
+  resolveInternalPathname,
+  shouldRedirectToStorefront,
+  shouldSkipAdminSubdomainRewrite,
+} from "@/lib/site/admin-subdomain";
+import { mergeSupabaseCookieOptions } from "@/lib/supabase/cookie-options";
 
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request });
+  const host = getRequestHost(request);
+  const adminSubdomain = isAdminSubdomainHost(host);
+  const { pathname: rawPathname } = request.nextUrl;
+
+  let rewriteUrl: URL | null = null;
+  if (
+    adminSubdomain &&
+    !shouldSkipAdminSubdomainRewrite(rawPathname)
+  ) {
+    rewriteUrl = request.nextUrl.clone();
+    rewriteUrl.pathname = mapAdminSubdomainPath(rawPathname);
+  }
+
+  let supabaseResponse = rewriteUrl
+    ? NextResponse.rewrite(rewriteUrl)
+    : NextResponse.next({ request });
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -25,21 +51,32 @@ export async function updateSession(request: NextRequest) {
         cookiesToSet.forEach(({ name, value }) =>
           request.cookies.set(name, value)
         );
-        supabaseResponse = NextResponse.next({ request });
+        supabaseResponse = rewriteUrl
+          ? NextResponse.rewrite(rewriteUrl)
+          : NextResponse.next({ request });
         cookiesToSet.forEach(({ name, value, options }) =>
-          supabaseResponse.cookies.set(name, value, options)
+          supabaseResponse.cookies.set(
+            name,
+            value,
+            mergeSupabaseCookieOptions(options)
+          )
         );
       },
     },
+    cookieOptions: mergeSupabaseCookieOptions(),
   });
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { pathname } = request.nextUrl;
+  const pathname = resolveInternalPathname(request, host);
 
-  if (user && (pathname === "/giris" || pathname === "/kayit")) {
+  if (
+    user &&
+    (pathname === "/giris" || pathname === "/kayit") &&
+    !adminSubdomain
+  ) {
     const homeUrl = request.nextUrl.clone();
     homeUrl.pathname = "/";
     homeUrl.search = "";
@@ -48,19 +85,31 @@ export async function updateSession(request: NextRequest) {
 
   if (pathname.startsWith("/admin")) {
     if (!user) {
-      const loginUrl = request.nextUrl.clone();
-      loginUrl.pathname = "/giris";
-      loginUrl.searchParams.set("redirect", pathname);
+      const loginUrl = new URL("/giris", getStorefrontBaseUrl(request));
+      loginUrl.searchParams.set(
+        "redirect",
+        adminSubdomain
+          ? buildAdminSubdomainReturnUrl(request, host)
+          : `${pathname}${request.nextUrl.search}`
+      );
       return NextResponse.redirect(loginUrl);
     }
 
     const roles = await getUserRoles(supabase, user.id);
     if (!isAdminRole(roles)) {
-      const homeUrl = request.nextUrl.clone();
-      homeUrl.pathname = "/";
-      homeUrl.search = "";
-      return NextResponse.redirect(homeUrl);
+      return NextResponse.redirect(new URL("/", getStorefrontBaseUrl(request)));
     }
+  }
+
+  if (adminSubdomain && !pathname.startsWith("/admin")) {
+    if (shouldRedirectToStorefront(rawPathname)) {
+      const target = new URL(
+        `${rawPathname}${request.nextUrl.search}`,
+        getStorefrontBaseUrl(request)
+      );
+      return NextResponse.redirect(target);
+    }
+    return NextResponse.redirect(new URL("/", getStorefrontBaseUrl(request)));
   }
 
   if (

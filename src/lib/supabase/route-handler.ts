@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
+import { mergeSupabaseCookieOptions } from "@/lib/supabase/cookie-options";
 
 export function createRouteHandlerClient(
   request: NextRequest,
@@ -19,10 +20,15 @@ export function createRouteHandlerClient(
             request.cookies.set(name, value);
           });
           cookiesToSet.forEach(({ name, value, options }) => {
-            response.cookies.set(name, value, options);
+            response.cookies.set(
+              name,
+              value,
+              mergeSupabaseCookieOptions(options)
+            );
           });
         },
       },
+      cookieOptions: mergeSupabaseCookieOptions(),
     }
   );
 }

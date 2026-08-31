@@ -8,6 +8,10 @@ import { getUserRoles, isAdminRole } from "@/lib/auth/get-user-roles";
 import { buildRecoveryVerifyUrl } from "@/lib/auth/callback-url";
 import { getSiteUrl } from "@/lib/email/resend";
 import {
+  isAdminDestinationRedirect,
+  resolvePostLoginRedirect,
+} from "@/lib/site/admin-subdomain";
+import {
   sendPasswordResetEmail,
 } from "@/lib/email/send";
 import { enforceFormRateLimit } from "@/lib/security/request";
@@ -58,9 +62,9 @@ export async function signIn(
     return { error: "Oturum açılamadı." };
   }
 
-  const safeRedirect = redirectTo.startsWith("/") ? redirectTo : "/";
+  const safeRedirect = resolvePostLoginRedirect(redirectTo);
 
-  if (safeRedirect.startsWith("/admin")) {
+  if (isAdminDestinationRedirect(safeRedirect)) {
     const roles = await getUserRoles(supabase, user.id);
     if (!isAdminRole(roles)) {
       redirect("/");
