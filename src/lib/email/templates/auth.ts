@@ -63,7 +63,7 @@ export function buildSellerApplicationReceivedEmail(params: {
       `<strong>${escapeHtml(params.companyName)}</strong> için satıcı başvurunuz <strong>${escapeHtml(params.brand.marketplaceName)}</strong> ekibine iletildi.`
     )}
     ${emailParagraph(
-      "İnceleme tamamlandığında e-posta ile bilgilendirileceksiniz."
+      "Başvurunuz incelemeye alındı. 1-3 iş günü içinde size dönüş yapılacaktır."
     )}
   `;
   return {

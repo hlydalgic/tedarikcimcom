@@ -8,9 +8,13 @@ export default async function AdminSellerApplicationsPage() {
     admin
       .from("seller_applications")
       .select(
-        `id, user_id, company_name, tax_number, tax_office, iban, phone,
-         category_ids, e_invoice_declared, kvkk_accepted, note, status,
-         reviewed_at, rejection_reason, created_at,
+        `id, user_id, company_type, company_name, shop_name, tax_number, tax_office,
+         iban, bank_name, phone, activity_city, activity_district, activity_address,
+         billing_same_as_activity, billing_city, billing_district, billing_address,
+         return_city, return_district, return_address,
+         category_ids, e_invoice_declared, kvkk_accepted, seller_contract_accepted,
+         tax_certificate_path, signature_circular_path,
+         status, reviewed_at, rejection_reason, created_at,
          users:user_id ( email, full_name )`
       )
       .order("created_at", { ascending: false }),

@@ -1,4 +1,4 @@
-import { SellerApplicationForm } from "@/components/seller/SellerApplicationForm";
+import { SellerApplicationWizard } from "@/components/seller/SellerApplicationWizard";
 import { requireUser } from "@/lib/auth/require-user";
 import { listCategories } from "@/lib/categories/queries";
 import { getMarketplaceSettings } from "@/lib/marketplace/settings";
@@ -30,8 +30,8 @@ export default async function SaticiOlPage() {
           Satıcı ol
         </h1>
         <p className="mt-2 text-sm text-ink-muted md:text-base">
-          {settings.marketplace_name} üzerinde satış yapmak için başvurun.
-          Başvurunuz incelendikten sonra bilgilendirileceksiniz.
+          {settings.marketplace_name} üzerinde satış yapmak için adım adım
+          başvurunuzu tamamlayın.
         </p>
       </div>
 
@@ -39,12 +39,18 @@ export default async function SaticiOlPage() {
         <div className="rounded-2xl border border-border bg-surface px-6 py-10 text-center">
           <p className="font-medium text-ink">Başvurunuz inceleniyor</p>
           <p className="mt-2 text-sm text-ink-muted">
-            Bekleyen başvurunuz var. Sonuç e-posta ile iletilecektir.
+            Bekleyen başvurunuz var. 1-3 iş günü içinde e-posta ile
+            bilgilendirileceksiniz.
           </p>
         </div>
       ) : (
         <div className="rounded-2xl border border-border bg-surface p-6 md:p-8">
-          <SellerApplicationForm categories={categories} />
+          <SellerApplicationWizard
+            categories={categories}
+            shortName={settings.short_name}
+            logoUrl={settings.logo_url}
+            marketplaceName={settings.marketplace_name}
+          />
         </div>
       )}
     </div>

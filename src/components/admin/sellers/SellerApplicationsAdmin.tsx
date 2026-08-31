@@ -4,21 +4,38 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   approveSellerApplication,
+  getSellerApplicationDocumentUrl,
   rejectSellerApplication,
 } from "@/app/actions/seller-applications";
+import { COMPANY_TYPE_LABELS, type CompanyType } from "@/lib/validation/seller-application";
 
 export type SellerApplicationListItem = {
   id: string;
   user_id: string;
+  company_type: string;
   company_name: string;
+  shop_name: string | null;
   tax_number: string | null;
   tax_office: string | null;
   iban: string | null;
+  bank_name: string | null;
   phone: string | null;
+  activity_city: string | null;
+  activity_district: string | null;
+  activity_address: string | null;
+  billing_same_as_activity: boolean;
+  billing_city: string | null;
+  billing_district: string | null;
+  billing_address: string | null;
+  return_city: string | null;
+  return_district: string | null;
+  return_address: string | null;
   category_ids: string[];
   e_invoice_declared: boolean;
   kvkk_accepted: boolean;
-  note: string | null;
+  seller_contract_accepted: boolean;
+  tax_certificate_path: string | null;
+  signature_circular_path: string | null;
   status: string;
   reviewed_at: string | null;
   rejection_reason: string | null;
@@ -30,6 +47,15 @@ type Props = {
   applications: SellerApplicationListItem[];
   categoryNames: Record<string, string>;
 };
+
+function formatAddress(
+  city: string | null,
+  district: string | null,
+  address: string | null
+) {
+  if (!city && !district && !address) return "—";
+  return [address, district, city].filter(Boolean).join(", ");
+}
 
 export function SellerApplicationsAdmin({
   applications,
@@ -50,9 +76,7 @@ export function SellerApplicationsAdmin({
       ? applications.filter((a) => a.status === "pending")
       : applications;
 
-  const run = (
-    fn: () => Promise<{ error?: string; success?: string }>
-  ) => {
+  const run = (fn: () => Promise<{ error?: string; success?: string }>) => {
     startTransition(async () => {
       setError(null);
       setMessage(null);
@@ -64,6 +88,20 @@ export function SellerApplicationsAdmin({
         setRejectReason("");
         router.refresh();
       }
+    });
+  };
+
+  const openDocument = (
+    applicationId: string,
+    kind: "tax_certificate" | "signature_circular"
+  ) => {
+    startTransition(async () => {
+      const result = await getSellerApplicationDocumentUrl(applicationId, kind);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      if (result.url) window.open(result.url, "_blank", "noopener,noreferrer");
     });
   };
 
@@ -119,7 +157,7 @@ export function SellerApplicationsAdmin({
         <table className="min-w-full text-left text-sm">
           <thead className="border-b border-border bg-background text-xs uppercase text-ink-muted">
             <tr>
-              <th className="px-4 py-3">Şirket</th>
+              <th className="px-4 py-3">Mağaza</th>
               <th className="px-4 py-3">Başvuran</th>
               <th className="px-4 py-3">Tarih</th>
               <th className="px-4 py-3">Durum</th>
@@ -140,7 +178,7 @@ export function SellerApplicationsAdmin({
               list.map((app) => (
                 <tr key={app.id}>
                   <td className="px-4 py-3 font-medium text-ink">
-                    {app.company_name}
+                    {app.shop_name ?? app.company_name}
                   </td>
                   <td className="px-4 py-3 text-ink-muted">
                     {app.users?.full_name ?? "—"}
@@ -173,35 +211,55 @@ export function SellerApplicationsAdmin({
 
       {selected ? (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 p-4 sm:items-center">
-          <div
-            className="absolute inset-0"
-            onClick={() => setSelected(null)}
-          />
+          <div className="absolute inset-0" onClick={() => setSelected(null)} />
           <div className="relative z-10 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-border bg-surface p-6 shadow-xl">
             <h3 className="font-display text-lg font-bold">
-              {selected.company_name}
+              {selected.shop_name ?? selected.company_name}
             </h3>
             <dl className="mt-4 space-y-2 text-sm">
-              <div className="flex justify-between gap-4">
-                <dt className="text-ink-muted">E-posta</dt>
-                <dd>{selected.users?.email}</dd>
-              </div>
-              <div className="flex justify-between gap-4">
-                <dt className="text-ink-muted">Vergi no</dt>
-                <dd>{selected.tax_number}</dd>
-              </div>
-              <div className="flex justify-between gap-4">
-                <dt className="text-ink-muted">Vergi dairesi</dt>
-                <dd>{selected.tax_office}</dd>
-              </div>
-              <div className="flex justify-between gap-4">
-                <dt className="text-ink-muted">IBAN</dt>
-                <dd className="font-mono text-xs">{selected.iban}</dd>
-              </div>
-              <div className="flex justify-between gap-4">
-                <dt className="text-ink-muted">Telefon</dt>
-                <dd>{selected.phone}</dd>
-              </div>
+              <DetailRow
+                label="Şirket türü"
+                value={
+                  COMPANY_TYPE_LABELS[selected.company_type as CompanyType] ??
+                  selected.company_type
+                }
+              />
+              <DetailRow label="Şirket unvanı" value={selected.company_name} />
+              <DetailRow label="Mağaza adı" value={selected.shop_name} />
+              <DetailRow label="E-posta" value={selected.users?.email} />
+              <DetailRow label="Telefon" value={selected.phone} />
+              <DetailRow label="Vergi no" value={selected.tax_number} />
+              <DetailRow label="Vergi dairesi" value={selected.tax_office} />
+              <DetailRow
+                label="Faaliyet adresi"
+                value={formatAddress(
+                  selected.activity_city,
+                  selected.activity_district,
+                  selected.activity_address
+                )}
+              />
+              <DetailRow
+                label="Fatura adresi"
+                value={
+                  selected.billing_same_as_activity
+                    ? "Faaliyet adresi ile aynı"
+                    : formatAddress(
+                        selected.billing_city,
+                        selected.billing_district,
+                        selected.billing_address
+                      )
+                }
+              />
+              <DetailRow
+                label="İade/depo adresi"
+                value={formatAddress(
+                  selected.return_city,
+                  selected.return_district,
+                  selected.return_address
+                )}
+              />
+              <DetailRow label="IBAN" value={selected.iban} mono />
+              <DetailRow label="Banka" value={selected.bank_name} />
               <div>
                 <dt className="text-ink-muted">Kategoriler</dt>
                 <dd className="mt-1">
@@ -210,12 +268,36 @@ export function SellerApplicationsAdmin({
                     .join(", ") || "—"}
                 </dd>
               </div>
-              {selected.note ? (
-                <div>
-                  <dt className="text-ink-muted">Not</dt>
-                  <dd className="mt-1">{selected.note}</dd>
-                </div>
-              ) : null}
+              <DetailRow
+                label="e-Fatura"
+                value={selected.e_invoice_declared ? "Evet" : "Hayır"}
+              />
+              <div className="flex flex-wrap gap-2 pt-2">
+                {selected.tax_certificate_path ? (
+                  <button
+                    type="button"
+                    disabled={pending}
+                    className="rounded-lg bg-background px-3 py-1.5 text-xs font-semibold text-primary"
+                    onClick={() =>
+                      openDocument(selected.id, "tax_certificate")
+                    }
+                  >
+                    Vergi levhası
+                  </button>
+                ) : null}
+                {selected.signature_circular_path ? (
+                  <button
+                    type="button"
+                    disabled={pending}
+                    className="rounded-lg bg-background px-3 py-1.5 text-xs font-semibold text-primary"
+                    onClick={() =>
+                      openDocument(selected.id, "signature_circular")
+                    }
+                  >
+                    İmza sirküleri
+                  </button>
+                ) : null}
+              </div>
             </dl>
 
             {selected.status === "pending" ? (
@@ -269,6 +351,25 @@ export function SellerApplicationsAdmin({
           </div>
         </div>
       ) : null}
+    </div>
+  );
+}
+
+function DetailRow({
+  label,
+  value,
+  mono = false,
+}: {
+  label: string;
+  value: string | null | undefined;
+  mono?: boolean;
+}) {
+  return (
+    <div className="flex justify-between gap-4">
+      <dt className="text-ink-muted">{label}</dt>
+      <dd className={`text-right ${mono ? "font-mono text-xs" : ""}`}>
+        {value ?? "—"}
+      </dd>
     </div>
   );
 }
