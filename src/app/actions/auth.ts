@@ -5,11 +5,10 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { getUserRoles, isAdminRole } from "@/lib/auth/get-user-roles";
-import { buildSignupVerifyUrl, buildRecoveryVerifyUrl } from "@/lib/auth/callback-url";
+import { buildRecoveryVerifyUrl } from "@/lib/auth/callback-url";
 import { getSiteUrl } from "@/lib/email/resend";
 import {
   sendPasswordResetEmail,
-  sendVerifyEmail,
 } from "@/lib/email/send";
 import { enforceFormRateLimit } from "@/lib/security/request";
 import { passwordChangeSchema } from "@/lib/validation/password";
@@ -90,75 +89,31 @@ export async function signUp(
 
   const data = parsed.data;
   const siteUrl = getSiteUrl();
-  const meta = {
-    full_name: data.full_name,
-  };
 
-  try {
-    const admin = getSupabaseAdmin();
-    const { data: created, error: createError } =
-      await admin.auth.admin.createUser({
-        email: data.email,
-        password: data.password,
-        email_confirm: false,
-        user_metadata: meta,
-      });
-
-    if (createError) {
-      if (
-        createError.message.toLowerCase().includes("already") ||
-        createError.message.toLowerCase().includes("registered")
-      ) {
-        return { error: "Bu e-posta ile kayıtlı bir hesap var." };
-      }
-      logServerError("auth/signup-create", createError);
-      return {
-        error: getClientErrorMessage(
-          "Kayıt oluşturulamadı.",
-          createError.message
-        ),
-      };
-    }
-
-    // Ensure public.users profile fields (trigger may race)
-    if (created.user) {
-      await admin.from("users").upsert({
-        id: created.user.id,
-        email: data.email,
+  const supabase = createClient();
+  const { error: signUpError } = await supabase.auth.signUp({
+    email: data.email,
+    password: data.password,
+    options: {
+      emailRedirectTo: `${siteUrl}/auth/callback?next=/giris`,
+      data: {
         full_name: data.full_name,
-      });
+      },
+    },
+  });
+
+  if (signUpError) {
+    const msg = signUpError.message.toLowerCase();
+    if (msg.includes("already") || msg.includes("registered")) {
+      return { error: "Bu e-posta ile kayıtlı bir hesap var." };
     }
-
-    const { data: linkData, error: linkError } =
-      await admin.auth.admin.generateLink({
-        type: "signup",
-        email: data.email,
-        password: data.password,
-        options: {
-          redirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent("/giris")}`,
-          data: meta,
-        },
-      });
-
-    const tokenHash = linkData?.properties?.hashed_token?.trim();
-    const verifyUrl = tokenHash ? buildSignupVerifyUrl(tokenHash) : null;
-
-    if (linkError || !verifyUrl) {
-      logServerError("auth/signup-link", linkError);
-      return {
-        error:
-          "Hesap oluşturuldu ancak doğrulama e-postası gönderilemedi. Destek ile iletişime geçin.",
-      };
-    }
-
-    await sendVerifyEmail({
-      to: data.email,
-      fullName: data.full_name,
-      verifyUrl,
-    });
-  } catch (err) {
-    logServerError("auth/signup", err);
-    return { error: "Kayıt sırasında bir hata oluştu." };
+    logServerError("auth/signup", signUpError);
+    return {
+      error: getClientErrorMessage(
+        "Kayıt oluşturulamadı.",
+        signUpError.message
+      ),
+    };
   }
 
   redirect("/giris?registered=1");
