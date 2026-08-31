@@ -76,6 +76,21 @@ export function resolveInternalPathname(
   return mapAdminSubdomainPath(pathname);
 }
 
+export function buildAdminSubdomainUrlFromAdminPath(
+  pathname: string,
+  search = ""
+): string | null {
+  const adminBase = getAdminBaseUrl();
+  if (!adminBase || !pathname.startsWith(ADMIN_PATH_PREFIX)) return null;
+
+  if (pathname === ADMIN_PATH_PREFIX) {
+    return `${adminBase}${search}`;
+  }
+
+  const publicPath = pathname.slice(ADMIN_PATH_PREFIX.length) || "/";
+  return `${adminBase}${publicPath}${search}`;
+}
+
 export function buildAdminSubdomainReturnUrl(
   request: NextRequest,
   host: string | null

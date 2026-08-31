@@ -7,6 +7,7 @@ import {
 } from "@/lib/auth/get-user-roles";
 import {
   buildAdminSubdomainReturnUrl,
+  buildAdminSubdomainUrlFromAdminPath,
   getRequestHost,
   getStorefrontBaseUrl,
   isAdminSubdomainHost,
@@ -21,6 +22,16 @@ export async function updateSession(request: NextRequest) {
   const host = getRequestHost(request);
   const adminSubdomain = isAdminSubdomainHost(host);
   const { pathname: rawPathname } = request.nextUrl;
+
+  if (!adminSubdomain && rawPathname.startsWith("/admin")) {
+    const adminTarget = buildAdminSubdomainUrlFromAdminPath(
+      rawPathname,
+      request.nextUrl.search
+    );
+    if (adminTarget) {
+      return NextResponse.redirect(adminTarget, 308);
+    }
+  }
 
   let rewriteUrl: URL | null = null;
   if (
