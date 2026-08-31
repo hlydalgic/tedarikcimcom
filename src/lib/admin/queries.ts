@@ -1,5 +1,6 @@
 import "server-only";
 
+import { createClient } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import type {
   AdminDashboardStats,
@@ -30,8 +31,8 @@ function jsonNum(v: unknown): number {
 }
 
 export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
-  const admin = getSupabaseAdmin();
-  const { data, error } = await admin.rpc("admin_get_dashboard_stats");
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("admin_get_dashboard_stats");
   if (error) throw new Error(error.message);
   const row = (data ?? {}) as Record<string, unknown>;
   return {
@@ -50,8 +51,8 @@ export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
 }
 
 export async function getAdminGmvTrend(days = 30): Promise<GmvTrendRow[]> {
-  const admin = getSupabaseAdmin();
-  const { data, error } = await admin.rpc("admin_get_gmv_trend", { p_days: days });
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("admin_get_gmv_trend", { p_days: days });
   if (error) throw new Error(error.message);
   return (data ?? []).map((r: Record<string, unknown>) => ({
     day: String(r.day),
@@ -552,8 +553,8 @@ export async function getSellerSettlementReport(
 export async function getSearchAnalytics(
   days = 30
 ): Promise<SearchAnalyticsRow[]> {
-  const admin = getSupabaseAdmin();
-  const { data, error } = await admin.rpc("admin_get_search_analytics", {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("admin_get_search_analytics", {
     p_days: days,
   });
   if (error) throw new Error(error.message);
@@ -569,8 +570,8 @@ export async function getSearchAnalytics(
 export async function getZeroResultSearches(
   days = 30
 ): Promise<ZeroResultSearchRow[]> {
-  const admin = getSupabaseAdmin();
-  const { data, error } = await admin.rpc("admin_get_zero_result_searches", {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("admin_get_zero_result_searches", {
     p_days: days,
   });
   if (error) throw new Error(error.message);
@@ -583,8 +584,8 @@ export async function getZeroResultSearches(
 export async function getAnalyticsEventCounts(
   days = 30
 ): Promise<AnalyticsEventCountRow[]> {
-  const admin = getSupabaseAdmin();
-  const { data, error } = await admin.rpc("admin_get_analytics_event_counts", {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("admin_get_analytics_event_counts", {
     p_days: days,
   });
   if (error) throw new Error(error.message);
@@ -597,8 +598,8 @@ export async function getAnalyticsEventCounts(
 export async function getAnalyticsFunnel(
   days = 30
 ): Promise<AnalyticsFunnelRow> {
-  const admin = getSupabaseAdmin();
-  const { data, error } = await admin.rpc("admin_get_analytics_funnel", {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("admin_get_analytics_funnel", {
     p_days: days,
   });
   if (error) throw new Error(error.message);
