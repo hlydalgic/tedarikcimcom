@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 const ADMIN_PATH_PREFIX = "/admin";
 
 export function getAdminHost(): string | null {
-  const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL?.trim();
+  const adminUrl = process.env.ADMIN_URL?.trim();
   if (!adminUrl) return null;
   try {
     return new URL(adminUrl).hostname.toLowerCase();
@@ -13,7 +13,7 @@ export function getAdminHost(): string | null {
 }
 
 export function getAdminBaseUrl(): string | null {
-  const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL?.trim();
+  const adminUrl = process.env.ADMIN_URL?.trim();
   if (!adminUrl) return null;
   return adminUrl.replace(/\/$/, "");
 }
