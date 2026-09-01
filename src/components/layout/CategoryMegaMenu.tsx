@@ -1,7 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type RefObject,
+} from "react";
+import { createPortal } from "react-dom";
 import { ChevronRight, LayoutGrid } from "lucide-react";
 import {
   buildNavCategoryHref,
@@ -12,15 +19,21 @@ import type { NavCategory } from "@/lib/catalog/types";
 
 type CategoryMegaMenuProps = {
   categories: NavCategory[];
+  navStripRef: RefObject<HTMLDivElement | null>;
 };
 
-export function CategoryMegaMenu({ categories }: CategoryMegaMenuProps) {
+export function CategoryMegaMenu({
+  categories,
+  navStripRef,
+}: CategoryMegaMenuProps) {
   const tree = buildNavCategoryTree(categories);
   const [open, setOpen] = useState(false);
   const [hoveredId, setHoveredId] = useState<string | null>(
     tree[0]?.id ?? null
   );
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const hoveredRoot =
@@ -35,17 +48,25 @@ export function CategoryMegaMenu({ categories }: CategoryMegaMenuProps) {
 
   const scheduleClose = useCallback(() => {
     clearCloseTimer();
-    closeTimerRef.current = setTimeout(() => setOpen(false), 200);
+    closeTimerRef.current = setTimeout(() => setOpen(false), 180);
   }, [clearCloseTimer]);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
     function onDocClick(e: MouseEvent) {
-      if (!containerRef.current?.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (
+        !triggerRef.current?.contains(target) &&
+        !panelRef.current?.contains(target)
+      ) {
         setOpen(false);
       }
     }
-    document.addEventListener("click", onDocClick);
-    return () => document.removeEventListener("click", onDocClick);
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
   useEffect(() => {
@@ -63,14 +84,14 @@ export function CategoryMegaMenu({ categories }: CategoryMegaMenuProps) {
   function renderChildLinks(root: NavCategoryNode) {
     if (!root.children.length) {
       return (
-        <p className="px-6 py-8 text-sm text-ink-muted">
+        <p className="px-8 py-6 text-sm text-ink-muted">
           Alt kategori bulunmuyor.
         </p>
       );
     }
 
     return (
-      <div className="grid grid-cols-2 gap-x-8 gap-y-2 p-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-x-10 gap-y-2 px-8 py-6 md:grid-cols-3 lg:grid-cols-4">
         {root.children.map((child) => (
           <Link
             key={child.id}
@@ -86,51 +107,33 @@ export function CategoryMegaMenu({ categories }: CategoryMegaMenuProps) {
     );
   }
 
-  return (
-    <div
-      ref={containerRef}
-      className="relative hidden md:block"
-      onMouseEnter={openMenu}
-      onMouseLeave={scheduleClose}
-    >
-      <button
-        type="button"
-        onClick={() => (open ? setOpen(false) : openMenu())}
-        aria-expanded={open}
-        aria-haspopup="true"
-        className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-white transition hover:bg-primary-hover"
+  const panel =
+    open && navStripRef.current ? (
+      <div
+        ref={panelRef}
+        className="absolute left-0 top-full z-[9999] w-screen bg-white shadow-[0_4px_20px_rgba(0,0,0,0.15)]"
+        onMouseEnter={clearCloseTimer}
+        onMouseLeave={scheduleClose}
       >
-        <LayoutGrid className="h-4 w-4" />
-        Kategoriler
-        <ChevronRight
-          className={`h-4 w-4 transition ${open ? "rotate-90" : ""}`}
-        />
-      </button>
-
-      {open ? (
-        <div
-          className="absolute left-[calc(50%-50vw)] top-full z-[9999] mt-0 w-screen min-h-[400px] overflow-visible border-b border-border bg-surface shadow-lift"
-          onMouseEnter={clearCloseTimer}
-          onMouseLeave={scheduleClose}
-        >
-          <div className="mx-auto flex min-h-[400px] max-w-7xl overflow-visible px-4 md:px-6 lg:px-8">
-            <aside className="min-h-[400px] w-[200px] min-w-[200px] shrink-0 border-r border-border bg-background/60 py-3">
-              <Link
-                href="/kategoriler"
-                className="block px-4 py-2.5 text-sm font-semibold text-primary transition hover:bg-primary-soft"
-                onClick={() => setOpen(false)}
-              >
-                Tüm kategoriler
-              </Link>
+        <div className="flex min-h-[400px] w-full overflow-visible">
+          <aside className="w-[240px] min-w-[240px] shrink-0 border-r border-border bg-surface py-4">
+            <Link
+              href="/kategoriler"
+              className="block px-5 py-2.5 text-sm font-semibold text-primary transition hover:bg-primary-soft"
+              onClick={() => setOpen(false)}
+            >
+              Tüm kategoriler
+            </Link>
+            <nav aria-label="Ana kategoriler">
               {tree.map((root) => {
                 const active = hoveredRoot?.id === root.id;
                 return (
                   <Link
                     key={root.id}
                     href={buildNavCategoryHref(root, categories)}
-                    className={`flex items-center justify-between gap-2 px-4 py-2.5 text-sm transition ${
+                    className={`flex items-center justify-between gap-2 px-5 py-2.5 text-sm transition ${
                       active
-                        ? "bg-surface font-semibold text-primary"
+                        ? "bg-primary-soft font-semibold text-primary"
                         : "text-ink hover:bg-primary-soft hover:text-primary"
                     }`}
                     onMouseEnter={() => setHoveredId(root.id)}
@@ -143,35 +146,63 @@ export function CategoryMegaMenu({ categories }: CategoryMegaMenuProps) {
                   </Link>
                 );
               })}
-            </aside>
+            </nav>
+          </aside>
 
-            <div className="min-h-[400px] min-w-0 flex-1 overflow-visible">
-              {hoveredRoot ? (
-                <>
-                  <div className="flex items-center justify-between border-b border-border px-6 py-4">
-                    <Link
-                      href={buildNavCategoryHref(hoveredRoot, categories)}
-                      className="text-base font-semibold text-ink transition hover:text-primary"
-                      onClick={() => setOpen(false)}
-                    >
-                      {hoveredRoot.name}
-                    </Link>
-                    <Link
-                      href={buildNavCategoryHref(hoveredRoot, categories)}
-                      className="text-sm font-semibold text-primary hover:text-primary-hover"
-                      onClick={() => setOpen(false)}
-                    >
-                      Tümünü gör →
-                    </Link>
-                  </div>
-                  {renderChildLinks(hoveredRoot)}
-                </>
-              ) : null}
-            </div>
+          <div className="min-w-0 flex-1 overflow-visible bg-white">
+            {hoveredRoot ? (
+              <>
+                <div className="flex items-center justify-between border-b border-border px-8 py-4">
+                  <Link
+                    href={buildNavCategoryHref(hoveredRoot, categories)}
+                    className="text-base font-semibold text-ink transition hover:text-primary"
+                    onClick={() => setOpen(false)}
+                  >
+                    {hoveredRoot.name}
+                  </Link>
+                  <Link
+                    href={buildNavCategoryHref(hoveredRoot, categories)}
+                    className="text-sm font-semibold text-primary hover:text-primary-hover"
+                    onClick={() => setOpen(false)}
+                  >
+                    Tümünü gör →
+                  </Link>
+                </div>
+                {renderChildLinks(hoveredRoot)}
+              </>
+            ) : null}
           </div>
         </div>
-      ) : null}
-    </div>
+      </div>
+    ) : null;
+
+  return (
+    <>
+      <div
+        ref={triggerRef}
+        className="hidden shrink-0 md:block"
+        onMouseEnter={openMenu}
+        onMouseLeave={scheduleClose}
+      >
+        <button
+          type="button"
+          onClick={() => (open ? setOpen(false) : openMenu())}
+          aria-expanded={open}
+          aria-haspopup="true"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-white transition hover:bg-primary-hover"
+        >
+          <LayoutGrid className="h-4 w-4" />
+          Kategoriler
+          <ChevronRight
+            className={`h-4 w-4 transition ${open ? "rotate-90" : ""}`}
+          />
+        </button>
+      </div>
+
+      {mounted && navStripRef.current && panel
+        ? createPortal(panel, navStripRef.current)
+        : null}
+    </>
   );
 }
 

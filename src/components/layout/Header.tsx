@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Menu, ShoppingCart, X } from "lucide-react";
 import { BrandMark } from "@/components/branding/BrandMark";
 import { CartBadge } from "@/components/cart/CartBadge";
@@ -34,6 +34,7 @@ export function Header({
   user,
 }: HeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const navStripRef = useRef<HTMLDivElement>(null);
 
   const topNav = navCategories.filter((c) => !c.parent_id).slice(0, 8);
 
@@ -72,9 +73,15 @@ export function Header({
         </nav>
       </div>
 
-      <div className="relative overflow-visible border-t border-border/60 bg-surface">
+      <div
+        ref={navStripRef}
+        className="relative overflow-visible border-t border-border/60 bg-surface"
+      >
         <div className="mx-auto flex max-w-7xl items-center gap-1 px-4 py-2 md:px-6 lg:px-8">
-          <CategoryMegaMenu categories={navCategories} />
+          <CategoryMegaMenu
+            categories={navCategories}
+            navStripRef={navStripRef}
+          />
 
           <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">
             {topNav.map((cat) => (
