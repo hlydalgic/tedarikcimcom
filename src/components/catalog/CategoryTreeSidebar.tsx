@@ -1,23 +1,25 @@
 "use client";
 
 import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import type { CategorySidebarContext } from "@/lib/catalog/category-href";
 
 type CategoryTreeSidebarProps = {
   context: CategorySidebarContext;
-  /** At root level, show direct children as the primary list */
-  isRoot?: boolean;
 };
 
-export function CategoryTreeSidebar({
-  context,
-  isRoot = false,
-}: CategoryTreeSidebarProps) {
-  const { currentId, siblings, children } = context;
-  const showSiblings = siblings.length > 0;
-  const showChildren = children.length > 0;
+export function CategoryTreeSidebar({ context }: CategoryTreeSidebarProps) {
+  const {
+    currentId,
+    currentName,
+    currentHref,
+    ancestors,
+    listItems,
+    currentInList,
+    currentChildren,
+  } = context;
 
-  if (!showSiblings && !showChildren) {
+  if (!ancestors.length && !listItems.length && !currentInList) {
     return null;
   }
 
@@ -27,10 +29,41 @@ export function CategoryTreeSidebar({
         Kategoriler
       </h2>
 
-      {showSiblings ? (
+      {ancestors.length > 0 ? (
+        <nav
+          aria-label="Üst kategoriler"
+          className="mb-3 space-y-1 border-b border-border pb-3"
+        >
+          {ancestors.map((ancestor) => (
+            <Link
+              key={ancestor.id}
+              href={ancestor.href}
+              className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm font-medium text-ink-muted transition hover:bg-primary-soft hover:text-primary"
+            >
+              <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-40" />
+              {ancestor.name}
+            </Link>
+          ))}
+        </nav>
+      ) : null}
+
+      {!currentInList ? (
+        <Link
+          href={currentHref}
+          className="mb-2 block rounded-lg px-2.5 py-2 text-sm font-semibold text-primary"
+          aria-current="page"
+        >
+          {currentName}
+        </Link>
+      ) : null}
+
+      {listItems.length > 0 ? (
         <ul className="space-y-0.5">
-          {siblings.map((item) => {
+          {listItems.map((item) => {
             const isActive = item.id === currentId;
+            const showNestedChildren =
+              isActive && currentInList && currentChildren.length > 0;
+
             return (
               <li key={item.id}>
                 <Link
@@ -44,36 +77,25 @@ export function CategoryTreeSidebar({
                 >
                   {item.name}
                 </Link>
+
+                {showNestedChildren ? (
+                  <ul className="ml-3 space-y-0.5 border-l border-border pl-2">
+                    {currentChildren.map((child) => (
+                      <li key={child.id}>
+                        <Link
+                          href={child.href}
+                          className="block rounded-lg px-2.5 py-1.5 text-sm text-ink-muted transition hover:bg-primary-soft hover:text-primary"
+                        >
+                          {child.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
               </li>
             );
           })}
         </ul>
-      ) : null}
-
-      {showChildren ? (
-        <div className={showSiblings ? "mt-4 border-t border-border pt-4" : ""}>
-          {showSiblings ? (
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">
-              Alt kategoriler
-            </p>
-          ) : null}
-          <ul className="space-y-0.5">
-            {children.map((item) => (
-              <li key={item.id}>
-                <Link
-                  href={item.href}
-                  className={`block rounded-lg px-2.5 py-2 text-sm transition hover:bg-primary-soft ${
-                    isRoot
-                      ? "text-ink hover:text-primary"
-                      : "pl-4 text-ink-muted hover:text-primary"
-                  }`}
-                >
-                  {item.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
       ) : null}
     </div>
   );

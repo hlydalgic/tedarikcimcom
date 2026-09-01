@@ -46,34 +46,93 @@ export type CategorySidebarItem = {
 
 export type CategorySidebarContext = {
   currentId: string;
-  siblings: CategorySidebarItem[];
-  children: CategorySidebarItem[];
+  currentName: string;
+  currentHref: string;
+  /** Clickable ancestor trail (root → parent), excludes current */
+  ancestors: CategorySidebarItem[];
+  /** Primary navigation list for this level */
+  listItems: CategorySidebarItem[];
+  /** Whether the current category appears inside listItems */
+  currentInList: boolean;
+  /** Direct children of current — indented under active item when currentInList */
+  currentChildren: CategorySidebarItem[];
 };
+
+function toSidebarItem(
+  category: Pick<NavCategory, "id" | "name" | "slug" | "parent_id">,
+  allCategories: NavCategory[]
+): CategorySidebarItem {
+  return {
+    id: category.id,
+    name: category.name,
+    slug: category.slug,
+    href: buildNavCategoryHref(category, allCategories),
+  };
+}
+
+function getParent(
+  category: Pick<NavCategory, "parent_id">,
+  allCategories: NavCategory[]
+): NavCategory | null {
+  if (!category.parent_id) return null;
+  return allCategories.find((c) => c.id === category.parent_id) ?? null;
+}
+
+function getChildren(
+  categoryId: string,
+  allCategories: NavCategory[]
+): CategorySidebarItem[] {
+  return allCategories
+    .filter((c) => c.parent_id === categoryId)
+    .map((c) => toSidebarItem(c, allCategories));
+}
+
+function getSiblings(
+  category: Pick<NavCategory, "id" | "parent_id" | "name" | "slug">,
+  allCategories: NavCategory[]
+): CategorySidebarItem[] {
+  if (!category.parent_id) return [];
+  return allCategories
+    .filter((c) => c.parent_id === category.parent_id)
+    .map((c) => toSidebarItem(c, allCategories));
+}
 
 export function buildCategorySidebarContext(
   category: Pick<NavCategory, "id" | "name" | "slug" | "parent_id">,
   allCategories: NavCategory[]
 ): CategorySidebarContext {
-  const siblingSource =
-    category.parent_id == null
-      ? []
-      : allCategories.filter((c) => c.parent_id === category.parent_id);
+  const ancestors: CategorySidebarItem[] = [];
+  let walker = getParent(category, allCategories);
+  while (walker) {
+    ancestors.unshift(toSidebarItem(walker, allCategories));
+    walker = getParent(walker, allCategories);
+  }
 
-  const children = allCategories.filter((c) => c.parent_id === category.id);
+  const parent = getParent(category, allCategories);
+  const grandparent = parent ? getParent(parent, allCategories) : null;
+
+  // Root: show direct children (Boru, Vana under Tesisat)
+  // One level below root: show current's children (PPRC, HDPE under Boru)
+  // Deeper levels: show siblings (lateral nav under same parent)
+  let listItems: CategorySidebarItem[];
+  if (!category.parent_id) {
+    listItems = getChildren(category.id, allCategories);
+  } else if (grandparent === null) {
+    listItems = getChildren(category.id, allCategories);
+  } else {
+    listItems = getSiblings(category, allCategories);
+  }
+
+  const currentInList = listItems.some((item) => item.id === category.id);
+  const currentChildren = getChildren(category.id, allCategories);
 
   return {
     currentId: category.id,
-    siblings: siblingSource.map((c) => ({
-      id: c.id,
-      name: c.name,
-      slug: c.slug,
-      href: buildNavCategoryHref(c, allCategories),
-    })),
-    children: children.map((c) => ({
-      id: c.id,
-      name: c.name,
-      slug: c.slug,
-      href: buildNavCategoryHref(c, allCategories),
-    })),
+    currentName: category.name,
+    currentHref: buildNavCategoryHref(category, allCategories),
+    ancestors,
+    listItems,
+    currentInList,
+    currentChildren,
   };
 }

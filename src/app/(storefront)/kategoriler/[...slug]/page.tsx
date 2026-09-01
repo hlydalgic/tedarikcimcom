@@ -92,7 +92,6 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
 
   const favoritesEnabled = isFeatureEnabled(features, "favorites_enabled");
   const categoryPath = `/kategoriler/${params.slug.join("/")}`;
-  const isRoot = category.parent_id == null;
 
   const breadcrumbJsonLd = buildBreadcrumbListJsonLd(
     [
@@ -148,7 +147,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
 
       <div className="grid gap-6 lg:grid-cols-[280px_1fr] lg:gap-8">
         <aside className="space-y-4">
-          <CategoryTreeSidebar context={sidebarContext} isRoot={isRoot} />
+          <CategoryTreeSidebar context={sidebarContext} />
           <Suspense
             fallback={
               <div className="h-96 animate-pulse rounded-2xl bg-background" />
