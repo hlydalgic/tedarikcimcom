@@ -122,7 +122,8 @@ export function parseFiltersFromSearchParams(
   const sort: CatalogSort =
     sortRaw === "price_asc" ||
     sortRaw === "price_desc" ||
-    sortRaw === "newest"
+    sortRaw === "newest" ||
+    sortRaw === "relevance"
       ? sortRaw
       : "newest";
 
@@ -214,7 +215,7 @@ export function buildSearchParamsFromFilters(input: {
     }
   }
 
-  if (sort !== "newest") {
+  if (sort !== "newest" && sort !== "relevance") {
     params.set(SORT_KEY, sort);
   }
   if (page > 1) {

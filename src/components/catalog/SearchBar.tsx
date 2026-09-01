@@ -3,13 +3,30 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { FolderTree, Package, Search, Tag } from "lucide-react";
 
 type Suggestion = {
-  suggestion_type: "product" | "category";
+  suggestion_type: "product" | "category" | "brand";
   label: string;
   href: string;
+  image_url?: string | null;
 };
+
+const TYPE_LABELS: Record<Suggestion["suggestion_type"], string> = {
+  category: "Kategori",
+  brand: "Marka",
+  product: "Ürün",
+};
+
+function SuggestionIcon({ type }: { type: Suggestion["suggestion_type"] }) {
+  if (type === "category") {
+    return <FolderTree className="h-4 w-4 shrink-0 text-primary" />;
+  }
+  if (type === "brand") {
+    return <Tag className="h-4 w-4 shrink-0 text-accent" />;
+  }
+  return <Package className="h-4 w-4 shrink-0 text-ink-muted" />;
+}
 
 export function SearchBar({ compact = false }: { compact?: boolean }) {
   const router = useRouter();
@@ -98,15 +115,29 @@ export function SearchBar({ compact = false }: { compact?: boolean }) {
         <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-border bg-surface shadow-lift">
           {suggestions.map((s, i) => (
             <Link
-              key={`${s.href}-${i}`}
+              key={`${s.suggestion_type}-${s.href}-${i}`}
               href={s.href}
-              className="block px-4 py-2.5 text-sm text-ink transition hover:bg-primary-soft"
+              className="flex items-center gap-3 px-4 py-2.5 transition hover:bg-primary-soft"
               onClick={() => setOpen(false)}
             >
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-ink-muted">
-                {s.suggestion_type === "product" ? "Ürün" : "Kategori"}
-              </span>
-              <span className="mt-0.5 block">{s.label}</span>
+              {s.image_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={s.image_url}
+                  alt=""
+                  className="h-8 w-8 shrink-0 rounded-lg border border-border object-cover"
+                />
+              ) : (
+                <SuggestionIcon type={s.suggestion_type} />
+              )}
+              <div className="min-w-0">
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-ink-muted">
+                  {TYPE_LABELS[s.suggestion_type]}
+                </span>
+                <span className="mt-0.5 block truncate text-sm text-ink">
+                  {s.label}
+                </span>
+              </div>
             </Link>
           ))}
           <button

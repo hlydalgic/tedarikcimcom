@@ -131,9 +131,17 @@ export type ShopDetail = {
 };
 
 export type SearchSuggestion = {
-  suggestion_type: "product" | "category";
+  suggestion_type: "product" | "category" | "brand";
   label: string;
   href: string;
+  image_url?: string | null;
+};
+
+export type SearchCategoryFacet = {
+  category_id: string;
+  category_name: string;
+  category_path: string;
+  product_count: number;
 };
 
 export type NavCategory = {

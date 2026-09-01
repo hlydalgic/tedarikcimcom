@@ -7,11 +7,13 @@ import {
   getCategoryBreadcrumb,
   getCategoryBySlugPath,
   getCategoryFilters,
+  getCategorySidebarContext,
 } from "@/lib/catalog/queries";
 import { parseFiltersFromSearchParams } from "@/lib/catalog/filters-url";
 import { getMarketplaceFeatures, getMarketplaceSettings, isFeatureEnabled } from "@/lib/marketplace/settings";
 import { listUserFavoriteIds } from "@/lib/favorites/queries";
 import { Breadcrumb } from "@/components/catalog/Breadcrumb";
+import { CategoryTreeSidebar } from "@/components/catalog/CategoryTreeSidebar";
 import { FilterSidebar } from "@/components/catalog/FilterSidebar";
 import { Pagination } from "@/components/catalog/Pagination";
 import { ProductGrid } from "@/components/catalog/ProductGrid";
@@ -71,22 +73,26 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
   const urlParams = toURLSearchParams(searchParams);
   const { filters, sort, page } = parseFiltersFromSearchParams(urlParams, filterDefs);
 
-  const [result, crumbs, features, favoriteIds, siteUrl] = await Promise.all([
-    filterProducts({
-      categoryId: category.id,
-      filters,
-      sort,
-      page,
-      pageSize: 24,
-    }),
-    getCategoryBreadcrumb(category.id),
-    getMarketplaceFeatures(),
-    listUserFavoriteIds(),
-    getSiteUrl(),
-  ]);
+  const [result, crumbs, sidebarContext, features, favoriteIds, siteUrl] =
+    await Promise.all([
+      filterProducts({
+        categoryId: category.id,
+        filters,
+        sort,
+        page,
+        pageSize: 24,
+        includeSubcategories: true,
+      }),
+      getCategoryBreadcrumb(category.id),
+      getCategorySidebarContext(category),
+      getMarketplaceFeatures(),
+      listUserFavoriteIds(),
+      getSiteUrl(),
+    ]);
 
   const favoritesEnabled = isFeatureEnabled(features, "favorites_enabled");
   const categoryPath = `/kategoriler/${params.slug.join("/")}`;
+  const isRoot = category.parent_id == null;
 
   const breadcrumbJsonLd = buildBreadcrumbListJsonLd(
     [
@@ -140,10 +146,17 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
         <SortSelect />
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
-        <Suspense fallback={<div className="h-96 rounded-2xl bg-background animate-pulse" />}>
-          <FilterSidebar filterDefs={filterDefs} />
-        </Suspense>
+      <div className="grid gap-6 lg:grid-cols-[280px_1fr] lg:gap-8">
+        <aside className="space-y-4">
+          <CategoryTreeSidebar context={sidebarContext} isRoot={isRoot} />
+          <Suspense
+            fallback={
+              <div className="h-96 animate-pulse rounded-2xl bg-background" />
+            }
+          >
+            <FilterSidebar filterDefs={filterDefs} />
+          </Suspense>
+        </aside>
 
         <div>
           <ProductGrid

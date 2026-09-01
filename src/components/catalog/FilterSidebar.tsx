@@ -17,7 +17,20 @@ import {
 
 type FilterSidebarProps = {
   filterDefs: CategoryFilterDefinition[];
+  /** Query param keys to preserve when updating filters (e.g. q, kategori on search page) */
+  preserveParams?: string[];
 };
+
+function mergePreservedParams(
+  params: URLSearchParams,
+  searchParams: URLSearchParams,
+  preserveParams?: string[]
+) {
+  for (const key of preserveParams ?? []) {
+    const value = searchParams.get(key);
+    if (value) params.set(key, value);
+  }
+}
 
 function getOptionValues(
   filters: ProductFilters,
@@ -58,7 +71,10 @@ function FilterSection({
   );
 }
 
-export function FilterSidebar({ filterDefs }: FilterSidebarProps) {
+export function FilterSidebar({
+  filterDefs,
+  preserveParams,
+}: FilterSidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -78,13 +94,21 @@ export function FilterSidebar({ filterDefs }: FilterSidebarProps) {
         page: page ?? 1,
         filterDefs,
       });
+      mergePreservedParams(params, searchParams, preserveParams);
       const qs = params.toString();
       router.push(qs ? `${pathname}?${qs}` : pathname);
     },
-    [pathname, router, searchParams, filterDefs]
+    [pathname, router, searchParams, filterDefs, preserveParams]
   );
 
   function clearAll() {
+    if (preserveParams?.length) {
+      const params = new URLSearchParams();
+      mergePreservedParams(params, searchParams, preserveParams);
+      const qs = params.toString();
+      router.push(qs ? `${pathname}?${qs}` : pathname);
+      return;
+    }
     router.push(pathname);
   }
 
