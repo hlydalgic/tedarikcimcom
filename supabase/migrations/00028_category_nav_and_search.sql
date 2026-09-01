@@ -31,6 +31,9 @@ GRANT EXECUTE ON FUNCTION public.category_slug_path(UUID)
 -- filter_products — add p_include_subcategories (default true)
 -- ---------------------------------------------------------------------------
 
+DROP FUNCTION IF EXISTS public.filter_products(UUID, UUID, JSONB, TEXT, INT, INT);
+DROP FUNCTION IF EXISTS public.filter_products(UUID, UUID, JSONB, TEXT, INT, INT, BOOLEAN);
+
 CREATE OR REPLACE FUNCTION public.filter_products(
   p_category_id UUID DEFAULT NULL,
   p_shop_id UUID DEFAULT NULL,
@@ -256,6 +259,8 @@ GRANT EXECUTE ON FUNCTION public.filter_products(UUID, UUID, JSONB, TEXT, INT, I
 -- search_product_suggestions — categories, brands, products (in order)
 -- ---------------------------------------------------------------------------
 
+DROP FUNCTION IF EXISTS public.search_product_suggestions(TEXT, INT);
+
 CREATE OR REPLACE FUNCTION public.search_product_suggestions(
   p_query TEXT,
   p_limit INT DEFAULT 8
@@ -350,6 +355,10 @@ GRANT EXECUTE ON FUNCTION public.search_product_suggestions(TEXT, INT)
 -- ---------------------------------------------------------------------------
 -- search_products — optional category filter
 -- ---------------------------------------------------------------------------
+
+DROP FUNCTION IF EXISTS public.search_products(TEXT, INT, INT, TEXT);
+DROP FUNCTION IF EXISTS public.search_products(TEXT, INT, INT, TEXT, UUID);
+DROP FUNCTION IF EXISTS public.search_products(TEXT, INT, INT, TEXT, UUID, JSONB);
 
 CREATE OR REPLACE FUNCTION public.search_products(
   p_query TEXT,
