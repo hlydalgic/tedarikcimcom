@@ -38,7 +38,7 @@ export function Header({
   const topNav = navCategories.filter((c) => !c.parent_id).slice(0, 8);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/80 bg-surface/95 backdrop-blur-md">
+    <header className="sticky top-0 z-[100] border-b border-border/80 bg-surface/95 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 md:gap-5 md:px-6 lg:px-8">
         <button
           type="button"
@@ -72,19 +72,21 @@ export function Header({
         </nav>
       </div>
 
-      <div className="border-t border-border/60 bg-surface">
-        <div className="mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-4 py-2 md:px-6 lg:px-8">
+      <div className="relative overflow-visible border-t border-border/60 bg-surface">
+        <div className="mx-auto flex max-w-7xl items-center gap-1 px-4 py-2 md:px-6 lg:px-8">
           <CategoryMegaMenu categories={navCategories} />
 
-          {topNav.map((cat) => (
-            <Link
-              key={cat.id}
-              href={buildNavCategoryHref(cat, navCategories)}
-              className="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-ink-muted transition hover:bg-background hover:text-ink"
-            >
-              {cat.name}
-            </Link>
-          ))}
+          <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">
+            {topNav.map((cat) => (
+              <Link
+                key={cat.id}
+                href={buildNavCategoryHref(cat, navCategories)}
+                className="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-ink-muted transition hover:bg-background hover:text-ink"
+              >
+                {cat.name}
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
 

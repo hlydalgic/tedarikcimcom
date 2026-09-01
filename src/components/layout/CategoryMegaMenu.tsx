@@ -20,7 +20,6 @@ export function CategoryMegaMenu({ categories }: CategoryMegaMenuProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(
     tree[0]?.id ?? null
   );
-  const [mobileExpandedId, setMobileExpandedId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -64,14 +63,14 @@ export function CategoryMegaMenu({ categories }: CategoryMegaMenuProps) {
   function renderChildLinks(root: NavCategoryNode) {
     if (!root.children.length) {
       return (
-        <p className="px-4 py-6 text-sm text-ink-muted">
+        <p className="px-6 py-8 text-sm text-ink-muted">
           Alt kategori bulunmuyor.
         </p>
       );
     }
 
     return (
-      <div className="grid grid-cols-2 gap-x-6 gap-y-1 p-4 xl:grid-cols-3">
+      <div className="grid grid-cols-2 gap-x-8 gap-y-2 p-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {root.children.map((child) => (
           <Link
             key={child.id}
@@ -79,7 +78,7 @@ export function CategoryMegaMenu({ categories }: CategoryMegaMenuProps) {
             className="group flex items-center gap-1 rounded-lg px-2 py-2 text-sm text-ink transition hover:bg-primary-soft hover:text-primary"
             onClick={() => setOpen(false)}
           >
-            <span className="line-clamp-1">{child.name}</span>
+            <span>{child.name}</span>
             <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-0 transition group-hover:opacity-100" />
           </Link>
         ))}
@@ -110,63 +109,65 @@ export function CategoryMegaMenu({ categories }: CategoryMegaMenuProps) {
 
       {open ? (
         <div
-          className="absolute left-0 top-full z-50 mt-1 flex w-[min(720px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-border bg-surface shadow-lift"
+          className="absolute left-[calc(50%-50vw)] top-full z-[9999] mt-0 w-screen min-h-[400px] overflow-visible border-b border-border bg-surface shadow-lift"
           onMouseEnter={clearCloseTimer}
           onMouseLeave={scheduleClose}
         >
-          <div className="w-52 shrink-0 border-r border-border bg-background/60 py-2">
-            <Link
-              href="/kategoriler"
-              className="block px-4 py-2.5 text-sm font-semibold text-primary transition hover:bg-primary-soft"
-              onClick={() => setOpen(false)}
-            >
-              Tüm kategoriler
-            </Link>
-            {tree.map((root) => {
-              const active = hoveredRoot?.id === root.id;
-              return (
-                <Link
-                  key={root.id}
-                  href={buildNavCategoryHref(root, categories)}
-                  className={`flex items-center justify-between gap-2 px-4 py-2.5 text-sm transition ${
-                    active
-                      ? "bg-surface font-semibold text-primary"
-                      : "text-ink hover:bg-primary-soft hover:text-primary"
-                  }`}
-                  onMouseEnter={() => setHoveredId(root.id)}
-                  onClick={() => setOpen(false)}
-                >
-                  <span className="line-clamp-1">{root.name}</span>
-                  {root.children.length > 0 ? (
-                    <ChevronRight className="h-4 w-4 shrink-0 text-ink-muted" />
-                  ) : null}
-                </Link>
-              );
-            })}
-          </div>
+          <div className="mx-auto flex min-h-[400px] max-w-7xl overflow-visible px-4 md:px-6 lg:px-8">
+            <aside className="min-h-[400px] w-[200px] min-w-[200px] shrink-0 border-r border-border bg-background/60 py-3">
+              <Link
+                href="/kategoriler"
+                className="block px-4 py-2.5 text-sm font-semibold text-primary transition hover:bg-primary-soft"
+                onClick={() => setOpen(false)}
+              >
+                Tüm kategoriler
+              </Link>
+              {tree.map((root) => {
+                const active = hoveredRoot?.id === root.id;
+                return (
+                  <Link
+                    key={root.id}
+                    href={buildNavCategoryHref(root, categories)}
+                    className={`flex items-center justify-between gap-2 px-4 py-2.5 text-sm transition ${
+                      active
+                        ? "bg-surface font-semibold text-primary"
+                        : "text-ink hover:bg-primary-soft hover:text-primary"
+                    }`}
+                    onMouseEnter={() => setHoveredId(root.id)}
+                    onClick={() => setOpen(false)}
+                  >
+                    <span>{root.name}</span>
+                    {root.children.length > 0 ? (
+                      <ChevronRight className="h-4 w-4 shrink-0 text-ink-muted" />
+                    ) : null}
+                  </Link>
+                );
+              })}
+            </aside>
 
-          <div className="min-w-0 flex-1">
-            {hoveredRoot ? (
-              <>
-                <div className="flex items-center justify-between border-b border-border px-4 py-3">
-                  <Link
-                    href={buildNavCategoryHref(hoveredRoot, categories)}
-                    className="font-semibold text-ink transition hover:text-primary"
-                    onClick={() => setOpen(false)}
-                  >
-                    {hoveredRoot.name}
-                  </Link>
-                  <Link
-                    href={buildNavCategoryHref(hoveredRoot, categories)}
-                    className="text-xs font-semibold text-primary hover:text-primary-hover"
-                    onClick={() => setOpen(false)}
-                  >
-                    Tümünü gör
-                  </Link>
-                </div>
-                {renderChildLinks(hoveredRoot)}
-              </>
-            ) : null}
+            <div className="min-h-[400px] min-w-0 flex-1 overflow-visible">
+              {hoveredRoot ? (
+                <>
+                  <div className="flex items-center justify-between border-b border-border px-6 py-4">
+                    <Link
+                      href={buildNavCategoryHref(hoveredRoot, categories)}
+                      className="text-base font-semibold text-ink transition hover:text-primary"
+                      onClick={() => setOpen(false)}
+                    >
+                      {hoveredRoot.name}
+                    </Link>
+                    <Link
+                      href={buildNavCategoryHref(hoveredRoot, categories)}
+                      className="text-sm font-semibold text-primary hover:text-primary-hover"
+                      onClick={() => setOpen(false)}
+                    >
+                      Tümünü gör →
+                    </Link>
+                  </div>
+                  {renderChildLinks(hoveredRoot)}
+                </>
+              ) : null}
+            </div>
           </div>
         </div>
       ) : null}
