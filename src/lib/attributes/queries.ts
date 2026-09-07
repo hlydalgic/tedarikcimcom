@@ -6,6 +6,7 @@ import type {
   AttributeRow,
   CategoryAttributeRow,
   CategoryFilterRow,
+  SystemFilterDefinitionRow,
   UnitRow,
 } from "@/lib/attributes/types";
 
@@ -74,6 +75,44 @@ export async function listCategoryFilters(): Promise<CategoryFilterRow[]> {
     .order("sort_order", { ascending: true });
   if (error) throw new Error(error.message);
   return (data ?? []) as CategoryFilterRow[];
+}
+
+export async function listSystemFilterDefinitions(input?: {
+  includeArchived?: boolean;
+}): Promise<SystemFilterDefinitionRow[]> {
+  const admin = getSupabaseAdmin();
+  let query = admin
+    .from("category_system_filters")
+    .select(
+      `id, key, name, description, display_type, sort_order, is_active, is_builtin, archived_at`
+    )
+    .order("sort_order", { ascending: true })
+    .order("name", { ascending: true });
+
+  if (!input?.includeArchived) {
+    query = query.is("archived_at", null);
+  }
+
+  const { data, error } = await query;
+  if (error) throw new Error(error.message);
+  return (data ?? []) as SystemFilterDefinitionRow[];
+}
+
+export async function listActiveSystemFilterDefinitions(): Promise<
+  SystemFilterDefinitionRow[]
+> {
+  const admin = getSupabaseAdmin();
+  const { data, error } = await admin
+    .from("category_system_filters")
+    .select(
+      `id, key, name, description, display_type, sort_order, is_active, is_builtin, archived_at`
+    )
+    .eq("is_active", true)
+    .is("archived_at", null)
+    .order("sort_order", { ascending: true })
+    .order("name", { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as SystemFilterDefinitionRow[];
 }
 
 /** Count of categories each attribute is assigned to. */

@@ -1,10 +1,7 @@
-import { AdminPlaceholder } from "@/components/admin/AdminPlaceholder";
+import { SystemFiltersAdmin } from "@/components/admin/filters/SystemFiltersAdmin";
+import { listSystemFilterDefinitions } from "@/lib/attributes/queries";
 
-export default function AdminFiltersPage() {
-  return (
-    <AdminPlaceholder
-      title="Filtreler"
-      description="Filter Builder — kategori bazlı sidebar filtreleri."
-    />
-  );
+export default async function AdminFiltersPage() {
+  const filters = await listSystemFilterDefinitions();
+  return <SystemFiltersAdmin filters={filters} />;
 }

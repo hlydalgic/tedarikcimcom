@@ -531,6 +531,19 @@ export async function addCategoryFilter(input: {
     return { error: "Attribute veya system filter'dan yalnızca biri seçilmeli." };
   }
 
+  if (hasSystem && input.systemFilterKey) {
+    const { data: definition } = await ctx.admin
+      .from("category_system_filters")
+      .select("id, is_active")
+      .eq("key", input.systemFilterKey)
+      .is("archived_at", null)
+      .maybeSingle();
+
+    if (!definition || !definition.is_active) {
+      return { error: "Geçersiz veya pasif system filtre." };
+    }
+  }
+
   const { data: existing } = await ctx.admin
     .from("category_filters")
     .select("sort_order")

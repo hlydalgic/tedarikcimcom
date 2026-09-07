@@ -13,6 +13,7 @@ import type {
   AttributeRow,
   CategoryAttributeRow,
   CategoryFilterRow,
+  SystemFilterDefinitionRow,
   UnitRow,
 } from "@/lib/attributes/types";
 import { CategoryAttributesTab } from "@/components/admin/categories/CategoryAttributesTab";
@@ -49,6 +50,7 @@ type Props = {
   attributes?: AttributeRow[];
   categoryAttributes?: CategoryAttributeRow[];
   categoryFilters?: CategoryFilterRow[];
+  systemFilterDefinitions?: SystemFilterDefinitionRow[];
   units?: UnitRow[];
   onCreated?: (id: string) => void;
   onMoved?: () => void;
@@ -80,6 +82,7 @@ export function CategoryDetailPanel({
   attributes = [],
   categoryAttributes = [],
   categoryFilters = [],
+  systemFilterDefinitions = [],
   units = [],
   onCreated,
   onMoved,
@@ -423,6 +426,7 @@ export function CategoryDetailPanel({
               categoryFilters={categoryFilters}
               categoryAttributes={categoryAttributes}
               attributes={attributes}
+              systemFilterDefinitions={systemFilterDefinitions}
               onMessage={(msg) => onMessage?.(msg)}
               onError={(msg) => onError?.(msg)}
             />

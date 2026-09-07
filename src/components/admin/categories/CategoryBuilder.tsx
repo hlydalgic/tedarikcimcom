@@ -17,6 +17,7 @@ import type {
   AttributeRow,
   CategoryAttributeRow,
   CategoryFilterRow,
+  SystemFilterDefinitionRow,
   UnitRow,
 } from "@/lib/attributes/types";
 import {
@@ -32,6 +33,7 @@ type Props = {
   attributes: AttributeRow[];
   categoryAttributes: CategoryAttributeRow[];
   categoryFilters: CategoryFilterRow[];
+  systemFilterDefinitions: SystemFilterDefinitionRow[];
   units: UnitRow[];
   selectedId?: string;
 };
@@ -197,6 +199,7 @@ export function CategoryBuilder({
   attributes,
   categoryAttributes,
   categoryFilters,
+  systemFilterDefinitions,
   units,
   selectedId: initialSelectedId,
 }: Props) {
@@ -346,6 +349,7 @@ export function CategoryBuilder({
             attributes={attributes}
             categoryAttributes={categoryAttributes}
             categoryFilters={categoryFilters}
+            systemFilterDefinitions={systemFilterDefinitions}
             units={units}
             onCreated={(id) => {
               setSelectedId(id);
@@ -363,6 +367,7 @@ export function CategoryBuilder({
             attributes={attributes}
             categoryAttributes={categoryAttributes}
             categoryFilters={categoryFilters}
+            systemFilterDefinitions={systemFilterDefinitions}
             units={units}
             onMoved={() => {
               setMessage("Kategori taşındı.");

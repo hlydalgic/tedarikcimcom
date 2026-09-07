@@ -410,18 +410,8 @@ ON CONFLICT (category_id, attribute_id) DO UPDATE
 SET is_active = true, updated_at = now();
 
 -- ---------------------------------------------------------------------------
--- HDPE Boru filters (system + attribute)
+-- HDPE Boru filters (category_filters; system catalog is global in 00029)
 -- ---------------------------------------------------------------------------
-
-INSERT INTO public.category_system_filters (
-  category_id, filter_key, enabled, sort_order, display_type, default_collapsed
-) VALUES
-  ('d4000000-0000-4000-8000-000000000112', 'price', true, 1, 'RANGE_SLIDER', false),
-  ('d4000000-0000-4000-8000-000000000112', 'brand', true, 2, 'SEARCHABLE_CHECKBOX_LIST', false),
-  ('d4000000-0000-4000-8000-000000000112', 'in_stock', true, 90, 'TOGGLE', true),
-  ('d4000000-0000-4000-8000-000000000112', 'free_shipping', true, 91, 'TOGGLE', true)
-ON CONFLICT (category_id, filter_key) DO UPDATE
-SET enabled = true, sort_order = EXCLUDED.sort_order, display_type = EXCLUDED.display_type;
 
 -- HDPE Boru category_filters (idempotent replace)
 DELETE FROM public.category_filters

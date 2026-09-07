@@ -10,13 +10,13 @@ import {
 } from "@/app/actions/attributes";
 import {
   FILTER_DISPLAY_TYPES,
-  SYSTEM_FILTER_KEYS,
   defaultFilterDisplayType,
   defaultSystemFilterDisplay,
   type AttributeRow,
   type CategoryAttributeRow,
   type CategoryFilterRow,
   type FilterDisplayType,
+  type SystemFilterDefinitionRow,
   type SystemFilterKey,
 } from "@/lib/attributes/types";
 
@@ -25,6 +25,7 @@ type Props = {
   categoryFilters: CategoryFilterRow[];
   categoryAttributes: CategoryAttributeRow[];
   attributes: AttributeRow[];
+  systemFilterDefinitions: SystemFilterDefinitionRow[];
   onMessage: (msg: string) => void;
   onError: (msg: string) => void;
 };
@@ -34,6 +35,7 @@ export function CategoryFiltersTab({
   categoryFilters,
   categoryAttributes,
   attributes,
+  systemFilterDefinitions,
   onMessage,
   onError,
 }: Props) {
@@ -41,7 +43,9 @@ export function CategoryFiltersTab({
   const [showAdd, setShowAdd] = useState(false);
   const [source, setSource] = useState<"attribute" | "system">("attribute");
   const [attributeId, setAttributeId] = useState("");
-  const [systemKey, setSystemKey] = useState<SystemFilterKey>("price");
+  const [systemKey, setSystemKey] = useState<SystemFilterKey>(
+    systemFilterDefinitions[0]?.key ?? "price"
+  );
   const [displayType, setDisplayType] =
     useState<FilterDisplayType>("CHECKBOX");
   const [labelOverride, setLabelOverride] = useState("");
@@ -92,9 +96,15 @@ export function CategoryFiltersTab({
       .filter(Boolean) as AttributeRow[];
   }, [categoryAttributes, categoryId, attrById, usedAttrIds]);
 
-  const availableSystem = SYSTEM_FILTER_KEYS.filter(
-    (s) => !usedSystemKeys.has(s.key)
+  const availableSystem = systemFilterDefinitions.filter(
+    (s) => s.is_active && !s.archived_at && !usedSystemKeys.has(s.key)
   );
+
+  const systemLabelByKey = useMemo(() => {
+    const map = new Map<string, string>();
+    systemFilterDefinitions.forEach((s) => map.set(s.key, s.name));
+    return map;
+  }, [systemFilterDefinitions]);
 
   const run = (fn: () => Promise<{ error?: string; success?: boolean }>) => {
     startTransition(async () => {
@@ -108,8 +118,7 @@ export function CategoryFiltersTab({
     if (f.label_override) return f.label_override;
     if (f.system_filter_key) {
       return (
-        SYSTEM_FILTER_KEYS.find((s) => s.key === f.system_filter_key)?.label ??
-        f.system_filter_key
+        systemLabelByKey.get(f.system_filter_key) ?? f.system_filter_key
       );
     }
     if (f.attribute_id) {
@@ -126,7 +135,10 @@ export function CategoryFiltersTab({
 
   const onSourceSystemChange = (key: SystemFilterKey) => {
     setSystemKey(key);
-    setDisplayType(defaultSystemFilterDisplay(key));
+    const definition = systemFilterDefinitions.find((s) => s.key === key);
+    setDisplayType(
+      defaultSystemFilterDisplay(key, definition?.display_type)
+    );
   };
 
   const addFilter = () => {
@@ -186,7 +198,13 @@ export function CategoryFiltersTab({
               type="button"
               onClick={() => {
                 setSource("system");
-                setDisplayType(defaultSystemFilterDisplay(systemKey));
+                const first = availableSystem[0] ?? systemFilterDefinitions[0];
+                if (first) {
+                  setSystemKey(first.key);
+                  setDisplayType(
+                    defaultSystemFilterDisplay(first.key, first.display_type)
+                  );
+                }
               }}
               className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
                 source === "system"
@@ -221,7 +239,7 @@ export function CategoryFiltersTab({
             >
               {availableSystem.map((s) => (
                 <option key={s.key} value={s.key}>
-                  {s.label}
+                  {s.name}
                 </option>
               ))}
             </select>

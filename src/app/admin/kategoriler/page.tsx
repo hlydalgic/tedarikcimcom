@@ -4,6 +4,7 @@ import {
   listAttributes,
   listCategoryAttributes,
   listCategoryFilters,
+  listActiveSystemFilterDefinitions,
   listUnits,
 } from "@/lib/attributes/queries";
 
@@ -12,13 +13,14 @@ type PageProps = {
 };
 
 export default async function AdminCategoriesPage({ searchParams }: PageProps) {
-  const [tree, flat, attributes, categoryAttributes, categoryFilters, units] =
+  const [tree, flat, attributes, categoryAttributes, categoryFilters, systemFilterDefinitions, units] =
     await Promise.all([
       getCategoryTree({ includeArchived: false }),
       listCategories({ includeArchived: false }),
       listAttributes(),
       listCategoryAttributes(),
       listCategoryFilters(),
+      listActiveSystemFilterDefinitions(),
       listUnits(),
     ]);
 
@@ -29,6 +31,7 @@ export default async function AdminCategoriesPage({ searchParams }: PageProps) {
       attributes={attributes}
       categoryAttributes={categoryAttributes}
       categoryFilters={categoryFilters}
+      systemFilterDefinitions={systemFilterDefinitions}
       units={units}
       selectedId={searchParams.id}
     />

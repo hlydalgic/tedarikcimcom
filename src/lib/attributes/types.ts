@@ -22,13 +22,19 @@ export type FilterDisplayType =
   | "COLOR_SWATCHES"
   | "SEARCHABLE_CHECKBOX_LIST";
 
-export type SystemFilterKey =
-  | "price"
-  | "seller"
-  | "brand"
-  | "in_stock"
-  | "free_shipping"
-  | "rating";
+export type SystemFilterKey = string;
+
+export type SystemFilterDefinitionRow = {
+  id: string;
+  key: string;
+  name: string;
+  description: string | null;
+  display_type: FilterDisplayType;
+  sort_order: number;
+  is_active: boolean;
+  is_builtin: boolean;
+  archived_at: string | null;
+};
 
 export type UnitRow = {
   id: string;
@@ -142,6 +148,8 @@ export const SYSTEM_FILTER_KEYS: { key: SystemFilterKey; label: string }[] = [
   { key: "rating", label: "Puan" },
 ];
 
+/** @deprecated Use system filter definitions from DB */
+
 export function defaultFilterDisplayType(
   type: AttributeType
 ): FilterDisplayType {
@@ -166,8 +174,10 @@ export function defaultFilterDisplayType(
 }
 
 export function defaultSystemFilterDisplay(
-  key: SystemFilterKey
+  key: SystemFilterKey,
+  fallback?: FilterDisplayType
 ): FilterDisplayType {
+  if (fallback) return fallback;
   switch (key) {
     case "price":
       return "RANGE_SLIDER";
