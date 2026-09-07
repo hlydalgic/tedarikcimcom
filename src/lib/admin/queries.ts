@@ -339,7 +339,7 @@ export async function listAdminReturns(
       `id, reason, status, refund_amount, currency, created_at,
        orders(order_number),
        seller_orders(suborder_number),
-       users(full_name),
+       users!return_requests_buyer_id_fkey(full_name),
        shops(name)`
     )
     .order("created_at", { ascending: false })
@@ -383,7 +383,9 @@ export async function getAdminReturnDetail(returnId: string) {
   const { data, error } = await admin
     .from("return_requests")
     .select(
-      `*, orders(*), seller_orders(*), users(full_name, email), shops(name)`
+      `*, orders(*), seller_orders(*),
+       users!return_requests_buyer_id_fkey(full_name, email),
+       shops(name)`
     )
     .eq("id", returnId)
     .maybeSingle();

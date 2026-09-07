@@ -48,6 +48,7 @@ CREATE POLICY return_requests_update_admin
   ON public.return_requests FOR UPDATE
   USING (public.is_admin());
 
+GRANT ALL ON public.return_requests TO service_role;
 GRANT SELECT, INSERT, UPDATE ON public.return_requests TO authenticated;
 
 CREATE TRIGGER return_requests_set_updated_at
