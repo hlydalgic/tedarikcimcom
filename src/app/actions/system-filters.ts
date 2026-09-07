@@ -113,22 +113,37 @@ export async function updateSystemFilterDefinition(input: {
   if (!oldRow) return { error: "System filtre bulunamadı." };
 
   const patch: Record<string, unknown> = {};
-  if (input.name !== undefined) {
-    const name = input.name.trim();
-    if (name.length < 2) return { error: "Ad en az 2 karakter olmalı." };
-    patch.name = name;
-  }
-  if (input.description !== undefined) {
-    patch.description = input.description?.trim() || null;
-  }
-  if (input.displayType !== undefined) {
+
+  if (oldRow.is_builtin) {
+    if (input.displayType === undefined) {
+      return { error: "Built-in filtrelerde yalnızca display type düzenlenebilir." };
+    }
     if (!FILTER_DISPLAY_TYPES.includes(input.displayType)) {
       return { error: "Geçersiz display type." };
     }
     patch.display_type = input.displayType;
+  } else {
+    if (input.name !== undefined) {
+      const name = input.name.trim();
+      if (name.length < 2) return { error: "Ad en az 2 karakter olmalı." };
+      patch.name = name;
+    }
+    if (input.description !== undefined) {
+      patch.description = input.description?.trim() || null;
+    }
+    if (input.displayType !== undefined) {
+      if (!FILTER_DISPLAY_TYPES.includes(input.displayType)) {
+        return { error: "Geçersiz display type." };
+      }
+      patch.display_type = input.displayType;
+    }
+    if (input.isActive !== undefined) patch.is_active = input.isActive;
+    if (input.sortOrder !== undefined) patch.sort_order = input.sortOrder;
   }
-  if (input.isActive !== undefined) patch.is_active = input.isActive;
-  if (input.sortOrder !== undefined) patch.sort_order = input.sortOrder;
+
+  if (Object.keys(patch).length === 0) {
+    return { error: "Güncellenecek alan yok." };
+  }
 
   const { data, error } = await ctx.admin
     .from("category_system_filters")

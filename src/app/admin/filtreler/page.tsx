@@ -3,5 +3,6 @@ import { listSystemFilterDefinitions } from "@/lib/attributes/queries";
 
 export default async function AdminFiltersPage() {
   const filters = await listSystemFilterDefinitions();
-  return <SystemFiltersAdmin filters={filters} />;
+  const builtInFilters = filters.filter((f) => f.is_builtin);
+  return <SystemFiltersAdmin filters={builtInFilters} />;
 }
