@@ -123,6 +123,7 @@ CREATE POLICY category_system_filters_admin_all
   USING (public.is_admin())
   WITH CHECK (public.is_admin());
 
+GRANT ALL ON public.category_system_filters TO service_role;
 GRANT SELECT ON public.category_system_filters TO anon, authenticated;
 GRANT INSERT, UPDATE, DELETE ON public.category_system_filters TO authenticated;
 
