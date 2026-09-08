@@ -34,6 +34,7 @@ export function Header({
   user,
 }: HeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [megaOpen, setMegaOpen] = useState(false);
   const navStripRef = useRef<HTMLDivElement>(null);
 
   const topNav = navCategories.filter((c) => !c.parent_id).slice(0, 8);
@@ -54,6 +55,7 @@ export function Header({
           shortName={branding.shortName}
           logoUrl={branding.logoUrl}
           className="text-xl md:text-2xl"
+          onClick={() => setMegaOpen(false)}
         />
 
         <div className="hidden min-w-0 flex-1 md:block">
@@ -81,6 +83,8 @@ export function Header({
           <CategoryMegaMenu
             categories={navCategories}
             navStripRef={navStripRef}
+            open={megaOpen}
+            onOpenChange={setMegaOpen}
           />
 
           <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">

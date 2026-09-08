@@ -9,6 +9,7 @@ type ProductCardProps = {
   favoritesEnabled?: boolean;
   initialFavorited?: boolean;
   searchQuery?: string;
+  prefetch?: boolean;
 };
 
 export function ProductCard({
@@ -16,6 +17,7 @@ export function ProductCard({
   favoritesEnabled = false,
   initialFavorited = false,
   searchQuery,
+  prefetch = true,
 }: ProductCardProps) {
   const inStock = product.stock > 0;
   const imageUrl =
@@ -28,6 +30,7 @@ export function ProductCard({
         href={`/urunler/${product.slug}`}
         searchQuery={searchQuery}
         productId={product.id}
+        prefetch={prefetch}
         className="relative block aspect-[4/3] overflow-hidden bg-background"
       >
         <Image
@@ -56,6 +59,7 @@ export function ProductCard({
       <ProductCardBody
         product={product}
         searchQuery={searchQuery}
+        prefetch={prefetch}
       />
     </article>
   );

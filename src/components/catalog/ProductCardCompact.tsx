@@ -6,11 +6,13 @@ import { ProductLink } from "@/components/catalog/ProductLink";
 type ProductCardCompactProps = {
   product: CatalogProductListItem;
   searchQuery?: string;
+  prefetch?: boolean;
 };
 
 export function ProductCardCompact({
   product,
   searchQuery,
+  prefetch = true,
 }: ProductCardCompactProps) {
   const inStock = product.stock > 0;
   const imageUrl =
@@ -23,6 +25,7 @@ export function ProductCardCompact({
         href={`/urunler/${product.slug}`}
         searchQuery={searchQuery}
         productId={product.id}
+        prefetch={prefetch}
         className="relative block aspect-square overflow-hidden bg-background"
       >
         <Image
@@ -43,6 +46,7 @@ export function ProductCardCompact({
         product={product}
         searchQuery={searchQuery}
         compact
+        prefetch={prefetch}
       />
     </article>
   );

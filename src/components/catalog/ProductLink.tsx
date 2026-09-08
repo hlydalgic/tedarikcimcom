@@ -8,6 +8,7 @@ type ProductLinkProps = {
   className?: string;
   searchQuery?: string;
   productId?: string;
+  prefetch?: boolean;
   children: React.ReactNode;
 };
 
@@ -16,6 +17,7 @@ export function ProductLink({
   className,
   searchQuery,
   productId,
+  prefetch = true,
   children,
 }: ProductLinkProps) {
   if (searchQuery && productId) {
@@ -25,6 +27,7 @@ export function ProductLink({
         searchQuery={searchQuery}
         productId={productId}
         className={className}
+        prefetch={prefetch}
       >
         {children}
       </SearchProductLink>
@@ -32,7 +35,7 @@ export function ProductLink({
   }
 
   return (
-    <Link href={href} className={className}>
+    <Link href={href} prefetch={prefetch} className={className}>
       {children}
     </Link>
   );

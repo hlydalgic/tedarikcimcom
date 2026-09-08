@@ -8,6 +8,7 @@ type BrandMarkProps = {
   className?: string;
   href?: string;
   invert?: boolean;
+  onClick?: () => void;
 };
 
 function Wordmark({
@@ -53,6 +54,7 @@ export function BrandMark({
   className = "",
   href = "/",
   invert = false,
+  onClick,
 }: BrandMarkProps) {
   const content = logoUrl ? (
     <Image
@@ -68,7 +70,11 @@ export function BrandMark({
   );
 
   return (
-    <Link href={href} className="inline-flex shrink-0 items-center">
+    <Link
+      href={href}
+      className="relative z-[101] inline-flex shrink-0 items-center"
+      onClick={onClick}
+    >
       {content}
     </Link>
   );

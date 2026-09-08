@@ -6,12 +6,14 @@ type ProductCardBodyProps = {
   product: CatalogProductListItem;
   searchQuery?: string;
   compact?: boolean;
+  prefetch?: boolean;
 };
 
 export function ProductCardBody({
   product,
   searchQuery,
   compact = false,
+  prefetch = true,
 }: ProductCardBodyProps) {
   const paddingClass = compact ? "p-2.5" : "p-4";
   const brandClass = compact
@@ -46,6 +48,7 @@ export function ProductCardBody({
         href={`/urunler/${product.slug}`}
         searchQuery={searchQuery}
         productId={product.id}
+        prefetch={prefetch}
       >
         <h3 className={titleClass}>{product.title}</h3>
       </ProductLink>
@@ -93,6 +96,7 @@ export function ProductCardBody({
           href={`/urunler/${product.slug}`}
           searchQuery={searchQuery}
           productId={product.id}
+          prefetch={prefetch}
           className={buttonClass}
         >
           İncele

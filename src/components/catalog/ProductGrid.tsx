@@ -7,6 +7,7 @@ type ProductGridProps = {
   favoriteIds?: Set<string>;
   columns?: "default" | "shop";
   searchQuery?: string;
+  prefetchFirst?: number;
 };
 
 export function ProductGrid({
@@ -15,6 +16,7 @@ export function ProductGrid({
   favoriteIds,
   columns = "default",
   searchQuery,
+  prefetchFirst,
 }: ProductGridProps) {
   if (!products.length) {
     return (
@@ -34,13 +36,16 @@ export function ProductGrid({
 
   return (
     <div className={gridClass}>
-      {products.map((product) => (
+      {products.map((product, index) => (
         <ProductCard
           key={product.id}
           product={product}
           favoritesEnabled={favoritesEnabled}
           initialFavorited={favoriteIds?.has(product.id)}
           searchQuery={searchQuery}
+          prefetch={
+            prefetchFirst != null ? index < prefetchFirst : true
+          }
         />
       ))}
     </div>

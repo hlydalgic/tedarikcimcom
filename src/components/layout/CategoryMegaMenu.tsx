@@ -20,14 +20,20 @@ import type { NavCategory } from "@/lib/catalog/types";
 type CategoryMegaMenuProps = {
   categories: NavCategory[];
   navStripRef: RefObject<HTMLDivElement | null>;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
 export function CategoryMegaMenu({
   categories,
   navStripRef,
+  open: controlledOpen,
+  onOpenChange,
 }: CategoryMegaMenuProps) {
   const tree = buildNavCategoryTree(categories);
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
   const [hoveredId, setHoveredId] = useState<string | null>(
     tree[0]?.id ?? null
   );
@@ -65,8 +71,8 @@ export function CategoryMegaMenu({
         setOpen(false);
       }
     }
-    document.addEventListener("mousedown", onDocClick);
-    return () => document.removeEventListener("mousedown", onDocClick);
+    document.addEventListener("click", onDocClick);
+    return () => document.removeEventListener("click", onDocClick);
   }, []);
 
   useEffect(() => {

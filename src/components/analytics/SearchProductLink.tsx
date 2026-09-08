@@ -8,6 +8,7 @@ type SearchProductLinkProps = {
   searchQuery: string;
   productId: string;
   className?: string;
+  prefetch?: boolean;
   children: React.ReactNode;
 };
 
@@ -16,11 +17,13 @@ export function SearchProductLink({
   searchQuery,
   productId,
   className,
+  prefetch = true,
   children,
 }: SearchProductLinkProps) {
   return (
     <Link
       href={href}
+      prefetch={prefetch}
       className={className}
       onClick={() => {
         void logClientSearch({

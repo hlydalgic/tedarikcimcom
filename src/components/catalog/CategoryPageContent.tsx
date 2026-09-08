@@ -137,6 +137,7 @@ export async function CategoryPageContent({
           products={result.items}
           favoritesEnabled={favoritesEnabled}
           favoriteIds={favoriteIds}
+          prefetchFirst={8}
         />
         <Pagination page={page} pageSize={result.pageSize} total={result.total} />
       </CategoryCatalogLayout>
