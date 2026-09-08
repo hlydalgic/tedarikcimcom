@@ -1,10 +1,22 @@
 import type { ProductSpecRow } from "@/lib/catalog/types";
 
-export function ProductSpecsTable({ specs }: { specs: ProductSpecRow[] }) {
+export function ProductSpecsTable({
+  specs,
+  embedded = false,
+}: {
+  specs: ProductSpecRow[];
+  embedded?: boolean;
+}) {
   if (!specs.length) return null;
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-border">
+    <div
+      className={
+        embedded
+          ? "overflow-hidden rounded-xl"
+          : "overflow-hidden rounded-2xl border border-border"
+      }
+    >
       <table className="w-full text-sm">
         <tbody>
           {specs.map((spec, index) => (

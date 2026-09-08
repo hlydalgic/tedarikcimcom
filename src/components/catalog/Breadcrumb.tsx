@@ -9,8 +9,11 @@ export function Breadcrumb({ items }: { items: Crumb[] }) {
   if (!items.length) return null;
 
   return (
-    <nav aria-label="Breadcrumb" className="mb-4 text-sm text-ink-muted">
-      <ol className="flex flex-wrap items-center gap-1">
+    <nav
+      aria-label="Breadcrumb"
+      className="-mx-4 mb-4 overflow-x-auto px-4 scrollbar-hide md:mx-0 md:px-0"
+    >
+      <ol className="flex w-max min-w-full items-center gap-1 whitespace-nowrap text-sm text-ink-muted md:w-auto md:flex-wrap md:whitespace-normal">
         <li>
           <Link href="/" className="transition hover:text-primary">
             Ana sayfa
