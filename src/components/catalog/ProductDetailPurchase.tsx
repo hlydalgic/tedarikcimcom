@@ -5,7 +5,6 @@ import { ShoppingCart, Check } from "lucide-react";
 import { useCartStore } from "@/lib/cart/store";
 import { trackClientEvent } from "@/lib/analytics/client";
 import { formatPrice } from "@/lib/format";
-import { FavoriteButton } from "@/components/catalog/FavoriteButton";
 import { QuoteRequestModal } from "@/components/quotes/QuoteRequestModal";
 import type { AddressRow } from "@/lib/orders/types";
 
@@ -30,8 +29,6 @@ type ProductDetailPurchaseProps = {
   quotesEnabled: boolean;
   addresses: AddressRow[];
   isLoggedIn: boolean;
-  favoritesEnabled: boolean;
-  initialFavorited: boolean;
 };
 
 export function ProductDetailPurchase({
@@ -39,8 +36,6 @@ export function ProductDetailPurchase({
   quotesEnabled,
   addresses,
   isLoggedIn,
-  favoritesEnabled,
-  initialFavorited,
 }: ProductDetailPurchaseProps) {
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
@@ -135,16 +130,6 @@ export function ProductDetailPurchase({
             addToCartButton
           )}
         </div>
-
-        {favoritesEnabled ? (
-          <div className="mt-3">
-            <FavoriteButton
-              productId={product.id}
-              initialFavorited={initialFavorited}
-              className="border border-border bg-surface"
-            />
-          </div>
-        ) : null}
 
         {showQuote ? (
           <p className="mt-3 text-xs text-ink-muted">

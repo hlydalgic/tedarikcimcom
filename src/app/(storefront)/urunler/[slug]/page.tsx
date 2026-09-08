@@ -18,6 +18,7 @@ import { listUserAddresses } from "@/lib/cart/queries";
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice } from "@/lib/format";
 import { Breadcrumb } from "@/components/catalog/Breadcrumb";
+import { FavoriteButton } from "@/components/catalog/FavoriteButton";
 import { ProductDetailPurchase } from "@/components/catalog/ProductDetailPurchase";
 import { ProductGallery } from "@/components/catalog/ProductGallery";
 import { ProductGrid } from "@/components/catalog/ProductGrid";
@@ -165,9 +166,18 @@ export default async function ProductDetailPage({ params }: PageProps) {
               </Link>
             ) : null}
 
-            <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-ink md:text-3xl">
-              {product.title}
-            </h1>
+            <div className="mt-1 flex items-start justify-between gap-3">
+              <h1 className="min-w-0 flex-1 font-display text-2xl font-bold tracking-tight text-ink md:text-3xl">
+                {product.title}
+              </h1>
+              {favoritesEnabled ? (
+                <FavoriteButton
+                  productId={product.id}
+                  initialFavorited={favorited}
+                  className="shrink-0 border-0 bg-transparent shadow-none"
+                />
+              ) : null}
+            </div>
 
             <div className="mt-4 flex items-end gap-3">
               <p className="font-display text-3xl font-bold text-ink">
@@ -192,8 +202,6 @@ export default async function ProductDetailPage({ params }: PageProps) {
               quotesEnabled={quotesEnabled}
               addresses={addresses}
               isLoggedIn={Boolean(user)}
-              favoritesEnabled={favoritesEnabled}
-              initialFavorited={favorited}
             />
 
             <div className="mt-6">
