@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import type { CategorySidebarContext } from "@/lib/catalog/category-href";
+import type {
+  CategorySidebarContext,
+  CategorySidebarItem,
+} from "@/lib/catalog/category-href";
 
 type CategoryTreeSidebarProps = {
   context: CategorySidebarContext;
@@ -12,6 +15,68 @@ type CategoryTreeSidebarProps = {
   selectedId?: string;
   onSelect?: (categoryId: string) => void;
 };
+
+function CategoryRadioRow({
+  item,
+  checked,
+  picker,
+  onSelect,
+  onLinkClick,
+}: {
+  item: CategorySidebarItem;
+  checked: boolean;
+  picker?: boolean;
+  onSelect?: (categoryId: string) => void;
+  onLinkClick?: () => void;
+}) {
+  const row = (
+    <span className="flex items-center gap-2.5 rounded-lg px-2 py-2 transition hover:bg-primary-soft">
+      <span
+        className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 ${
+          checked
+            ? "border-primary bg-primary"
+            : "border-border bg-surface"
+        }`}
+        aria-hidden
+      >
+        {checked ? <span className="h-1.5 w-1.5 rounded-full bg-white" /> : null}
+      </span>
+      <span
+        className={`text-sm leading-snug ${
+          checked ? "font-semibold text-primary" : "text-ink"
+        }`}
+      >
+        {item.name}
+      </span>
+    </span>
+  );
+
+  if (picker) {
+    return (
+      <button
+        type="button"
+        onClick={() => onSelect?.(item.id)}
+        className="block w-full text-left"
+        role="radio"
+        aria-checked={checked}
+      >
+        {row}
+      </button>
+    );
+  }
+
+  return (
+    <Link
+      href={item.href}
+      onClick={onLinkClick}
+      className="block"
+      role="radio"
+      aria-checked={checked}
+    >
+      {row}
+    </Link>
+  );
+}
 
 export function CategoryTreeSidebar({
   context,
@@ -36,40 +101,14 @@ export function CategoryTreeSidebar({
   }
 
   const activeId = selectedId ?? currentId;
-
-  function renderItem(
-    item: { id: string; name: string; href: string },
-    className: string,
-    isCurrentPage?: boolean
-  ) {
-    const isSelected = item.id === activeId;
-
-    if (picker) {
-      return (
-        <button
-          type="button"
-          onClick={() => onSelect?.(item.id)}
-          className={`${className} w-full text-left ${
-            isSelected ? "font-semibold text-primary" : ""
-          }`}
-          aria-current={isCurrentPage || isSelected ? "page" : undefined}
-        >
-          {item.name}
-        </button>
-      );
-    }
-
-    return (
-      <Link
-        href={item.href}
-        onClick={onLinkClick}
-        className={className}
-        aria-current={isCurrentPage ? "page" : undefined}
-      >
-        {item.name}
-      </Link>
-    );
-  }
+  const currentItem: CategorySidebarItem = {
+    id: currentId,
+    name: currentName,
+    slug: "",
+    href: currentHref,
+  };
+  const showChildSection =
+    activeId === currentId && currentChildren.length > 0;
 
   return (
     <div
@@ -88,77 +127,73 @@ export function CategoryTreeSidebar({
           aria-label="Üst kategoriler"
           className="mb-3 space-y-1 border-b border-border pb-3"
         >
-          {ancestors.map((ancestor) => (
-            <div key={ancestor.id}>
-              {picker ? (
-                <button
-                  type="button"
-                  onClick={() => onSelect?.(ancestor.id)}
-                  className="flex w-full items-center gap-1 rounded-lg px-2 py-1.5 text-sm font-medium text-ink-muted transition hover:bg-primary-soft hover:text-primary"
-                >
-                  <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-40" />
-                  {ancestor.name}
-                </button>
-              ) : (
-                <Link
-                  key={ancestor.id}
-                  href={ancestor.href}
-                  onClick={onLinkClick}
-                  className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm font-medium text-ink-muted transition hover:bg-primary-soft hover:text-primary"
-                >
-                  <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-40" />
-                  {ancestor.name}
-                </Link>
-              )}
-            </div>
-          ))}
+          {ancestors.map((ancestor) =>
+            picker ? (
+              <button
+                key={ancestor.id}
+                type="button"
+                onClick={() => onSelect?.(ancestor.id)}
+                className="flex w-full items-center gap-1 rounded-lg px-2 py-1.5 text-sm font-medium text-ink-muted transition hover:bg-primary-soft hover:text-primary"
+              >
+                <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-40" />
+                {ancestor.name}
+              </button>
+            ) : (
+              <Link
+                key={ancestor.id}
+                href={ancestor.href}
+                onClick={onLinkClick}
+                className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm font-medium text-ink-muted transition hover:bg-primary-soft hover:text-primary"
+              >
+                <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-40" />
+                {ancestor.name}
+              </Link>
+            )
+          )}
         </nav>
       ) : null}
 
-      {!currentInList ? (
-        renderItem(
-          { id: currentId, name: currentName, href: currentHref },
-          "mb-2 block rounded-lg px-2.5 py-2 text-sm font-semibold text-primary",
-          true
-        )
-      ) : null}
+      <div role="radiogroup" aria-label="Kategori seçimi" className="space-y-0.5">
+        {!currentInList ? (
+          <CategoryRadioRow
+            item={currentItem}
+            checked={activeId === currentId}
+            picker={picker}
+            onSelect={onSelect}
+            onLinkClick={onLinkClick}
+          />
+        ) : null}
 
-      {listItems.length > 0 ? (
-        <ul className="space-y-0.5">
-          {listItems.map((item) => {
-            const isActive = item.id === currentId;
-            const isSelected = item.id === activeId;
-            const showNestedChildren =
-              isActive && currentInList && currentChildren.length > 0;
+        {listItems.map((item) => (
+          <CategoryRadioRow
+            key={item.id}
+            item={item}
+            checked={item.id === activeId}
+            picker={picker}
+            onSelect={onSelect}
+            onLinkClick={onLinkClick}
+          />
+        ))}
+      </div>
 
-            return (
-              <li key={item.id}>
-                {renderItem(
-                  item,
-                  `block rounded-lg px-2.5 py-2 text-sm transition hover:bg-primary-soft ${
-                    isActive || isSelected
-                      ? "font-semibold text-primary"
-                      : "text-ink hover:text-primary"
-                  }`,
-                  isActive
-                )}
-
-                {showNestedChildren ? (
-                  <ul className="ml-3 space-y-0.5 border-l border-border pl-2">
-                    {currentChildren.map((child) => (
-                      <li key={child.id}>
-                        {renderItem(
-                          child,
-                          "block rounded-lg px-2.5 py-1.5 text-sm text-ink-muted transition hover:bg-primary-soft hover:text-primary"
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-              </li>
-            );
-          })}
-        </ul>
+      {showChildSection ? (
+        <div className="mt-4 border-t border-border pt-3">
+          <h3 className="mb-2 px-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">
+            Alt Kategoriler
+          </h3>
+          <div role="radiogroup" aria-label="Alt kategoriler" className="space-y-0.5">
+            {currentChildren.map((child) => (
+              <CategoryRadioRow
+                key={child.id}
+                item={child}
+                checked={child.id === activeId}
+                picker={picker}
+                onSelect={onSelect}
+                onLinkClick={onLinkClick}
+              />
+            ))}
+          </div>
+        </div>
       ) : null}
     </div>
   );
