@@ -56,11 +56,11 @@ export type CategorySidebarContext = {
   currentHref: string;
   /** Clickable ancestor trail (root → parent), excludes current */
   ancestors: CategorySidebarItem[];
-  /** Primary navigation list for this level */
+  /** Siblings of the current category (main list) */
   listItems: CategorySidebarItem[];
   /** Whether the current category appears inside listItems */
   currentInList: boolean;
-  /** Direct children of current — indented under active item when currentInList */
+  /** Direct children of the current category (Alt Kategoriler section) */
   currentChildren: CategorySidebarItem[];
 };
 
@@ -90,6 +90,11 @@ function getChildren(
 ): CategorySidebarItem[] {
   return allCategories
     .filter((c) => c.parent_id === categoryId)
+    .sort(
+      (a, b) =>
+        (a.sort_order ?? 0) - (b.sort_order ?? 0) ||
+        a.name.localeCompare(b.name, "tr")
+    )
     .map((c) => toSidebarItem(c, allCategories));
 }
 
@@ -97,9 +102,16 @@ function getSiblings(
   category: Pick<NavCategory, "id" | "parent_id" | "name" | "slug">,
   allCategories: NavCategory[]
 ): CategorySidebarItem[] {
-  if (!category.parent_id) return [];
-  return allCategories
-    .filter((c) => c.parent_id === category.parent_id)
+  const siblings = category.parent_id
+    ? allCategories.filter((c) => c.parent_id === category.parent_id)
+    : allCategories.filter((c) => !c.parent_id);
+
+  return siblings
+    .sort(
+      (a, b) =>
+        (a.sort_order ?? 0) - (b.sort_order ?? 0) ||
+        a.name.localeCompare(b.name, "tr")
+    )
     .map((c) => toSidebarItem(c, allCategories));
 }
 
@@ -116,22 +128,7 @@ export function buildCategorySidebarContext(
     walker = getParent(walker, allCategories);
   }
 
-  const parent = getParent(category, allCategories);
-  const grandparent = parent ? getParent(parent, allCategories) : null;
-
-  // Root: show direct children (Boru, Vana under Tesisat)
-  // One level below root: show current's children (PPRC, HDPE under Boru)
-  // Deeper levels: show siblings (lateral nav under same parent)
-  let listItems: CategorySidebarItem[];
-  if (!category.parent_id) {
-    listItems = getChildren(category.id, allCategories);
-  } else if (grandparent === null) {
-    listItems = getChildren(category.id, allCategories);
-  } else {
-    listItems = getSiblings(category, allCategories);
-  }
-
-  const currentInList = listItems.some((item) => item.id === category.id);
+  const listItems = getSiblings(category, allCategories);
   const currentChildren = getChildren(category.id, allCategories);
 
   return {
@@ -141,7 +138,7 @@ export function buildCategorySidebarContext(
       category.href ?? buildNavCategoryHref(category, allCategories),
     ancestors,
     listItems,
-    currentInList,
+    currentInList: listItems.some((item) => item.id === category.id),
     currentChildren,
   };
 }

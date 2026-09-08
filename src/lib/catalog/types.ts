@@ -156,6 +156,7 @@ export type NavCategory = {
   name: string;
   slug: string;
   parent_id: string | null;
+  sort_order?: number;
   /** Full path from category_slug_path(), e.g. /kategoriler/sulama-sistemleri/bahce-hortumu */
   href: string;
 };

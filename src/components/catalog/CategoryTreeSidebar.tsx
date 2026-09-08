@@ -88,27 +88,17 @@ export function CategoryTreeSidebar({
 }: CategoryTreeSidebarProps) {
   const {
     currentId,
-    currentName,
-    currentHref,
     ancestors,
     listItems,
-    currentInList,
     currentChildren,
   } = context;
 
-  if (!ancestors.length && !listItems.length && !currentInList) {
+  if (!ancestors.length && !listItems.length && !currentChildren.length) {
     return null;
   }
 
   const activeId = selectedId ?? currentId;
-  const currentItem: CategorySidebarItem = {
-    id: currentId,
-    name: currentName,
-    slug: "",
-    href: currentHref,
-  };
-  const showChildSection =
-    activeId === currentId && currentChildren.length > 0;
+  const showChildSection = currentChildren.length > 0;
 
   return (
     <div
@@ -154,16 +144,6 @@ export function CategoryTreeSidebar({
       ) : null}
 
       <div role="radiogroup" aria-label="Kategori seçimi" className="space-y-0.5">
-        {!currentInList ? (
-          <CategoryRadioRow
-            item={currentItem}
-            checked={activeId === currentId}
-            picker={picker}
-            onSelect={onSelect}
-            onLinkClick={onLinkClick}
-          />
-        ) : null}
-
         {listItems.map((item) => (
           <CategoryRadioRow
             key={item.id}
