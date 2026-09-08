@@ -6,9 +6,15 @@ import type { CategorySidebarContext } from "@/lib/catalog/category-href";
 
 type CategoryTreeSidebarProps = {
   context: CategorySidebarContext;
+  embedded?: boolean;
+  onLinkClick?: () => void;
 };
 
-export function CategoryTreeSidebar({ context }: CategoryTreeSidebarProps) {
+export function CategoryTreeSidebar({
+  context,
+  embedded = false,
+  onLinkClick,
+}: CategoryTreeSidebarProps) {
   const {
     currentId,
     currentName,
@@ -24,7 +30,13 @@ export function CategoryTreeSidebar({ context }: CategoryTreeSidebarProps) {
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-surface p-4 shadow-soft">
+    <div
+      className={
+        embedded
+          ? undefined
+          : "rounded-2xl border border-border bg-surface p-4 shadow-soft"
+      }
+    >
       <h2 className="mb-3 font-display text-base font-bold text-ink">
         Kategoriler
       </h2>
@@ -38,6 +50,7 @@ export function CategoryTreeSidebar({ context }: CategoryTreeSidebarProps) {
             <Link
               key={ancestor.id}
               href={ancestor.href}
+              onClick={onLinkClick}
               className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm font-medium text-ink-muted transition hover:bg-primary-soft hover:text-primary"
             >
               <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-40" />
@@ -50,6 +63,7 @@ export function CategoryTreeSidebar({ context }: CategoryTreeSidebarProps) {
       {!currentInList ? (
         <Link
           href={currentHref}
+          onClick={onLinkClick}
           className="mb-2 block rounded-lg px-2.5 py-2 text-sm font-semibold text-primary"
           aria-current="page"
         >
@@ -68,6 +82,7 @@ export function CategoryTreeSidebar({ context }: CategoryTreeSidebarProps) {
               <li key={item.id}>
                 <Link
                   href={item.href}
+                  onClick={onLinkClick}
                   className={`block rounded-lg px-2.5 py-2 text-sm transition hover:bg-primary-soft ${
                     isActive
                       ? "font-semibold text-primary"
@@ -84,6 +99,7 @@ export function CategoryTreeSidebar({ context }: CategoryTreeSidebarProps) {
                       <li key={child.id}>
                         <Link
                           href={child.href}
+                          onClick={onLinkClick}
                           className="block rounded-lg px-2.5 py-1.5 text-sm text-ink-muted transition hover:bg-primary-soft hover:text-primary"
                         >
                           {child.name}

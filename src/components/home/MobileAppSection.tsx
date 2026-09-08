@@ -43,7 +43,7 @@ export function MobileAppSection() {
 
   return (
     <section
-      className="relative overflow-hidden py-16 md:py-20"
+      className="relative overflow-hidden py-8 md:py-20"
       style={{ backgroundColor: "#0D1B3E" }}
       aria-labelledby="mobile-app-heading"
     >
@@ -55,32 +55,34 @@ export function MobileAppSection() {
         }}
       />
 
-      <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 md:grid-cols-2 md:gap-16 md:px-6 lg:px-8">
-        <div>
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white/70">
+      <div className="relative mx-auto max-w-7xl px-4 md:grid md:grid-cols-2 md:items-center md:gap-16 md:px-6 lg:px-8">
+        <div className="text-center md:text-left">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white/70 md:mb-4">
             <Smartphone className="h-3.5 w-3.5" />
             Mobil Uygulama
           </div>
           <h2
             id="mobile-app-heading"
-            className="font-display text-3xl font-bold tracking-tight text-white md:text-4xl"
+            className="font-display text-xl font-bold tracking-tight text-white md:text-4xl"
           >
             Cebinizde Her Zaman Yanınızda
           </h2>
-          <p className="mt-3 max-w-lg text-sm text-white/55 md:text-base">
+          <p className="mt-2 max-w-lg text-sm text-white/55 md:mt-3 md:text-base">
             AhadaBuldum mobil uygulaması çok yakında
           </p>
 
           <button
             type="button"
             onClick={() => void promptInstall()}
-            className="mt-8 inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/10 px-6 text-sm font-semibold text-white transition hover:border-white/30 hover:bg-white/15"
+            className="mt-5 inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/10 px-5 text-sm font-semibold text-white transition hover:border-white/30 hover:bg-white/15 md:mt-8 md:h-12 md:px-6"
           >
             📱 Uygulamayı Yükle
           </button>
         </div>
 
-        <PhoneMockup />
+        <div className="hidden md:block">
+          <PhoneMockup />
+        </div>
       </div>
     </section>
   );

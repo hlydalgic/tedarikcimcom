@@ -226,14 +226,35 @@ export function buildSearchParamsFromFilters(input: {
 }
 
 export function hasActiveFilters(filters: ProductFilters): boolean {
-  if (filters.price_min != null || filters.price_max != null) return true;
-  if (filters.brand_ids?.length) return true;
-  if (filters.shop_ids?.length) return true;
-  if (filters.in_stock != null) return true;
-  if (filters.free_shipping != null) return true;
-  if (filters.rating_min != null) return true;
-  if (filters.attributes && Object.keys(filters.attributes).length) return true;
-  return false;
+  return countActiveFilters(filters) > 0;
+}
+
+export function countActiveFilters(filters: ProductFilters): number {
+  let count = 0;
+  if (filters.price_min != null || filters.price_max != null) count++;
+  if (filters.in_stock != null) count++;
+  if (filters.free_shipping != null) count++;
+  if (filters.rating_min != null) count++;
+  if (filters.brand_ids?.length) count += filters.brand_ids.length;
+  if (filters.shop_ids?.length) count += filters.shop_ids.length;
+  if (filters.attributes) {
+    for (const val of Object.values(filters.attributes)) {
+      if (val.type === "boolean" && val.value) {
+        count++;
+      } else if (
+        val.type === "range" &&
+        (val.min != null || val.max != null)
+      ) {
+        count++;
+      } else if (
+        (val.type === "options" || val.type === "text") &&
+        val.values.length
+      ) {
+        count += val.values.length;
+      }
+    }
+  }
+  return count;
 }
 
 export { SORT_KEY, PAGE_KEY, resolveSystemParamKey, filterParamKey };

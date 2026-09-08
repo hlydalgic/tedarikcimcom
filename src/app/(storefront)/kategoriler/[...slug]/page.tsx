@@ -13,8 +13,7 @@ import { parseFiltersFromSearchParams } from "@/lib/catalog/filters-url";
 import { getMarketplaceFeatures, getMarketplaceSettings, isFeatureEnabled } from "@/lib/marketplace/settings";
 import { listUserFavoriteIds } from "@/lib/favorites/queries";
 import { Breadcrumb } from "@/components/catalog/Breadcrumb";
-import { CategoryTreeSidebar } from "@/components/catalog/CategoryTreeSidebar";
-import { FilterSidebar } from "@/components/catalog/FilterSidebar";
+import { CategoryCatalogLayout } from "@/components/catalog/CategoryCatalogLayout";
 import { Pagination } from "@/components/catalog/Pagination";
 import { ProductGrid } from "@/components/catalog/ProductGrid";
 import { SortSelect } from "@/components/catalog/SortSelect";
@@ -145,27 +144,17 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
         <SortSelect />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[280px_1fr] lg:gap-8">
-        <aside className="space-y-4">
-          <CategoryTreeSidebar context={sidebarContext} />
-          <Suspense
-            fallback={
-              <div className="h-96 animate-pulse rounded-2xl bg-background" />
-            }
-          >
-            <FilterSidebar filterDefs={filterDefs} />
-          </Suspense>
-        </aside>
-
-        <div>
-          <ProductGrid
-            products={result.items}
-            favoritesEnabled={favoritesEnabled}
-            favoriteIds={favoriteIds}
-          />
-          <Pagination page={page} pageSize={result.pageSize} total={result.total} />
-        </div>
-      </div>
+      <CategoryCatalogLayout
+        sidebarContext={sidebarContext}
+        filterDefs={filterDefs}
+      >
+        <ProductGrid
+          products={result.items}
+          favoritesEnabled={favoritesEnabled}
+          favoriteIds={favoriteIds}
+        />
+        <Pagination page={page} pageSize={result.pageSize} total={result.total} />
+      </CategoryCatalogLayout>
     </div>
   );
 }

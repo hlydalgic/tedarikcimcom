@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronDown, Search, X } from "lucide-react";
 import type {
   AttributeFilterValue,
@@ -19,6 +19,10 @@ type FilterSidebarProps = {
   filterDefs: CategoryFilterDefinition[];
   /** Query param keys to preserve when updating filters (e.g. q, kategori on search page) */
   preserveParams?: string[];
+  deferred?: boolean;
+  embedded?: boolean;
+  drawerOpen?: boolean;
+  onApplied?: () => void;
 };
 
 function mergePreservedParams(
@@ -74,16 +78,31 @@ function FilterSection({
 export function FilterSidebar({
   filterDefs,
   preserveParams,
+  deferred = false,
+  embedded = false,
+  drawerOpen = false,
+  onApplied,
 }: FilterSidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
   const [searchQueries, setSearchQueries] = useState<Record<string, string>>({});
+  const [draftFilters, setDraftFilters] = useState<ProductFilters>({});
 
-  const { filters } = useMemo(
+  const parsed = useMemo(
     () => parseFiltersFromSearchParams(searchParams, filterDefs),
     [searchParams, filterDefs]
   );
+
+  const urlFilters = parsed.filters;
+
+  useEffect(() => {
+    if (deferred && drawerOpen) {
+      setDraftFilters(urlFilters);
+    }
+  }, [deferred, drawerOpen, urlFilters]);
+
+  const filters = deferred ? draftFilters : urlFilters;
 
   const pushFilters = useCallback(
     (nextFilters: ProductFilters, sort?: string, page?: number) => {
@@ -102,6 +121,10 @@ export function FilterSidebar({
   );
 
   function clearAll() {
+    if (deferred) {
+      setDraftFilters({});
+      return;
+    }
     if (preserveParams?.length) {
       const params = new URLSearchParams();
       mergePreservedParams(params, searchParams, preserveParams);
@@ -112,8 +135,18 @@ export function FilterSidebar({
     router.push(pathname);
   }
 
+  function applyDraft() {
+    pushFilters(draftFilters);
+    onApplied?.();
+  }
+
   function updateSystem(partial: Partial<ProductFilters>) {
-    pushFilters({ ...filters, ...partial });
+    const next = { ...filters, ...partial };
+    if (deferred) {
+      setDraftFilters(next);
+      return;
+    }
+    pushFilters(next);
   }
 
   function updateAttribute(attributeId: string, value: AttributeFilterValue | undefined) {
@@ -127,7 +160,12 @@ export function FilterSidebar({
     } else {
       attributes[attributeId] = value;
     }
-    pushFilters({ ...filters, attributes });
+    const next = { ...filters, attributes };
+    if (deferred) {
+      setDraftFilters(next);
+      return;
+    }
+    pushFilters(next);
   }
 
   function toggleOption(
@@ -150,11 +188,11 @@ export function FilterSidebar({
     }
   }
 
-  return (
-    <aside className="rounded-2xl border border-border bg-surface p-4 shadow-soft">
+  const filterContent = (
+    <>
       <div className="mb-4 flex items-center justify-between">
         <h2 className="font-display text-base font-bold text-ink">Filtreler</h2>
-        {hasActiveFilters(filters) ? (
+        {!deferred && hasActiveFilters(filters) ? (
           <button
             type="button"
             onClick={clearAll}
@@ -495,6 +533,40 @@ export function FilterSidebar({
           </FilterSection>
         );
       })}
+    </>
+  );
+
+  if (embedded && deferred) {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col">
+        <div className="flex-1 overflow-y-auto px-4 py-4">{filterContent}</div>
+        <div className="flex shrink-0 gap-2 border-t border-border px-4 py-3">
+          <button
+            type="button"
+            onClick={applyDraft}
+            className="inline-flex h-11 flex-1 items-center justify-center rounded-xl bg-primary text-sm font-semibold text-white transition hover:bg-primary-hover"
+          >
+            Uygula
+          </button>
+          <button
+            type="button"
+            onClick={clearAll}
+            className="inline-flex h-11 items-center justify-center rounded-xl border border-border px-4 text-sm font-semibold text-ink transition hover:bg-background"
+          >
+            Temizle
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (embedded) {
+    return <div className="px-4 py-4">{filterContent}</div>;
+  }
+
+  return (
+    <aside className="rounded-2xl border border-border bg-surface p-4 shadow-soft">
+      {filterContent}
     </aside>
   );
 }

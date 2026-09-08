@@ -60,4 +60,13 @@
   .animate-delay-300 {
     animation-delay: 300ms;
   }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }
