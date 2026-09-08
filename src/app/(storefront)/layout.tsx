@@ -25,25 +25,27 @@ export default async function StorefrontLayout({
   return (
     <StorefrontPwa>
       <AnalyticsTracker />
-      <Header
-        branding={{
-          shortName: settings.short_name,
-          logoUrl: settings.logo_url,
-        }}
-        navCategories={navCategories}
-        favoritesEnabled={isFeatureEnabled(features, "favorites_enabled")}
-        user={headerUser}
-      />
-      <main>{children}</main>
-      <Footer
-        branding={{
-          marketplaceName: settings.marketplace_name,
-          shortName: settings.short_name,
-          logoUrl: settings.logo_dark_url || settings.logo_url,
-          tagline: settings.tagline,
-          seoDescription: settings.seo_description,
-        }}
-      />
+      <div className="flex min-h-screen flex-col">
+        <Header
+          branding={{
+            shortName: settings.short_name,
+            logoUrl: settings.logo_url,
+          }}
+          navCategories={navCategories}
+          favoritesEnabled={isFeatureEnabled(features, "favorites_enabled")}
+          user={headerUser}
+        />
+        <main className="flex-1">{children}</main>
+        <Footer
+          branding={{
+            marketplaceName: settings.marketplace_name,
+            shortName: settings.short_name,
+            logoUrl: settings.logo_dark_url || settings.logo_url,
+            tagline: settings.tagline,
+            seoDescription: settings.seo_description,
+          }}
+        />
+      </div>
     </StorefrontPwa>
   );
 }
