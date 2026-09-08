@@ -41,7 +41,51 @@ function mapListItem(row: Record<string, unknown>): CatalogProductListItem {
       row.shop_rating_avg != null ? Number(row.shop_rating_avg) : null,
     primary_image_url: (row.primary_image_url as string | null) ?? null,
     published_at: (row.published_at as string | null) ?? null,
+    card_attributes: [],
   };
+}
+
+async function attachCardAttributes(
+  items: CatalogProductListItem[]
+): Promise<CatalogProductListItem[]> {
+  if (!items.length) return items;
+
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("get_product_card_attributes", {
+    p_product_ids: items.map((item) => item.id),
+  });
+
+  if (error || !data) {
+    return items;
+  }
+
+  const byProduct = new Map<string, CatalogProductListItem["card_attributes"]>();
+
+  for (const row of data as Record<string, unknown>[]) {
+    const productId = String(row.product_id);
+    const entry = {
+      attribute_name: String(row.attribute_name),
+      display_value: String(row.display_value ?? ""),
+      sort_order: Number(row.sort_order ?? 0),
+    };
+    const existing = byProduct.get(productId);
+    if (existing) {
+      existing.push(entry);
+    } else {
+      byProduct.set(productId, [entry]);
+    }
+  }
+
+  return items.map((item) => ({
+    ...item,
+    card_attributes: byProduct.get(item.id) ?? [],
+  }));
+}
+
+export async function enrichCatalogProductListItems(
+  items: CatalogProductListItem[]
+): Promise<CatalogProductListItem[]> {
+  return attachCardAttributes(items);
 }
 
 export async function getCategoryFilters(
@@ -106,7 +150,7 @@ export async function filterProducts(input: {
   const total = rows.length ? Number(rows[0].total_count ?? 0) : 0;
 
   return {
-    items: rows.map(mapListItem),
+    items: await attachCardAttributes(rows.map(mapListItem)),
     total,
     page,
     pageSize,
@@ -140,7 +184,7 @@ export async function searchProducts(input: {
   const total = rows.length ? Number(rows[0].total_count ?? 0) : 0;
 
   return {
-    items: rows.map(mapListItem),
+    items: await attachCardAttributes(rows.map(mapListItem)),
     total,
     page,
     pageSize,

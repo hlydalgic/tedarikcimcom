@@ -66,6 +66,13 @@ export type CatalogProductListItem = {
   shop_rating_avg: number | null;
   primary_image_url: string | null;
   published_at: string | null;
+  card_attributes: ProductCardAttribute[];
+};
+
+export type ProductCardAttribute = {
+  attribute_name: string;
+  display_value: string;
+  sort_order: number;
 };
 
 export type CatalogProductListResult = {

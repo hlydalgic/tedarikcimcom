@@ -1,7 +1,7 @@
 import Image from "next/image";
 import type { CatalogProductListItem } from "@/lib/catalog/types";
-import { formatPrice } from "@/lib/format";
 import { FavoriteButton } from "@/components/catalog/FavoriteButton";
+import { ProductCardBody } from "@/components/catalog/ProductCardBody";
 import { ProductLink } from "@/components/catalog/ProductLink";
 
 type ProductCardProps = {
@@ -53,48 +53,10 @@ export function ProductCard({
         ) : null}
       </ProductLink>
 
-      <div className="flex flex-1 flex-col p-4">
-        {product.brand_name ? (
-          <p className="text-xs font-medium text-ink-muted">{product.brand_name}</p>
-        ) : null}
-        <ProductLink
-          href={`/urunler/${product.slug}`}
-          searchQuery={searchQuery}
-          productId={product.id}
-        >
-          <h3 className="mt-1 line-clamp-2 text-sm font-semibold leading-snug text-ink transition group-hover:text-primary">
-            {product.title}
-          </h3>
-        </ProductLink>
-        <ProductLink
-          href={`/magaza/${product.shop_slug}`}
-          className="mt-1 block text-xs text-ink-muted hover:text-primary"
-        >
-          {product.shop_name}
-        </ProductLink>
-
-        <div className="mt-auto flex items-end justify-between gap-2 pt-4">
-          <div>
-            <p className="font-display text-lg font-bold text-ink">
-              {formatPrice(product.price, product.currency)}
-            </p>
-            {product.compare_at_price != null &&
-            product.compare_at_price > product.price ? (
-              <p className="text-xs text-ink-muted line-through">
-                {formatPrice(product.compare_at_price, product.currency)}
-              </p>
-            ) : null}
-          </div>
-          <ProductLink
-            href={`/urunler/${product.slug}`}
-            searchQuery={searchQuery}
-            productId={product.id}
-            className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white transition hover:bg-primary-hover"
-          >
-            İncele
-          </ProductLink>
-        </div>
-      </div>
+      <ProductCardBody
+        product={product}
+        searchQuery={searchQuery}
+      />
     </article>
   );
 }

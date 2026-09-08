@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
+import { enrichCatalogProductListItems } from "@/lib/catalog/queries";
 import { ensureFavoritesEnabled } from "@/lib/marketplace/feature-guards";
 import type { CatalogProductListItem } from "@/lib/catalog/types";
 
@@ -36,7 +37,7 @@ export async function listUserFavorites(): Promise<CatalogProductListItem[]> {
 
   if (error) throw new Error(error.message);
 
-  return (data ?? []).map((row) => {
+  const items = (data ?? []).map((row) => {
     const p = row.products as unknown as {
       id: string;
       title: string;
@@ -82,8 +83,11 @@ export async function listUserFavorites(): Promise<CatalogProductListItem[]> {
       shop_rating_avg: shop?.rating_avg ?? null,
       primary_image_url: primary?.url ?? null,
       published_at: p.published_at ?? null,
+      card_attributes: [],
     };
   });
+
+  return enrichCatalogProductListItems(items);
 }
 
 export async function isProductFavorited(productId: string): Promise<boolean> {
