@@ -8,6 +8,7 @@ import {
   getCategoryBySlugPath,
   getCategoryFilters,
   getCategorySidebarContext,
+  listActiveCategories,
 } from "@/lib/catalog/queries";
 import { parseFiltersFromSearchParams } from "@/lib/catalog/filters-url";
 import { getMarketplaceFeatures, getMarketplaceSettings, isFeatureEnabled } from "@/lib/marketplace/settings";
@@ -72,7 +73,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
   const urlParams = toURLSearchParams(searchParams);
   const { filters, sort, page } = parseFiltersFromSearchParams(urlParams, filterDefs);
 
-  const [result, crumbs, sidebarContext, features, favoriteIds, siteUrl] =
+  const [result, crumbs, sidebarContext, allCategories, features, favoriteIds, siteUrl] =
     await Promise.all([
       filterProducts({
         categoryId: category.id,
@@ -84,6 +85,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
       }),
       getCategoryBreadcrumb(category.id),
       getCategorySidebarContext(category),
+      listActiveCategories(),
       getMarketplaceFeatures(),
       listUserFavoriteIds(),
       getSiteUrl(),
@@ -146,6 +148,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
 
       <CategoryCatalogLayout
         sidebarContext={sidebarContext}
+        allCategories={allCategories}
         filterDefs={filterDefs}
       >
         <ProductGrid

@@ -1,10 +1,14 @@
 "use client";
 
 import { Suspense, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { List, SlidersHorizontal } from "lucide-react";
-import { useSearchParams } from "next/navigation";
-import type { CategoryFilterDefinition } from "@/lib/catalog/types";
-import type { CategorySidebarContext } from "@/lib/catalog/category-href";
+import type { CategoryFilterDefinition, NavCategory } from "@/lib/catalog/types";
+import {
+  buildCategorySidebarContext,
+  buildNavCategoryHref,
+  type CategorySidebarContext,
+} from "@/lib/catalog/category-href";
 import {
   countActiveFilters,
   parseFiltersFromSearchParams,
@@ -13,41 +17,57 @@ import { CategoryTreeSidebar } from "@/components/catalog/CategoryTreeSidebar";
 import { FilterSidebar } from "@/components/catalog/FilterSidebar";
 import { BottomDrawer } from "@/components/ui/BottomDrawer";
 
-const CATEGORY_DRAWER_STORAGE_KEY = "mobile-category-drawer-open";
-
 type CategoryCatalogLayoutProps = {
   sidebarContext: CategorySidebarContext;
+  allCategories: NavCategory[];
   filterDefs: CategoryFilterDefinition[];
   children: React.ReactNode;
 };
 
 export function CategoryCatalogLayout({
   sidebarContext,
+  allCategories,
   filterDefs,
   children,
 }: CategoryCatalogLayoutProps) {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [draftCategoryId, setDraftCategoryId] = useState(sidebarContext.currentId);
 
   useEffect(() => {
-    if (sessionStorage.getItem(CATEGORY_DRAWER_STORAGE_KEY) === "1") {
-      setCategoryOpen(true);
+    if (categoryOpen) {
+      setDraftCategoryId(sidebarContext.currentId);
     }
-  }, []);
+  }, [categoryOpen, sidebarContext.currentId]);
+
+  const draftSidebarContext = useMemo(() => {
+    const category = allCategories.find((item) => item.id === draftCategoryId);
+    if (!category) return sidebarContext;
+    return buildCategorySidebarContext(category, allCategories);
+  }, [allCategories, draftCategoryId, sidebarContext]);
 
   const openCategoryDrawer = () => {
+    setDraftCategoryId(sidebarContext.currentId);
     setCategoryOpen(true);
-    sessionStorage.setItem(CATEGORY_DRAWER_STORAGE_KEY, "1");
   };
 
   const closeCategoryDrawer = () => {
     setCategoryOpen(false);
-    sessionStorage.removeItem(CATEGORY_DRAWER_STORAGE_KEY);
   };
 
   const closeFilterDrawer = () => {
     setFilterOpen(false);
+  };
+
+  const applyCategory = () => {
+    const category = allCategories.find((item) => item.id === draftCategoryId);
+    if (!category) return;
+
+    const href = category.href ?? buildNavCategoryHref(category, allCategories);
+    closeCategoryDrawer();
+    router.push(href);
   };
 
   const activeFilterCount = useMemo(() => {
@@ -101,8 +121,25 @@ export function CategoryCatalogLayout({
         onClose={closeCategoryDrawer}
         title="Kategoriler"
       >
-        <div className="h-full overflow-y-auto px-4 py-4">
-          <CategoryTreeSidebar context={sidebarContext} embedded />
+        <div className="flex h-full min-h-0 flex-col">
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+            <CategoryTreeSidebar
+              context={draftSidebarContext}
+              embedded
+              picker
+              selectedId={draftCategoryId}
+              onSelect={setDraftCategoryId}
+            />
+          </div>
+          <div className="shrink-0 border-t border-border px-4 py-3">
+            <button
+              type="button"
+              onClick={applyCategory}
+              className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-primary text-sm font-semibold text-white transition hover:bg-primary-hover"
+            >
+              Uygula
+            </button>
+          </div>
         </div>
       </BottomDrawer>
 
