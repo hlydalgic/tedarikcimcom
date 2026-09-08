@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createProduct, uploadProductImage } from "@/app/actions/products";
+import { CategoryLeafPicker } from "@/components/seller/CategoryLeafPicker";
 import { DynamicAttributeInput } from "@/components/seller/DynamicAttributeInput";
 import type { CategoryTreeNode } from "@/lib/categories/types";
 import {
@@ -177,22 +178,13 @@ export function ProductCreateWizard({ categoryTree, loadSchema }: Props) {
           <p className="mt-1 text-sm text-ink-muted">
             Yaprak (en alt) kategori seçilmelidir.
           </p>
-          <div className="mt-4 max-h-96 space-y-1 overflow-y-auto">
-            {leaves.map((leaf) => (
-              <button
-                key={leaf.id}
-                type="button"
-                disabled={pending}
-                onClick={() => onPickCategory(leaf.id)}
-                className={`flex w-full rounded-xl border px-4 py-3 text-left text-sm transition hover:border-primary ${
-                  categoryId === leaf.id
-                    ? "border-primary bg-primary-soft text-primary"
-                    : "border-border"
-                }`}
-              >
-                {leaf.label}
-              </button>
-            ))}
+          <div className="mt-4">
+            <CategoryLeafPicker
+              options={leaves}
+              selectedId={categoryId}
+              pending={pending}
+              onSelect={onPickCategory}
+            />
           </div>
         </div>
       ) : null}

@@ -37,6 +37,27 @@ export async function listCategories(options?: {
   return (data ?? []) as CategoryRow[];
 }
 
+export async function listCategoriesByPath(options?: {
+  includeArchived?: boolean;
+}): Promise<CategoryRow[]> {
+  const admin = getSupabaseAdmin();
+  let query = admin
+    .from("categories")
+    .select(CATEGORY_SELECT)
+    .order("path", { ascending: true });
+
+  if (!options?.includeArchived) {
+    query = query.is("archived_at", null).neq("status", "archived");
+  }
+
+  const { data, error } = await query;
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []) as CategoryRow[];
+}
+
 export async function getCategoryTree(options?: {
   includeArchived?: boolean;
 }): Promise<CategoryTreeNode[]> {

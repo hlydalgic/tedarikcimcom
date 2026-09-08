@@ -1,13 +1,13 @@
 import { SellerApplicationWizard } from "@/components/seller/SellerApplicationWizard";
 import { requireUser } from "@/lib/auth/require-user";
-import { listCategories } from "@/lib/categories/queries";
+import { listCategoriesByPath } from "@/lib/categories/queries";
 import { getMarketplaceSettings } from "@/lib/marketplace/settings";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function SaticiOlPage() {
   await requireUser("/satici-ol");
   const settings = await getMarketplaceSettings();
-  const categories = await listCategories({ includeArchived: false });
+  const categories = await listCategoriesByPath({ includeArchived: false });
 
   const supabase = createClient();
   const {

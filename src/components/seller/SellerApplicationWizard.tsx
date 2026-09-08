@@ -470,11 +470,16 @@ export function SellerApplicationWizard({
             </div>
             <div>
               <p className="mb-2 text-sm font-medium">Satış kategorileri</p>
-              <div className="max-h-48 space-y-1 overflow-y-auto rounded-xl border border-border p-3">
+              <p className="mb-2 text-xs italic text-ink-muted">
+                Başvurduğunuz kategoriler bilgi amaçlıdır. Onay sonrasında bu
+                kategorilerin dışında da ürün ekleyebilirsiniz.
+              </p>
+              <div className="max-h-48 space-y-0.5 overflow-y-auto rounded-xl border border-border p-2">
                 {categories.map((c) => (
                   <label
                     key={c.id}
                     className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-background"
+                    style={{ paddingLeft: `${8 + c.depth * 16}px` }}
                   >
                     <input
                       type="checkbox"
@@ -482,11 +487,9 @@ export function SellerApplicationWizard({
                       value={c.id}
                       checked={form.category_ids.includes(c.id)}
                       onChange={() => toggleCategory(c.id)}
-                      className="h-4 w-4 rounded border-border"
+                      className="h-4 w-4 shrink-0 rounded border-border"
                     />
-                    <span>
-                      {"—".repeat(c.depth)} {c.name}
-                    </span>
+                    <span>{c.name}</span>
                   </label>
                 ))}
               </div>
