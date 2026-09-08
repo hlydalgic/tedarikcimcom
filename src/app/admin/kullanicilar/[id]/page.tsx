@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { notFound } from "next/navigation";
 import { getAdminUserDetail } from "@/lib/admin/queries";
 import { UserAdminActions } from "@/components/admin/marketplace/UserAdminActions";
@@ -13,12 +13,12 @@ export default async function AdminUserDetailPage({ params }: PageProps) {
 
   return (
     <div>
-      <Link
+      <AppLink
         href="/admin/kullanicilar"
         className="text-sm font-semibold text-primary hover:text-primary-hover"
       >
         ← Kullanıcılar
-      </Link>
+      </AppLink>
       <h1 className="mt-3 font-display text-2xl font-bold text-ink">
         {user.full_name ?? user.email}
       </h1>

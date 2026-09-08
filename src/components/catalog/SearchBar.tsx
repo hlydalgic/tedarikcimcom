@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { FolderTree, Package, Search, Tag } from "lucide-react";
 
 type Suggestion = {
@@ -114,7 +114,7 @@ export function SearchBar({ compact = false }: { compact?: boolean }) {
       {open && suggestions.length ? (
         <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-border bg-surface shadow-lift">
           {suggestions.map((s, i) => (
-            <Link
+            <AppLink
               key={`${s.suggestion_type}-${s.href}-${i}`}
               href={s.href}
               className="flex items-center gap-3 px-4 py-2.5 transition hover:bg-primary-soft"
@@ -138,7 +138,7 @@ export function SearchBar({ compact = false }: { compact?: boolean }) {
                   {s.label}
                 </span>
               </div>
-            </Link>
+            </AppLink>
           ))}
           <button
             type="button"

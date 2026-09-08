@@ -1,7 +1,7 @@
 "use client";
 
 import { useFormState, useFormStatus } from "react-dom";
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import {
   requestPasswordReset,
   type AuthActionState,
@@ -51,9 +51,9 @@ export function ForgotPasswordForm() {
       ) : null}
       <SubmitButton />
       <p className="text-center text-sm text-ink-muted">
-        <Link href="/giris" className="font-medium text-primary">
+        <AppLink href="/giris" className="font-medium text-primary">
           Girişe dön
-        </Link>
+        </AppLink>
       </p>
     </form>
   );

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { listAdminSellers } from "@/lib/admin/queries";
 
 type PageProps = { searchParams: { durum?: string } };
@@ -23,17 +23,17 @@ export default async function AdminSellersPage({ searchParams }: PageProps) {
             Mağaza listesi ve moderasyon yönetimi.
           </p>
         </div>
-        <Link
+        <AppLink
           href="/admin/saticilar/basvurular"
           className="text-sm font-semibold text-primary hover:text-primary-hover"
         >
           Başvurular →
-        </Link>
+        </AppLink>
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
         {FILTERS.map((f) => (
-          <Link
+          <AppLink
             key={f.value}
             href={
               f.value === "all"
@@ -47,7 +47,7 @@ export default async function AdminSellersPage({ searchParams }: PageProps) {
             }`}
           >
             {f.label}
-          </Link>
+          </AppLink>
         ))}
       </div>
 
@@ -67,12 +67,12 @@ export default async function AdminSellersPage({ searchParams }: PageProps) {
             {sellers.map((s) => (
               <tr key={s.id} className="border-b border-border last:border-0">
                 <td className="px-4 py-3">
-                  <Link
+                  <AppLink
                     href={`/admin/saticilar/${s.id}`}
                     className="font-semibold text-primary hover:text-primary-hover"
                   >
                     {s.name}
-                  </Link>
+                  </AppLink>
                 </td>
                 <td className="px-4 py-3 text-ink-muted">
                   {s.seller_name ?? s.seller_email}

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import {
   getProductBySlug,
   getProductSpecs,
@@ -154,12 +154,12 @@ export default async function ProductDetailPage({ params }: PageProps) {
 
           <div>
             {product.brand_name ? (
-              <Link
+              <AppLink
                 href={`/arama?q=${encodeURIComponent(product.brand_name)}`}
                 className="text-sm font-semibold text-primary hover:text-primary-hover"
               >
                 {product.brand_name}
-              </Link>
+              </AppLink>
             ) : null}
 
             <div className="mt-1 flex items-start justify-between gap-3">

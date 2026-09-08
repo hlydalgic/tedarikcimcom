@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { notFound } from "next/navigation";
 import { getAdminReturnDetail } from "@/lib/admin/queries";
 import { ReturnAdminActions } from "@/components/admin/marketplace/ReturnAdminActions";
@@ -13,12 +13,12 @@ export default async function AdminReturnDetailPage({ params }: PageProps) {
 
   return (
     <div>
-      <Link
+      <AppLink
         href="/admin/iadeler"
         className="text-sm font-semibold text-primary hover:text-primary-hover"
       >
         ← İadeler
-      </Link>
+      </AppLink>
       <h1 className="mt-3 font-display text-2xl font-bold text-ink">
         İade talebi
       </h1>

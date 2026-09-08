@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { listOpenSellerQuoteRequests } from "@/lib/quotes/queries";
 import { QUOTE_STATUS_LABELS } from "@/lib/quotes/types";
 import { formatPrice } from "@/lib/format";
@@ -23,7 +23,7 @@ export default async function PanelTekliflerPage() {
       <div className="mt-6 space-y-3">
         {requests.length ? (
           requests.map((r) => (
-            <Link
+            <AppLink
               key={r.id}
               href={`/panel/teklifler/${r.id}`}
               className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-surface px-4 py-4 hover:border-primary/30"
@@ -47,7 +47,7 @@ export default async function PanelTekliflerPage() {
                   <p className="mt-0.5 text-amber-700">Teklif bekleniyor</p>
                 )}
               </div>
-            </Link>
+            </AppLink>
           ))
         ) : (
           <p className="rounded-2xl border border-dashed border-border px-6 py-12 text-center text-sm text-ink-muted">

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { notFound } from "next/navigation";
 import { getSellerQuoteRequest } from "@/lib/quotes/queries";
 import { QUOTE_STATUS_LABELS } from "@/lib/quotes/types";
@@ -19,12 +19,12 @@ export default async function PanelTeklifDetailPage({ params }: PageProps) {
 
   return (
     <div>
-      <Link
+      <AppLink
         href="/panel/teklifler"
         className="text-sm font-semibold text-primary hover:text-primary-hover"
       >
         ← Teklif talepleri
-      </Link>
+      </AppLink>
       <h1 className="mt-3 font-display text-2xl font-bold text-ink">
         {request.product_title}
       </h1>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { formatPrice } from "@/lib/format";
 import {
   getRecentlyViewed,
@@ -23,7 +23,7 @@ export function RecentlyViewedStrip({ title = "Son görüntülenenler" }: { titl
       <h2 className="font-display text-xl font-bold text-ink md:text-2xl">{title}</h2>
       <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
         {items.map((item) => (
-          <Link
+          <AppLink
             key={item.id}
             href={`/urunler/${item.slug}`}
             className="flex w-40 shrink-0 flex-col overflow-hidden rounded-xl border border-border bg-surface transition hover:border-primary/30 hover:shadow-soft"
@@ -45,7 +45,7 @@ export function RecentlyViewedStrip({ title = "Son görüntülenenler" }: { titl
                 {formatPrice(item.price, item.currency)}
               </p>
             </div>
-          </Link>
+          </AppLink>
         ))}
       </div>
     </section>

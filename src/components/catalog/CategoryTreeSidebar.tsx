@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { ChevronRight } from "lucide-react";
 import type {
   CategorySidebarContext,
@@ -66,7 +66,7 @@ function CategoryRadioRow({
   }
 
   return (
-    <Link
+    <AppLink
       href={item.href}
       prefetch={true}
       onClick={onLinkClick}
@@ -75,7 +75,7 @@ function CategoryRadioRow({
       aria-checked={checked}
     >
       {row}
-    </Link>
+    </AppLink>
   );
 }
 
@@ -130,7 +130,7 @@ export function CategoryTreeSidebar({
                 {ancestor.name}
               </button>
             ) : (
-              <Link
+              <AppLink
                 key={ancestor.id}
                 href={ancestor.href}
                 prefetch={true}
@@ -139,7 +139,7 @@ export function CategoryTreeSidebar({
               >
                 <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-40" />
                 {ancestor.name}
-              </Link>
+              </AppLink>
             )
           )}
         </nav>

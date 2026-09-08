@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import Image from "next/image";
 import { useState } from "react";
 import { ArrowRight, Search } from "lucide-react";
@@ -78,19 +78,19 @@ export function Hero({
           </p>
 
           <div className="animate-fade-up animate-delay-300 mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Link
+            <AppLink
               href="/#kategoriler"
               className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-accent px-7 text-sm font-semibold text-white shadow-soft transition hover:bg-accent-hover"
             >
               Alışverişe Başla
               <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link
+            </AppLink>
+            <AppLink
               href="/satici-ol"
               className="inline-flex h-12 items-center justify-center rounded-xl border border-white/50 bg-white/15 px-7 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/25"
             >
               Satıcı Ol
-            </Link>
+            </AppLink>
           </div>
         </div>
 
@@ -124,13 +124,13 @@ export function Hero({
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             {popularCategories.map((cat) => (
-              <Link
+              <AppLink
                 key={cat.href}
                 href={cat.href}
                 className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium text-ink transition hover:border-primary/40 hover:bg-primary-soft hover:text-primary"
               >
                 {cat.name}
-              </Link>
+              </AppLink>
             ))}
           </div>
         </div>

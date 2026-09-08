@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { archiveSellerProduct } from "@/app/actions/products";
@@ -47,7 +47,7 @@ export function SellerProductList({ products, currentStatus }: Props) {
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
         {statuses.map((s) => (
-          <Link
+          <AppLink
             key={s}
             href={s === "ALL" ? "/panel/urunler" : `/panel/urunler?status=${s}`}
             className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
@@ -57,7 +57,7 @@ export function SellerProductList({ products, currentStatus }: Props) {
             }`}
           >
             {s === "ALL" ? "Tümü" : STATUS_LABEL[s] ?? s}
-          </Link>
+          </AppLink>
         ))}
       </div>
 
@@ -78,9 +78,9 @@ export function SellerProductList({ products, currentStatus }: Props) {
               <tr>
                 <td colSpan={6} className="px-4 py-12 text-center text-ink-muted">
                   Ürün yok.{" "}
-                  <Link href="/panel/urunler/ekle" className="text-primary">
+                  <AppLink href="/panel/urunler/ekle" className="text-primary">
                     Ürün ekle
-                  </Link>
+                  </AppLink>
                 </td>
               </tr>
             ) : (

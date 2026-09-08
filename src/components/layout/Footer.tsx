@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { BrandMark } from "@/components/branding/BrandMark";
 
 const footerColumns = [
@@ -72,12 +72,12 @@ export function Footer({ branding }: { branding: FooterBranding }) {
               <ul className="mt-3 space-y-2">
                 {col.links.map((link) => (
                   <li key={link.href}>
-                    <Link
+                    <AppLink
                       href={link.href}
                       className="text-sm text-white/60 transition hover:text-white"
                     >
                       {link.label}
-                    </Link>
+                    </AppLink>
                   </li>
                 ))}
               </ul>

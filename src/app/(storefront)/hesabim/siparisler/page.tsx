@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { requireUser } from "@/lib/auth/require-user";
 import { listBuyerOrders } from "@/lib/orders/queries";
 import { getMarketplaceSettings } from "@/lib/marketplace/settings";
@@ -23,7 +23,7 @@ export default async function BuyerOrdersPage() {
       <div className="mt-6 space-y-3">
         {orders.length ? (
           orders.map((o) => (
-            <Link
+            <AppLink
               key={o.id}
               href={`/hesabim/siparisler/${o.order_number}`}
               className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-surface px-4 py-4 transition hover:border-primary/30"
@@ -43,7 +43,7 @@ export default async function BuyerOrdersPage() {
                   {ORDER_STATUS_LABELS[o.status] ?? o.status}
                 </p>
               </div>
-            </Link>
+            </AppLink>
           ))
         ) : (
           <div className="rounded-2xl border border-dashed border-border px-6 py-12 text-center text-sm text-ink-muted">

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { notFound } from "next/navigation";
 import { getAdminSellerDetail } from "@/lib/admin/queries";
 import { formatPrice } from "@/lib/format";
@@ -22,12 +22,12 @@ export default async function AdminSellerDetailPage({ params }: PageProps) {
 
   return (
     <div>
-      <Link
+      <AppLink
         href="/admin/saticilar"
         className="text-sm font-semibold text-primary hover:text-primary-hover"
       >
         ← Satıcılar
-      </Link>
+      </AppLink>
       <h1 className="mt-3 font-display text-2xl font-bold text-ink">{shop.name}</h1>
       <p className="mt-1 text-sm text-ink-muted">
         {shop.status} · {shop.moderation_mode} · /magaza/{shop.slug}

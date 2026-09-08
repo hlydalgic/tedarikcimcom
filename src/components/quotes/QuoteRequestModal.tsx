@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { X } from "lucide-react";
 import { createQuoteRequest } from "@/app/actions/quotes";
 import type { AddressRow } from "@/lib/orders/types";
@@ -42,9 +42,9 @@ export function QuoteRequestModal({
       {!isLoggedIn ? (
         <p className="text-xs text-ink-muted">
           Teklif almak için{" "}
-          <Link href="/giris" className="font-semibold text-primary">
+          <AppLink href="/giris" className="font-semibold text-primary">
             giriş yapın
-          </Link>
+          </AppLink>
           .
         </p>
       ) : null}
@@ -74,12 +74,12 @@ export function QuoteRequestModal({
                   Talebiniz alındı. Satıcı teklif verdiğinde e-posta ile
                   bilgilendirileceksiniz.
                 </p>
-                <Link
+                <AppLink
                   href="/hesabim/teklifler"
                   className="inline-flex font-semibold text-primary hover:text-primary-hover"
                 >
                   Tekliflerime git →
-                </Link>
+                </AppLink>
               </div>
             ) : (
               <form
@@ -135,9 +135,9 @@ export function QuoteRequestModal({
                   ) : (
                     <p className="mt-2 text-xs text-amber-700">
                       Kayıtlı adres yok.{" "}
-                      <Link href="/odeme" className="font-semibold underline">
+                      <AppLink href="/odeme" className="font-semibold underline">
                         Ödeme sayfasından
-                      </Link>{" "}
+                      </AppLink>{" "}
                       adres ekleyebilirsiniz.
                     </p>
                   )}

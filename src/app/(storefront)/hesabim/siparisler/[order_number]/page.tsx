@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth/require-user";
 import { getBuyerOrderByNumber } from "@/lib/orders/queries";
@@ -82,12 +82,12 @@ export default async function BuyerOrderDetailPage({ params }: PageProps) {
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <Link
+                <AppLink
                   href={`/magaza/${so.shop_slug}`}
                   className="font-semibold text-ink hover:text-primary"
                 >
                   {so.shop_name}
-                </Link>
+                </AppLink>
                 <p className="text-xs text-ink-muted">
                   {so.suborder_number} ·{" "}
                   {SELLER_ORDER_STATUS_LABELS[so.status] ?? so.status}

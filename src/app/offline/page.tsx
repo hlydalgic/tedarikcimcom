@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { WifiOff } from "lucide-react";
 
 export const metadata = {
@@ -17,12 +17,12 @@ export default function OfflinePage() {
       <p className="mt-2 max-w-sm text-sm text-ink-muted">
         Şu anda çevrimdışısınız. Bağlantınızı kontrol edip tekrar deneyin.
       </p>
-      <Link
+      <AppLink
         href="/"
         className="mt-8 inline-flex h-11 items-center justify-center rounded-xl bg-primary px-6 text-sm font-semibold text-white transition hover:bg-primary-hover"
       >
         Ana sayfaya dön
-      </Link>
+      </AppLink>
     </div>
   );
 }

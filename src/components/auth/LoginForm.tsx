@@ -1,7 +1,7 @@
 "use client";
 
 import { useFormState, useFormStatus } from "react-dom";
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { signIn, type AuthActionState } from "@/app/actions/auth";
 
 const initialState: AuthActionState = {};
@@ -57,12 +57,12 @@ export function LoginForm({
           >
             Şifre
           </label>
-          <Link
+          <AppLink
             href="/sifre-sifirla"
             className="text-xs font-medium text-primary hover:text-primary-hover"
           >
             Şifremi unuttum
-          </Link>
+          </AppLink>
         </div>
         <input
           id="password"
@@ -81,9 +81,9 @@ export function LoginForm({
       <SubmitButton />
       <p className="text-center text-sm text-ink-muted">
         Hesabınız yok mu?{" "}
-        <Link href="/kayit" className="font-medium text-primary">
+        <AppLink href="/kayit" className="font-medium text-primary">
           Kayıt olun
-        </Link>
+        </AppLink>
       </p>
     </form>
   );

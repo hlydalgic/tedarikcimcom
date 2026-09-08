@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { notFound, redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth/require-user";
 import {
@@ -76,12 +76,12 @@ export default async function BuyerQuoteDetailPage({ params }: PageProps) {
         <BuyerQuoteActions request={request} />
       </div>
 
-      <Link
+      <AppLink
         href={`/urunler/${request.product_slug}`}
         className="mt-6 inline-block text-sm font-semibold text-primary hover:text-primary-hover"
       >
         Ürüne dön
-      </Link>
+      </AppLink>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import {
   useCallback,
   useEffect,
@@ -99,7 +99,7 @@ export function CategoryMegaMenu({
     return (
       <div className="grid grid-cols-2 gap-x-10 gap-y-2 px-8 py-6 md:grid-cols-3 lg:grid-cols-4">
         {root.children.map((child) => (
-          <Link
+          <AppLink
             key={child.id}
             href={buildNavCategoryHref(child, categories)}
             className="group flex items-center gap-1 rounded-lg px-2 py-2 text-sm text-ink transition hover:bg-primary-soft hover:text-primary"
@@ -107,7 +107,7 @@ export function CategoryMegaMenu({
           >
             <span>{child.name}</span>
             <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-0 transition group-hover:opacity-100" />
-          </Link>
+          </AppLink>
         ))}
       </div>
     );
@@ -123,18 +123,18 @@ export function CategoryMegaMenu({
       >
         <div className="flex min-h-[400px] w-full overflow-visible">
           <aside className="w-[240px] min-w-[240px] shrink-0 border-r border-border bg-surface py-4">
-            <Link
+            <AppLink
               href="/kategoriler"
               className="block px-5 py-2.5 text-sm font-semibold text-primary transition hover:bg-primary-soft"
               onClick={() => setOpen(false)}
             >
               Tüm kategoriler
-            </Link>
+            </AppLink>
             <nav aria-label="Ana kategoriler">
               {tree.map((root) => {
                 const active = hoveredRoot?.id === root.id;
                 return (
-                  <Link
+                  <AppLink
                     key={root.id}
                     href={buildNavCategoryHref(root, categories)}
                     className={`flex items-center justify-between gap-2 px-5 py-2.5 text-sm transition ${
@@ -149,7 +149,7 @@ export function CategoryMegaMenu({
                     {root.children.length > 0 ? (
                       <ChevronRight className="h-4 w-4 shrink-0 text-ink-muted" />
                     ) : null}
-                  </Link>
+                  </AppLink>
                 );
               })}
             </nav>
@@ -159,20 +159,20 @@ export function CategoryMegaMenu({
             {hoveredRoot ? (
               <>
                 <div className="flex items-center justify-between border-b border-border px-8 py-4">
-                  <Link
+                  <AppLink
                     href={buildNavCategoryHref(hoveredRoot, categories)}
                     className="text-base font-semibold text-ink transition hover:text-primary"
                     onClick={() => setOpen(false)}
                   >
                     {hoveredRoot.name}
-                  </Link>
-                  <Link
+                  </AppLink>
+                  <AppLink
                     href={buildNavCategoryHref(hoveredRoot, categories)}
                     className="text-sm font-semibold text-primary hover:text-primary-hover"
                     onClick={() => setOpen(false)}
                   >
                     Tümünü gör →
-                  </Link>
+                  </AppLink>
                 </div>
                 {renderChildLinks(hoveredRoot)}
               </>
@@ -224,25 +224,25 @@ export function CategoryMobileNav({
 
   return (
     <div className="flex flex-col gap-1">
-      <Link
+      <AppLink
         href="/kategoriler"
         className="rounded-lg px-3 py-2.5 text-sm font-semibold text-primary hover:bg-primary-soft"
         onClick={onNavigate}
       >
         Tüm kategoriler
-      </Link>
+      </AppLink>
       {tree.map((root) => {
         const expanded = expandedId === root.id;
         return (
           <div key={root.id}>
             <div className="flex items-center gap-1">
-              <Link
+              <AppLink
                 href={buildNavCategoryHref(root, categories)}
                 className="min-w-0 flex-1 rounded-lg px-3 py-2.5 text-sm font-medium text-ink hover:bg-primary-soft"
                 onClick={onNavigate}
               >
                 {root.name}
-              </Link>
+              </AppLink>
               {root.children.length > 0 ? (
                 <button
                   type="button"
@@ -262,14 +262,14 @@ export function CategoryMobileNav({
             {expanded && root.children.length > 0 ? (
               <div className="ml-3 border-l border-border pl-2">
                 {root.children.map((child) => (
-                  <Link
+                  <AppLink
                     key={child.id}
                     href={buildNavCategoryHref(child, categories)}
                     className="block rounded-lg px-3 py-2 text-sm text-ink-muted hover:bg-primary-soft hover:text-ink"
                     onClick={onNavigate}
                   >
                     {child.name}
-                  </Link>
+                  </AppLink>
                 ))}
               </div>
             ) : null}

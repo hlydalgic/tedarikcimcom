@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { Trash2, AlertTriangle } from "lucide-react";
 import { formatPrice } from "@/lib/format";
 import {
@@ -31,12 +31,12 @@ export function CartPageClient({ isLoggedIn }: { isLoggedIn: boolean }) {
         <p className="mt-1 text-sm text-ink-muted">
           Alışverişe devam etmek için kategorilere göz atın.
         </p>
-        <Link
+        <AppLink
           href="/kategoriler"
           className="mt-6 inline-flex rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-hover"
         >
           Kategorilere git
-        </Link>
+        </AppLink>
       </div>
     );
   }
@@ -50,17 +50,17 @@ export function CartPageClient({ isLoggedIn }: { isLoggedIn: boolean }) {
             className="overflow-hidden rounded-2xl border border-border bg-surface"
           >
             <div className="border-b border-border bg-background/60 px-4 py-3">
-              <Link
+              <AppLink
                 href={`/magaza/${group.shopSlug}`}
                 className="text-sm font-semibold text-ink hover:text-primary"
               >
                 {group.shopName}
-              </Link>
+              </AppLink>
             </div>
             <ul className="divide-y divide-border">
               {group.items.map((item) => (
                 <li key={item.productId} className="flex gap-4 p-4">
-                  <Link
+                  <AppLink
                     href={`/urunler/${item.slug}`}
                     className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-background"
                   >
@@ -73,14 +73,14 @@ export function CartPageClient({ isLoggedIn }: { isLoggedIn: boolean }) {
                         sizes="80px"
                       />
                     ) : null}
-                  </Link>
+                  </AppLink>
                   <div className="min-w-0 flex-1">
-                    <Link
+                    <AppLink
                       href={`/urunler/${item.slug}`}
                       className="line-clamp-2 text-sm font-semibold text-ink hover:text-primary"
                     >
                       {item.title}
-                    </Link>
+                    </AppLink>
                     {item.brandName ? (
                       <p className="mt-0.5 text-xs text-ink-muted">{item.brandName}</p>
                     ) : null}
@@ -158,19 +158,19 @@ export function CartPageClient({ isLoggedIn }: { isLoggedIn: boolean }) {
             Checkout için uygun ürün yok.
           </p>
         ) : isLoggedIn ? (
-          <Link
+          <AppLink
             href="/odeme"
             className="mt-5 flex h-11 w-full items-center justify-center rounded-xl bg-primary text-sm font-semibold text-white hover:bg-primary-hover"
           >
             Siparişi Tamamla
-          </Link>
+          </AppLink>
         ) : (
-          <Link
+          <AppLink
             href="/giris?redirect=/odeme"
             className="mt-5 flex h-11 w-full items-center justify-center rounded-xl bg-primary text-sm font-semibold text-white hover:bg-primary-hover"
           >
             Giriş yap ve devam et
-          </Link>
+          </AppLink>
         )}
       </aside>
     </div>

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { listAdminUsers } from "@/lib/admin/queries";
 
 export default async function AdminUsersPage() {
@@ -22,12 +22,12 @@ export default async function AdminUsersPage() {
             {users.map((u) => (
               <tr key={u.id} className="border-b border-border last:border-0">
                 <td className="px-4 py-3">
-                  <Link
+                  <AppLink
                     href={`/admin/kullanicilar/${u.id}`}
                     className="font-semibold text-primary"
                   >
                     {u.full_name ?? "—"}
-                  </Link>
+                  </AppLink>
                 </td>
                 <td className="px-4 py-3 text-ink-muted">{u.email}</td>
                 <td className="px-4 py-3">{u.status}</td>

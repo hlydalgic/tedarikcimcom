@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import {
   SHIPMENT_STATUS_LABELS,
   SELLER_ORDER_STATUS_LABELS,
@@ -43,14 +43,14 @@ export function OrderTrackingPanel({
       ) : null}
       <div className="mt-2 flex flex-wrap gap-3 text-xs font-semibold">
         {shipment?.tracking_url ? (
-          <Link
+          <AppLink
             href={shipment.tracking_url}
             target="_blank"
             rel="noopener noreferrer"
             className="text-primary hover:text-primary-hover"
           >
             Kargo firmasında takip et →
-          </Link>
+          </AppLink>
         ) : null}
       </div>
     </div>

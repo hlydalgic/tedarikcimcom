@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { BrandMark } from "@/components/branding/BrandMark";
 import { getMarketplaceSettings } from "@/lib/marketplace/settings";
@@ -52,9 +52,9 @@ export default async function GirisPage({ searchParams }: GirisPageProps) {
         ) : null}
         <LoginForm redirectTo={redirectTo} notice={notice} />
         <p className="mt-6 text-center text-sm text-ink-muted">
-          <Link href="/" className="font-medium text-primary hover:text-primary-hover">
+          <AppLink href="/" className="font-medium text-primary hover:text-primary-hover">
             Mağazaya dön
-          </Link>
+          </AppLink>
         </p>
       </div>
     </div>

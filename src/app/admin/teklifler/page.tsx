@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { listAdminQuoteRequests } from "@/lib/quotes/queries";
 import { QUOTE_STATUS_LABELS } from "@/lib/quotes/types";
 
@@ -30,7 +30,7 @@ export default async function AdminTekliflerPage({ searchParams }: PageProps) {
       </h1>
       <div className="mt-4 flex flex-wrap gap-2">
         {FILTERS.map((f) => (
-          <Link
+          <AppLink
             key={f.value}
             href={
               f.value === "all"
@@ -44,7 +44,7 @@ export default async function AdminTekliflerPage({ searchParams }: PageProps) {
             }`}
           >
             {f.label}
-          </Link>
+          </AppLink>
         ))}
       </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { SearchCategoryFacet } from "@/lib/catalog/types";
 

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { ArrowUpRight } from "lucide-react";
 
 export function SellerCta() {
@@ -14,13 +14,13 @@ export function SellerCta() {
             yayınlayın. Komisyon şeffaf, ödeme iyzico ile güvende.
           </p>
         </div>
-        <Link
+        <AppLink
           href="/satici-ol"
           className="inline-flex h-11 shrink-0 items-center gap-2 rounded-xl border border-primary/20 bg-surface px-5 text-sm font-semibold text-primary transition hover:border-primary hover:bg-primary hover:text-white"
         >
           Satıcı ol
           <ArrowUpRight className="h-4 w-4" />
-        </Link>
+        </AppLink>
       </div>
     </section>
   );

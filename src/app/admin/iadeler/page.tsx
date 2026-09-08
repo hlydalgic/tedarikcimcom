@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { listAdminReturns } from "@/lib/admin/queries";
 import { formatPrice } from "@/lib/format";
 
@@ -13,7 +13,7 @@ export default async function AdminReturnsPage({ searchParams }: PageProps) {
       <h1 className="font-display text-2xl font-bold text-ink">İade yönetimi</h1>
       <div className="mt-4 flex flex-wrap gap-2">
         {["all", "pending", "approved", "rejected", "refunded"].map((s) => (
-          <Link
+          <AppLink
             key={s}
             href={
               s === "all" ? "/admin/iadeler" : `/admin/iadeler?durum=${s}`
@@ -25,14 +25,14 @@ export default async function AdminReturnsPage({ searchParams }: PageProps) {
             }`}
           >
             {s}
-          </Link>
+          </AppLink>
         ))}
       </div>
 
       <div className="mt-6 space-y-2">
         {rows.length ? (
           rows.map((r) => (
-            <Link
+            <AppLink
               key={r.id}
               href={`/admin/iadeler/${r.id}`}
               className="block rounded-2xl border border-border bg-surface px-4 py-4 hover:border-primary/30"
@@ -54,7 +54,7 @@ export default async function AdminReturnsPage({ searchParams }: PageProps) {
                 </div>
               </div>
               <p className="mt-2 line-clamp-2 text-xs text-ink-muted">{r.reason}</p>
-            </Link>
+            </AppLink>
           ))
         ) : (
           <p className="rounded-2xl border border-dashed border-border px-6 py-12 text-center text-sm text-ink-muted">

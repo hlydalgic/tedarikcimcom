@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUserRoles } from "@/lib/auth/get-user-roles";
@@ -48,19 +48,19 @@ export default async function SellerPendingPage() {
             : "Satıcı paneline erişmek için onaylı bir mağazanız olmalı."}
       </p>
       <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
-        <Link
+        <AppLink
           href="/"
           className="inline-flex h-10 items-center justify-center rounded-xl border border-border px-4 text-sm font-semibold"
         >
           Mağazaya dön
-        </Link>
+        </AppLink>
         {!pendingApp && !shop ? (
-          <Link
+          <AppLink
             href="/satici-ol"
             className="inline-flex h-10 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-white"
           >
             Satıcı başvurusu
-          </Link>
+          </AppLink>
         ) : null}
       </div>
     </div>

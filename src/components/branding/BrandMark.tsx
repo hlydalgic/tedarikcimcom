@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { splitBrandShortName } from "@/lib/branding/split-short-name";
 
 type BrandMarkProps = {
@@ -72,13 +72,13 @@ export function BrandMark({
   );
 
   return (
-    <Link
+    <AppLink
       href={href}
       prefetch={prefetch}
       className="relative z-[101] inline-flex shrink-0 items-center"
       onClick={onClick}
     >
       {content}
-    </Link>
+    </AppLink>
   );
 }

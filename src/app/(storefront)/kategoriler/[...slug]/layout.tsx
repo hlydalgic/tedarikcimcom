@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 
 export default function CategorySlugLayout({
   children,
@@ -7,7 +7,7 @@ export default function CategorySlugLayout({
 }) {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 md:px-6 lg:px-8">
-      <Link
+      <AppLink
         href="/"
         prefetch={true}
         className="sr-only"
@@ -15,7 +15,7 @@ export default function CategorySlugLayout({
         tabIndex={-1}
       >
         Ana sayfa
-      </Link>
+      </AppLink>
       {children}
     </div>
   );

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { notFound, redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth/require-user";
 import {
@@ -34,7 +34,7 @@ export default async function BuyerQuotesPage() {
       <div className="mt-6 space-y-3">
         {requests.length ? (
           requests.map((r) => (
-            <Link
+            <AppLink
               key={r.id}
               href={`/hesabim/teklifler/${r.id}`}
               className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-surface px-4 py-4 transition hover:border-primary/30"
@@ -49,7 +49,7 @@ export default async function BuyerQuotesPage() {
               <p className="text-xs font-semibold text-ink-muted">
                 {QUOTE_STATUS_LABELS[r.status] ?? r.status}
               </p>
-            </Link>
+            </AppLink>
           ))
         ) : (
           <div className="rounded-2xl border border-dashed border-border px-6 py-12 text-center text-sm text-ink-muted">

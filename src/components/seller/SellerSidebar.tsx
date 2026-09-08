@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -84,7 +84,7 @@ export function SellerSidebar({ shortName, shopName, email }: Props) {
           const active = item.match(pathname);
           const Icon = item.icon;
           return (
-            <Link
+            <AppLink
               key={item.href}
               href={item.href}
               className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
@@ -95,7 +95,7 @@ export function SellerSidebar({ shortName, shopName, email }: Props) {
             >
               <Icon className="h-4 w-4 shrink-0" />
               {item.label}
-            </Link>
+            </AppLink>
           );
         })}
       </nav>
@@ -104,12 +104,12 @@ export function SellerSidebar({ shortName, shopName, email }: Props) {
         {email ? (
           <p className="mb-3 truncate text-xs text-ink-muted">{email}</p>
         ) : null}
-        <Link
+        <AppLink
           href="/"
           className="mb-1 block rounded-lg px-3 py-2 text-sm text-ink-muted hover:bg-background hover:text-ink"
         >
           Mağazaya dön
-        </Link>
+        </AppLink>
         <form action={signOut}>
           <button
             type="submit"

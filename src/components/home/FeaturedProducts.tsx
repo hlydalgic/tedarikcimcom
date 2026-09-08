@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { listFeaturedProducts } from "@/lib/catalog/queries";
 import {
   getMarketplaceFeatures,
@@ -32,12 +32,12 @@ export async function FeaturedProducts() {
               Doğrulanmış satıcılardan seçilmiş teknik ürünler.
             </p>
           </div>
-          <Link
+          <AppLink
             href="/kategoriler"
             className="hidden text-sm font-semibold text-primary hover:text-primary-hover sm:inline"
           >
             Daha fazla
-          </Link>
+          </AppLink>
         </div>
 
         <ProductHorizontalScroll products={products} />

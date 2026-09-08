@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { notFound } from "next/navigation";
 import { getAdminOrderDetail } from "@/lib/admin/queries";
 import { formatPrice } from "@/lib/format";
@@ -17,12 +17,12 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
 
   return (
     <div>
-      <Link
+      <AppLink
         href="/admin/siparisler"
         className="text-sm font-semibold text-primary hover:text-primary-hover"
       >
         ← Siparişler
-      </Link>
+      </AppLink>
       <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl font-bold text-ink">

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { Star } from "lucide-react";
 
 type ProductSellerCardProps = {
@@ -38,12 +38,12 @@ export function ProductSellerCard({
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <Link
+          <AppLink
             href={`/magaza/${shopSlug}`}
             className="font-semibold text-ink hover:text-primary"
           >
             {shopName}
-          </Link>
+          </AppLink>
           <div className="mt-0.5 flex items-center gap-2 text-xs text-ink-muted">
             {shopRatingAvg != null ? (
               <span className="inline-flex items-center gap-0.5">

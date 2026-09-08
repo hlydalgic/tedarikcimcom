@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { listSellerOrders } from "@/lib/orders/queries";
 import { formatPrice } from "@/lib/format";
 import { SELLER_ORDER_STATUS_LABELS } from "@/lib/orders/types";
@@ -30,7 +30,7 @@ export default async function PanelSiparislerPage({ searchParams }: PageProps) {
       <h1 className="font-display text-2xl font-bold text-ink">Siparişler</h1>
       <div className="mt-4 flex flex-wrap gap-2">
         {FILTERS.map((f) => (
-          <Link
+          <AppLink
             key={f.value}
             href={f.value === "all" ? "/panel/siparisler" : `/panel/siparisler?durum=${f.value}`}
             className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
@@ -40,14 +40,14 @@ export default async function PanelSiparislerPage({ searchParams }: PageProps) {
             }`}
           >
             {f.label}
-          </Link>
+          </AppLink>
         ))}
       </div>
 
       <div className="mt-6 space-y-3">
         {orders.length ? (
           orders.map((o) => (
-            <Link
+            <AppLink
               key={o.id}
               href={`/panel/siparisler/${o.id}`}
               className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-surface px-4 py-4 hover:border-primary/30"
@@ -67,7 +67,7 @@ export default async function PanelSiparislerPage({ searchParams }: PageProps) {
                   {SELLER_ORDER_STATUS_LABELS[o.status] ?? o.status}
                 </p>
               </div>
-            </Link>
+            </AppLink>
           ))
         ) : (
           <p className="rounded-2xl border border-dashed border-border px-6 py-12 text-center text-sm text-ink-muted">

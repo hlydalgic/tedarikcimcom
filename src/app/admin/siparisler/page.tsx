@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { listAdminOrders } from "@/lib/admin/queries";
 import { formatPrice } from "@/lib/format";
 import { ORDER_STATUS_LABELS } from "@/lib/orders/types";
@@ -22,7 +22,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
       <h1 className="font-display text-2xl font-bold text-ink">Siparişler</h1>
       <div className="mt-4 flex flex-wrap gap-2">
         {FILTERS.map((f) => (
-          <Link
+          <AppLink
             key={f.value}
             href={
               f.value === "all"
@@ -36,13 +36,13 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
             }`}
           >
             {f.label}
-          </Link>
+          </AppLink>
         ))}
       </div>
 
       <div className="mt-6 space-y-2">
         {orders.map((o) => (
-          <Link
+          <AppLink
             key={o.id}
             href={`/admin/siparisler/${o.id}`}
             className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-surface px-4 py-4 hover:border-primary/30"
@@ -60,7 +60,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
                 {ORDER_STATUS_LABELS[o.status] ?? o.status}
               </p>
             </div>
-          </Link>
+          </AppLink>
         ))}
       </div>
     </div>

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { requireSeller } from "@/lib/auth/require-seller";
 import {
   getSellerDashboardStats,
@@ -53,12 +53,12 @@ export default async function SellerDashboardPage() {
           <p className="mt-3 font-display text-2xl font-bold text-primary">
             {formatMoneyTry(stats.pendingSettlement)}
           </p>
-          <Link
+          <AppLink
             href="/panel/hakedis"
             className="mt-3 inline-block text-sm font-medium text-primary"
           >
             Hakediş detayı →
-          </Link>
+          </AppLink>
         </div>
 
         <div className="rounded-2xl border border-border bg-surface p-5">
@@ -66,9 +66,9 @@ export default async function SellerDashboardPage() {
             <h2 className="font-display text-base font-semibold">
               Son siparişler
             </h2>
-            <Link href="/panel/siparisler" className="text-xs font-semibold text-primary">
+            <AppLink href="/panel/siparisler" className="text-xs font-semibold text-primary">
               Tümü
-            </Link>
+            </AppLink>
           </div>
           {stats.recentOrders.length === 0 ? (
             <p className="text-sm text-ink-muted">Henüz sipariş yok.</p>

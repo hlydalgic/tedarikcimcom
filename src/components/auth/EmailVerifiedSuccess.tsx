@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { useRouter } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { BrandMark } from "@/components/branding/BrandMark";
@@ -38,12 +38,12 @@ export function EmailVerifiedSuccess({ shortName, logoUrl }: Props) {
           </p>
         </div>
 
-        <Link
+        <AppLink
           href="/giris"
           className="mt-8 inline-flex h-11 items-center justify-center rounded-xl bg-primary px-6 text-sm font-semibold text-white transition hover:bg-primary-hover"
         >
           Giriş Yap
-        </Link>
+        </AppLink>
 
         <p className="mt-4 text-xs text-ink-muted">
           3 saniye içinde giriş sayfasına yönlendirileceksiniz…

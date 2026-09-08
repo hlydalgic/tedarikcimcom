@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { listAdminSettlements } from "@/lib/admin/queries";
 import { formatPrice } from "@/lib/format";
 import { SettlementAdminActions } from "@/components/admin/marketplace/SettlementAdminActions";
@@ -23,7 +23,7 @@ export default async function AdminSettlementsPage({ searchParams }: PageProps) 
       <h1 className="font-display text-2xl font-bold text-ink">Hakedişler</h1>
       <div className="mt-4 flex flex-wrap gap-2">
         {STATUSES.map((s) => (
-          <Link
+          <AppLink
             key={s}
             href={
               s === "all"
@@ -37,7 +37,7 @@ export default async function AdminSettlementsPage({ searchParams }: PageProps) 
             }`}
           >
             {s}
-          </Link>
+          </AppLink>
         ))}
       </div>
 

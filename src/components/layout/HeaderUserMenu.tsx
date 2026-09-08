@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { useEffect, useRef, useState } from "react";
 import {
   ChevronDown,
@@ -44,18 +44,18 @@ export function HeaderUserMenu({ user, favoritesEnabled }: Props) {
   if (!user) {
     return (
       <div className="flex items-center gap-2">
-        <Link
+        <AppLink
           href="/giris"
           className="inline-flex h-10 items-center rounded-lg border border-border px-3 text-sm font-semibold text-ink transition hover:bg-background"
         >
           Giriş Yap
-        </Link>
-        <Link
+        </AppLink>
+        <AppLink
           href="/kayit"
           className="inline-flex h-10 items-center rounded-lg bg-accent px-3 text-sm font-semibold text-white transition hover:bg-accent-hover"
         >
           Kayıt Ol
-        </Link>
+        </AppLink>
       </div>
     );
   }
@@ -147,7 +147,7 @@ function MenuLink({
   onClick: () => void;
 }) {
   return (
-    <Link
+    <AppLink
       href={href}
       role="menuitem"
       onClick={onClick}
@@ -155,6 +155,6 @@ function MenuLink({
     >
       <Icon className="h-4 w-4 text-ink-muted" />
       {children}
-    </Link>
+    </AppLink>
   );
 }

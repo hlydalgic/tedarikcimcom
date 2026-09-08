@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm";
 import { BrandMark } from "@/components/branding/BrandMark";
 import { getMarketplaceSettings } from "@/lib/marketplace/settings";
@@ -24,9 +24,9 @@ export default async function SifreSifirlaPage() {
         </div>
         <ForgotPasswordForm />
         <p className="mt-6 text-center text-sm text-ink-muted">
-          <Link href="/" className="font-medium text-primary">
+          <AppLink href="/" className="font-medium text-primary">
             Mağazaya dön
-          </Link>
+          </AppLink>
         </p>
       </div>
     </div>

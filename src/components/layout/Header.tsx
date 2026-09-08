@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { useRef, useState } from "react";
 import { Menu, ShoppingCart, X } from "lucide-react";
 import { BrandMark } from "@/components/branding/BrandMark";
@@ -65,14 +65,14 @@ export function Header({
 
         <nav className="ml-auto flex items-center gap-1 md:gap-2" aria-label="Hesap">
           <HeaderUserMenu user={user} favoritesEnabled={favoritesEnabled} />
-          <Link
+          <AppLink
             href="/sepet"
             className="relative inline-flex h-10 items-center gap-1.5 rounded-lg px-2.5 text-sm font-medium text-ink transition hover:bg-background"
           >
             <ShoppingCart className="h-5 w-5" />
             <span className="hidden lg:inline">Sepet</span>
             <CartBadge />
-          </Link>
+          </AppLink>
         </nav>
       </div>
 
@@ -90,13 +90,13 @@ export function Header({
 
           <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">
             {topNav.map((cat) => (
-              <Link
+              <AppLink
                 key={cat.id}
                 href={buildNavCategoryHref(cat, navCategories)}
                 className="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-ink-muted transition hover:bg-background hover:text-ink"
               >
                 {cat.name}
-              </Link>
+              </AppLink>
             ))}
           </div>
         </div>

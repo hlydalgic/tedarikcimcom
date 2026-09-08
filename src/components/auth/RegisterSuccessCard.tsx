@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { Mail } from "lucide-react";
 import { BrandMark } from "@/components/branding/BrandMark";
 
@@ -25,12 +25,12 @@ export function RegisterSuccessCard({ shortName, logoUrl }: Props) {
         </p>
       </div>
 
-      <Link
+      <AppLink
         href="/giris"
         className="mt-8 inline-flex text-sm font-semibold text-primary hover:text-primary-hover"
       >
         Giriş sayfasına dön
-      </Link>
+      </AppLink>
     </div>
   );
 }

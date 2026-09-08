@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { listAdminLogs } from "@/lib/admin/queries";
 
 type PageProps = {
@@ -51,12 +51,12 @@ export default async function AdminLogsPage({ searchParams }: PageProps) {
                 </pre>
               </div>
             </div>
-            <Link
+            <AppLink
               href={`/admin/loglar?action=${encodeURIComponent(log.action)}`}
               className="mt-2 inline-block text-xs text-primary"
             >
               Bu action ile filtrele
-            </Link>
+            </AppLink>
           </details>
         ))}
       </div>

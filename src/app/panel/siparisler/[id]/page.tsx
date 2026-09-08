@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { notFound } from "next/navigation";
 import { getSellerOrderDetail } from "@/lib/orders/queries";
 import { formatPrice } from "@/lib/format";
@@ -42,12 +42,12 @@ export default async function PanelSiparisDetailPage({ params }: PageProps) {
 
   return (
     <div>
-      <Link
+      <AppLink
         href="/panel/siparisler"
         className="text-sm font-semibold text-primary hover:text-primary-hover"
       >
         ← Siparişler
-      </Link>
+      </AppLink>
       <h1 className="mt-3 font-display text-2xl font-bold text-ink">
         {order.suborder_number}
       </h1>

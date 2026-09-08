@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { logClientSearch } from "@/lib/analytics/client";
 
 type SearchProductLinkProps = {
@@ -21,7 +21,7 @@ export function SearchProductLink({
   children,
 }: SearchProductLinkProps) {
   return (
-    <Link
+    <AppLink
       href={href}
       prefetch={prefetch}
       className={className}
@@ -34,6 +34,6 @@ export function SearchProductLink({
       }}
     >
       {children}
-    </Link>
+    </AppLink>
   );
 }

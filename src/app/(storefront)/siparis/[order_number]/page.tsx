@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { notFound } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { requireUser } from "@/lib/auth/require-user";
@@ -37,18 +37,18 @@ export default async function OrderSuccessPage({ params }: PageProps) {
         {formatPrice(order.grand_total, order.currency)}
       </p>
       <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-        <Link
+        <AppLink
           href="/hesabim/siparisler"
           className="inline-flex h-11 items-center justify-center rounded-xl bg-primary px-5 text-sm font-semibold text-white hover:bg-primary-hover"
         >
           Siparişlerimi Görüntüle
-        </Link>
-        <Link
+        </AppLink>
+        <AppLink
           href="/"
           className="inline-flex h-11 items-center justify-center rounded-xl border border-border px-5 text-sm font-semibold text-ink"
         >
           Alışverişe devam
-        </Link>
+        </AppLink>
       </div>
     </div>
   );

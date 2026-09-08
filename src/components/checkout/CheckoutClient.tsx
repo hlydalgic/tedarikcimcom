@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { formatPrice } from "@/lib/format";
 import {
   useCartStore,
@@ -84,9 +84,9 @@ export function CheckoutClient({ addresses }: CheckoutClientProps) {
     return (
       <div className="rounded-2xl border border-dashed border-border px-6 py-16 text-center">
         <p className="text-sm text-ink-muted">Checkout için sepetinizde ürün yok.</p>
-        <Link href="/sepet" className="mt-4 inline-block text-sm font-semibold text-primary">
+        <AppLink href="/sepet" className="mt-4 inline-block text-sm font-semibold text-primary">
           Sepete dön
-        </Link>
+        </AppLink>
       </div>
     );
   }

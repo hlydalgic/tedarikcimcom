@@ -1,7 +1,7 @@
 "use client";
 
 import { useFormState, useFormStatus } from "react-dom";
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { signUp, type AuthActionState } from "@/app/actions/auth";
 import { RegisterSuccessCard } from "@/components/auth/RegisterSuccessCard";
 import { BrandMark } from "@/components/branding/BrandMark";
@@ -95,16 +95,16 @@ export function RegisterForm({ shortName, logoUrl, marketplaceName }: Props) {
         <SubmitButton />
         <p className="text-center text-sm text-ink-muted">
           Zaten hesabınız var mı?{" "}
-          <Link href="/giris" className="font-medium text-primary">
+          <AppLink href="/giris" className="font-medium text-primary">
             Giriş yapın
-          </Link>
+          </AppLink>
         </p>
       </form>
 
       <p className="mt-6 text-center text-sm text-ink-muted">
-        <Link href="/" className="font-medium text-primary hover:text-primary-hover">
+        <AppLink href="/" className="font-medium text-primary hover:text-primary-hover">
           Mağazaya dön
-        </Link>
+        </AppLink>
       </p>
     </>
   );

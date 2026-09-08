@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import {
   getAdminDashboardStats,
   getAdminGmvTrend,
@@ -55,9 +55,9 @@ export default async function AdminDashboardPage() {
           value={String(stats.pending_seller_applications)}
           hint={
             stats.pending_seller_applications > 0 ? (
-              <Link href="/admin/saticilar/basvurular" className="text-primary">
+              <AppLink href="/admin/saticilar/basvurular" className="text-primary">
                 Başvurulara git →
-              </Link>
+              </AppLink>
             ) : undefined
           }
         />
@@ -66,9 +66,9 @@ export default async function AdminDashboardPage() {
           value={String(stats.pending_product_approvals)}
           hint={
             stats.pending_product_approvals > 0 ? (
-              <Link href="/admin/urunler?durum=PENDING_REVIEW" className="text-primary">
+              <AppLink href="/admin/urunler?durum=PENDING_REVIEW" className="text-primary">
                 Kuyruğa git →
-              </Link>
+              </AppLink>
             ) : undefined
           }
         />

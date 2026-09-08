@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { listHomepageCategories } from "@/lib/catalog/queries";
 
 const FALLBACK_IMAGE =
@@ -20,18 +20,18 @@ export async function CategoryGrid() {
             kategori tanımına göre otomatik oluşur.
           </p>
         </div>
-        <Link
+        <AppLink
           href="/kategoriler"
           className="hidden text-sm font-semibold text-primary hover:text-primary-hover sm:inline"
         >
           Tümünü gör
-        </Link>
+        </AppLink>
       </div>
 
       {categories.length ? (
         <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-6">
           {categories.map((category, index) => (
-            <Link
+            <AppLink
               key={category.id}
               href={category.href}
               className="group relative aspect-[4/5] overflow-hidden rounded-2xl bg-surface shadow-soft transition duration-300 hover:-translate-y-1 hover:shadow-lift"
@@ -59,7 +59,7 @@ export async function CategoryGrid() {
                   {category.product_count.toLocaleString("tr-TR")} ürün
                 </p>
               </div>
-            </Link>
+            </AppLink>
           ))}
         </div>
       ) : (

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -91,7 +91,7 @@ export function AdminProductsAdmin({
 
       <div className="flex flex-wrap gap-2">
         {STATUS_TABS.map((tab) => (
-          <Link
+          <AppLink
             key={tab.value}
             href={
               tab.value === "ALL"
@@ -105,7 +105,7 @@ export function AdminProductsAdmin({
             }`}
           >
             {tab.label}
-          </Link>
+          </AppLink>
         ))}
       </div>
 
@@ -291,13 +291,13 @@ export function AdminProductsAdmin({
               </div>
             </dl>
             {selected.status === "ACTIVE" ? (
-              <Link
+              <AppLink
                 href={`/urunler/${selected.slug}`}
                 target="_blank"
                 className="mt-4 inline-block text-sm font-semibold text-primary"
               >
                 Mağazada görüntüle →
-              </Link>
+              </AppLink>
             ) : null}
             {selected.status === "PENDING_REVIEW" ? (
               <div className="mt-6 space-y-3 border-t border-border pt-4">

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { listNavCategories } from "@/lib/catalog/queries";
 import { getMarketplaceSettings } from "@/lib/marketplace/settings";
 
@@ -25,22 +25,22 @@ export default async function CategoriesIndexPage() {
               key={cat.id}
               className="rounded-2xl border border-border bg-surface p-5 shadow-soft"
             >
-              <Link
+              <AppLink
                 href={cat.href}
                 className="font-display text-lg font-semibold text-ink hover:text-primary"
               >
                 {cat.name}
-              </Link>
+              </AppLink>
               {children.length ? (
                 <ul className="mt-3 space-y-1.5">
                   {children.map((child) => (
                     <li key={child.id}>
-                      <Link
+                      <AppLink
                         href={child.href}
                         className="text-sm text-ink-muted transition hover:text-primary"
                       >
                         {child.name}
-                      </Link>
+                      </AppLink>
                     </li>
                   ))}
                 </ul>

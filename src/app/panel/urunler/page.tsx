@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink } from "@/components/ui/AppLink";
 import { SellerProductList } from "@/components/seller/SellerProductList";
 import { requireSeller } from "@/lib/auth/require-seller";
 import {
@@ -26,12 +26,12 @@ export default async function UrunlerPage({ searchParams }: Props) {
           <h1 className="font-display text-2xl font-bold text-ink">Ürünlerim</h1>
           <p className="mt-1 text-sm text-ink-muted">{products.length} ürün</p>
         </div>
-        <Link
+        <AppLink
           href="/panel/urunler/ekle"
           className="inline-flex h-10 items-center rounded-xl bg-primary px-4 text-sm font-semibold text-white"
         >
           Ürün ekle
-        </Link>
+        </AppLink>
       </div>
       <SellerProductList products={products} currentStatus={status} />
     </div>
