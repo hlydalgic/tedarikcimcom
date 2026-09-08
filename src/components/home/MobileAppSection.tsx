@@ -8,16 +8,23 @@ type InstallPlatform = "ios" | "android";
 
 const INSTALL_INSTRUCTIONS: Record<
   InstallPlatform,
-  { title: string; steps: string }
+  { title: string; steps: string[] }
 > = {
   ios: {
     title: "iPhone / iPad",
-    steps:
-      "Safari'de aç → Alt menüdeki paylaş butonuna bas → Ana Ekrana Ekle",
+    steps: [
+      "Bu modalı kapatın",
+      "Safari'nin alt çubuğunda ortadaki paylaş ikonuna basın (□↑)",
+      "Aşağı kaydırın ve 'Ana Ekrana Ekle'yi seçin",
+    ],
   },
   android: {
     title: "Android",
-    steps: "Chrome'da aç → Sağ üst menüye bas → Ana ekrana ekle",
+    steps: [
+      "Chrome'da açın",
+      "Sağ üst menüye basın",
+      "Ana ekrana ekle'yi seçin",
+    ],
   },
 };
 
@@ -73,9 +80,11 @@ function InstallModal({
             >
               {info.title}
             </h3>
-            <p className="mt-2 text-sm leading-relaxed text-ink-muted">
-              {info.steps}
-            </p>
+            <ol className="mt-3 list-decimal space-y-2.5 pl-5 text-sm leading-relaxed text-ink-muted">
+              {info.steps.map((step) => (
+                <li key={step}>{step}</li>
+              ))}
+            </ol>
           </div>
           <button
             type="button"
