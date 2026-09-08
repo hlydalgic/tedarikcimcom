@@ -69,4 +69,17 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  .page-transition-bar {
+    animation: page-transition-slide 0.85s ease-in-out infinite;
+  }
+}
+
+@keyframes page-transition-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
 }

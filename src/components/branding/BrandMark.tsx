@@ -8,6 +8,7 @@ type BrandMarkProps = {
   className?: string;
   href?: string;
   invert?: boolean;
+  prefetch?: boolean;
   onClick?: () => void;
 };
 
@@ -54,6 +55,7 @@ export function BrandMark({
   className = "",
   href = "/",
   invert = false,
+  prefetch = true,
   onClick,
 }: BrandMarkProps) {
   const content = logoUrl ? (
@@ -72,6 +74,7 @@ export function BrandMark({
   return (
     <Link
       href={href}
+      prefetch={prefetch}
       className="relative z-[101] inline-flex shrink-0 items-center"
       onClick={onClick}
     >

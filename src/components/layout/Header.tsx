@@ -55,6 +55,7 @@ export function Header({
           shortName={branding.shortName}
           logoUrl={branding.logoUrl}
           className="text-xl md:text-2xl"
+          prefetch={true}
           onClick={() => setMegaOpen(false)}
         />
 
@@ -119,6 +120,7 @@ export function Header({
                 shortName={branding.shortName}
                 logoUrl={branding.logoUrl}
                 className="text-lg"
+                prefetch={true}
               />
               <button
                 type="button"
