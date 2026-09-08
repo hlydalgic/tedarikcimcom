@@ -1,6 +1,7 @@
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { AnalyticsTracker } from "@/components/analytics/AnalyticsTracker";
+import { StorefrontPwa } from "@/components/pwa/StorefrontPwa";
 import { getHeaderUser } from "@/lib/auth/header-user";
 import { listNavCategories } from "@/lib/catalog/queries";
 import {
@@ -22,7 +23,7 @@ export default async function StorefrontLayout({
   ]);
 
   return (
-    <>
+    <StorefrontPwa>
       <AnalyticsTracker />
       <Header
         branding={{
@@ -43,6 +44,6 @@ export default async function StorefrontLayout({
           seoDescription: settings.seo_description,
         }}
       />
-    </>
+    </StorefrontPwa>
   );
 }
