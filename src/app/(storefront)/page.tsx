@@ -6,7 +6,10 @@ import { TrustSection } from "@/components/home/TrustSection";
 import { SellerCta } from "@/components/home/SellerCta";
 import { RecentlyViewedStrip } from "@/components/catalog/RecentlyViewedStrip";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { getMarketplaceSettings } from "@/lib/marketplace/settings";
+import {
+  getMarketplaceSettings,
+} from "@/lib/marketplace/settings";
+import { listPopularNavCategories } from "@/lib/catalog/queries";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 import {
   buildOrganizationJsonLd,
@@ -36,9 +39,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const [settings, siteUrl] = await Promise.all([
+  const [settings, siteUrl, popularCategories] = await Promise.all([
     getMarketplaceSettings(),
     getSiteUrl(),
+    listPopularNavCategories(),
   ]);
 
   const orgJsonLd = buildOrganizationJsonLd({
@@ -68,6 +72,10 @@ export default async function HomePage() {
           tagline: settings.tagline,
           marketplaceName: settings.marketplace_name,
         }}
+        popularCategories={popularCategories.map((category) => ({
+          name: category.name,
+          href: category.href,
+        }))}
       />
       <CategoryGrid />
       <FeaturedProducts />

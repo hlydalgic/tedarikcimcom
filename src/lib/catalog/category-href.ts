@@ -1,9 +1,15 @@
 import type { NavCategory } from "@/lib/catalog/types";
 
 export function buildNavCategoryHref(
-  category: Pick<NavCategory, "slug" | "parent_id" | "id">,
-  allCategories: Pick<NavCategory, "slug" | "parent_id" | "id">[]
+  category: Pick<NavCategory, "slug" | "parent_id" | "id"> & {
+    href?: string;
+  },
+  allCategories: (Pick<NavCategory, "slug" | "parent_id" | "id"> & {
+    href?: string;
+  })[]
 ): string {
+  if (category.href) return category.href;
+
   const parts: string[] = [category.slug];
   let current = category;
   while (current.parent_id) {
@@ -59,14 +65,14 @@ export type CategorySidebarContext = {
 };
 
 function toSidebarItem(
-  category: Pick<NavCategory, "id" | "name" | "slug" | "parent_id">,
+  category: Pick<NavCategory, "id" | "name" | "slug" | "parent_id" | "href">,
   allCategories: NavCategory[]
 ): CategorySidebarItem {
   return {
     id: category.id,
     name: category.name,
     slug: category.slug,
-    href: buildNavCategoryHref(category, allCategories),
+    href: category.href ?? buildNavCategoryHref(category, allCategories),
   };
 }
 
@@ -98,7 +104,9 @@ function getSiblings(
 }
 
 export function buildCategorySidebarContext(
-  category: Pick<NavCategory, "id" | "name" | "slug" | "parent_id">,
+  category: Pick<NavCategory, "id" | "name" | "slug" | "parent_id"> & {
+    href?: string;
+  },
   allCategories: NavCategory[]
 ): CategorySidebarContext {
   const ancestors: CategorySidebarItem[] = [];
@@ -129,7 +137,8 @@ export function buildCategorySidebarContext(
   return {
     currentId: category.id,
     currentName: category.name,
-    currentHref: buildNavCategoryHref(category, allCategories),
+    currentHref:
+      category.href ?? buildNavCategoryHref(category, allCategories),
     ancestors,
     listItems,
     currentInList,

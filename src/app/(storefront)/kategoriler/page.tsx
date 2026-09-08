@@ -26,7 +26,7 @@ export default async function CategoriesIndexPage() {
               className="rounded-2xl border border-border bg-surface p-5 shadow-soft"
             >
               <Link
-                href={`/kategoriler/${cat.slug}`}
+                href={cat.href}
                 className="font-display text-lg font-semibold text-ink hover:text-primary"
               >
                 {cat.name}
@@ -36,7 +36,7 @@ export default async function CategoriesIndexPage() {
                   {children.map((child) => (
                     <li key={child.id}>
                       <Link
-                        href={`/kategoriler/${cat.slug}/${child.slug}`}
+                        href={child.href}
                         className="text-sm text-ink-muted transition hover:text-primary"
                       >
                         {child.name}

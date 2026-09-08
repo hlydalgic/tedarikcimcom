@@ -33,7 +33,7 @@ export async function CategoryGrid() {
           {categories.map((category, index) => (
             <Link
               key={category.id}
-              href={`/kategoriler/${category.slug}`}
+              href={category.href}
               className="group relative aspect-[4/5] overflow-hidden rounded-2xl bg-surface shadow-soft transition duration-300 hover:-translate-y-1 hover:shadow-lift"
               style={{ animationDelay: `${index * 60}ms` }}
             >

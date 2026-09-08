@@ -5,7 +5,6 @@ import Image from "next/image";
 import { useState } from "react";
 import { ArrowRight, Search } from "lucide-react";
 import { BrandMark } from "@/components/branding/BrandMark";
-import { mockNavCategories } from "@/lib/mock-data";
 
 export type HeroBranding = {
   shortName: string;
@@ -15,7 +14,18 @@ export type HeroBranding = {
   marketplaceName: string;
 };
 
-export function Hero({ branding }: { branding: HeroBranding }) {
+export type PopularCategoryLink = {
+  name: string;
+  href: string;
+};
+
+export function Hero({
+  branding,
+  popularCategories,
+}: {
+  branding: HeroBranding;
+  popularCategories: PopularCategoryLink[];
+}) {
   const [query, setQuery] = useState("");
   const headline =
     branding.seoTitle?.trim() ||
@@ -113,10 +123,10 @@ export function Hero({ branding }: { branding: HeroBranding }) {
             Popüler kategoriler
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
-            {mockNavCategories.map((cat) => (
+            {popularCategories.map((cat) => (
               <Link
-                key={cat.slug}
-                href={`/kategori/${cat.slug}`}
+                key={cat.href}
+                href={cat.href}
                 className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium text-ink transition hover:border-primary/40 hover:bg-primary-soft hover:text-primary"
               >
                 {cat.name}

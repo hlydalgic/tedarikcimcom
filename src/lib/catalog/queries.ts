@@ -338,6 +338,40 @@ export async function getCategoryBreadcrumb(
   return crumbs;
 }
 
+export async function getCategorySlugPath(categoryId: string): Promise<string> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("category_slug_path", {
+    p_category_id: categoryId,
+  });
+  if (error) throw new Error(error.message);
+
+  const slugPath = String(data ?? "").trim().replace(/^\/+|\/+$/g, "");
+  return slugPath;
+}
+
+export function buildCategoryHrefFromSlugPath(slugPath: string): string {
+  const normalized = slugPath.trim().replace(/^\/+|\/+$/g, "");
+  return normalized ? `/kategoriler/${normalized}` : "/kategoriler";
+}
+
+export async function attachCategoryHrefs<T extends { id: string }>(
+  categories: T[]
+): Promise<(T & { href: string })[]> {
+  if (!categories.length) return [];
+
+  const hrefs = await Promise.all(
+    categories.map(async (category) => {
+      const slugPath = await getCategorySlugPath(category.id);
+      return buildCategoryHrefFromSlugPath(slugPath);
+    })
+  );
+
+  return categories.map((category, index) => ({
+    ...category,
+    href: hrefs[index],
+  }));
+}
+
 export function buildCategoryHref(crumbs: { slug: string }[]): string {
   return `/kategoriler/${crumbs.map((c) => c.slug).join("/")}`;
 }
@@ -521,7 +555,9 @@ export async function listActiveCategories(): Promise<NavCategory[]> {
     .order("sort_order", { ascending: true });
 
   if (error) throw new Error(error.message);
-  return (data ?? []) as NavCategory[];
+  return attachCategoryHrefs(
+    (data ?? []) as Pick<NavCategory, "id" | "name" | "slug" | "parent_id">[]
+  );
 }
 
 export async function getCategorySidebarContext(
@@ -542,7 +578,15 @@ export async function listNavCategories(): Promise<NavCategory[]> {
     .order("sort_order", { ascending: true });
 
   if (error) throw new Error(error.message);
-  return (data ?? []) as NavCategory[];
+  return attachCategoryHrefs(
+    (data ?? []) as Pick<NavCategory, "id" | "name" | "slug" | "parent_id">[]
+  );
+}
+
+export async function listPopularNavCategories(limit = 6): Promise<NavCategory[]> {
+  const categories = await listNavCategories();
+  const roots = categories.filter((category) => !category.parent_id);
+  return roots.slice(0, limit);
 }
 
 export async function listHomepageCategories(): Promise<
@@ -561,8 +605,9 @@ export async function listHomepageCategories(): Promise<
   if (error) throw new Error(error.message);
 
   const categories = data ?? [];
+  const withHrefs = await attachCategoryHrefs(categories);
   const enriched = await Promise.all(
-    categories.map(async (cat) => {
+    withHrefs.map(async (cat) => {
       const { count } = await supabase
         .from("products")
         .select("id", { count: "exact", head: true })
