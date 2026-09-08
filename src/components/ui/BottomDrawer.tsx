@@ -47,7 +47,7 @@ export function BottomDrawer({
         onClick={onClose}
       />
       <div
-        className="absolute inset-x-0 bottom-0 flex max-h-[85vh] flex-col rounded-t-2xl bg-surface shadow-lift"
+        className="absolute inset-x-0 bottom-0 flex h-[85vh] flex-col rounded-t-2xl bg-surface shadow-lift"
         role="dialog"
         aria-modal="true"
         aria-labelledby="bottom-drawer-title"

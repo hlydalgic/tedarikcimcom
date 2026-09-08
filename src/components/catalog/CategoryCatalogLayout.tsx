@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { List, SlidersHorizontal } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import type { CategoryFilterDefinition } from "@/lib/catalog/types";
@@ -12,6 +12,8 @@ import {
 import { CategoryTreeSidebar } from "@/components/catalog/CategoryTreeSidebar";
 import { FilterSidebar } from "@/components/catalog/FilterSidebar";
 import { BottomDrawer } from "@/components/ui/BottomDrawer";
+
+const CATEGORY_DRAWER_STORAGE_KEY = "mobile-category-drawer-open";
 
 type CategoryCatalogLayoutProps = {
   sidebarContext: CategorySidebarContext;
@@ -28,6 +30,26 @@ export function CategoryCatalogLayout({
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
 
+  useEffect(() => {
+    if (sessionStorage.getItem(CATEGORY_DRAWER_STORAGE_KEY) === "1") {
+      setCategoryOpen(true);
+    }
+  }, []);
+
+  const openCategoryDrawer = () => {
+    setCategoryOpen(true);
+    sessionStorage.setItem(CATEGORY_DRAWER_STORAGE_KEY, "1");
+  };
+
+  const closeCategoryDrawer = () => {
+    setCategoryOpen(false);
+    sessionStorage.removeItem(CATEGORY_DRAWER_STORAGE_KEY);
+  };
+
+  const closeFilterDrawer = () => {
+    setFilterOpen(false);
+  };
+
   const activeFilterCount = useMemo(() => {
     const { filters } = parseFiltersFromSearchParams(searchParams, filterDefs);
     return countActiveFilters(filters);
@@ -38,7 +60,7 @@ export function CategoryCatalogLayout({
       <div className="mb-4 flex gap-2 lg:hidden">
         <button
           type="button"
-          onClick={() => setCategoryOpen(true)}
+          onClick={openCategoryDrawer}
           className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-surface text-sm font-semibold text-ink transition hover:bg-background"
         >
           <List className="h-4 w-4" />
@@ -76,26 +98,22 @@ export function CategoryCatalogLayout({
 
       <BottomDrawer
         open={categoryOpen}
-        onClose={() => setCategoryOpen(false)}
+        onClose={closeCategoryDrawer}
         title="Kategoriler"
       >
-        <div className="px-4 py-4">
-          <CategoryTreeSidebar
-            context={sidebarContext}
-            embedded
-            onLinkClick={() => setCategoryOpen(false)}
-          />
+        <div className="h-full overflow-y-auto px-4 py-4">
+          <CategoryTreeSidebar context={sidebarContext} embedded />
         </div>
       </BottomDrawer>
 
       <BottomDrawer
         open={filterOpen}
-        onClose={() => setFilterOpen(false)}
+        onClose={closeFilterDrawer}
         title="Filtrele"
       >
         <Suspense
           fallback={
-            <div className="h-48 animate-pulse bg-background px-4 py-4" />
+            <div className="h-full animate-pulse bg-background px-4 py-4" />
           }
         >
           <FilterSidebar
@@ -103,7 +121,7 @@ export function CategoryCatalogLayout({
             deferred
             embedded
             drawerOpen={filterOpen}
-            onApplied={() => setFilterOpen(false)}
+            onApplied={closeFilterDrawer}
           />
         </Suspense>
       </BottomDrawer>
