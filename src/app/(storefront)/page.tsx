@@ -4,6 +4,7 @@ import { CategoryGrid } from "@/components/home/CategoryGrid";
 import { FeaturedProducts } from "@/components/home/FeaturedProducts";
 import { TrustSection } from "@/components/home/TrustSection";
 import { SellerCta } from "@/components/home/SellerCta";
+import { MobileAppSection } from "@/components/home/MobileAppSection";
 import { RecentlyViewedStrip } from "@/components/catalog/RecentlyViewedStrip";
 import { JsonLd } from "@/components/seo/JsonLd";
 import {
@@ -82,6 +83,7 @@ export default async function HomePage() {
       <RecentlyViewedStrip />
       <TrustSection />
       <SellerCta />
+      <MobileAppSection />
     </>
   );
 }
