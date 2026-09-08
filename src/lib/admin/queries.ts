@@ -6,6 +6,7 @@ import type {
   AdminDashboardStats,
   AdminLogRow,
   AdminOrderListItem,
+  AdminProductListItem,
   AdminReturnRow,
   AdminSellerListItem,
   AdminSettlementRow,
@@ -138,6 +139,73 @@ export async function listAdminSellers(
       product_count: Number(productCount),
       order_count: Number(orderCount),
       created_at: row.created_at,
+    };
+  });
+}
+
+export async function listAdminProducts(
+  status?: string
+): Promise<AdminProductListItem[]> {
+  const admin = getSupabaseAdmin();
+  let query = admin
+    .from("products")
+    .select(
+      `id, title, slug, price, stock, status, description, created_at, updated_at,
+       submitted_for_review_at, rejection_reason,
+       shops:shop_id ( name ),
+       users:seller_id ( email, full_name ),
+       categories:category_id ( name ),
+       product_images ( url, is_primary, sort_order )`
+    )
+    .order("updated_at", { ascending: false });
+
+  if (status && status !== "ALL") {
+    query = query.eq("status", status);
+  }
+
+  const { data, error } = await query;
+  if (error) throw new Error(error.message);
+
+  return (data ?? []).map((row) => {
+    const shop = unwrapOne(
+      row.shops as { name: string } | { name: string }[] | null
+    );
+    const user = unwrapOne(
+      row.users as
+        | { email: string; full_name: string | null }
+        | { email: string; full_name: string | null }[]
+        | null
+    );
+    const cat = unwrapOne(
+      row.categories as { name: string } | { name: string }[] | null
+    );
+    const images = (row.product_images ?? []) as Array<{
+      url: string;
+      is_primary: boolean;
+      sort_order: number;
+    }>;
+    const primary =
+      images.find((i) => i.is_primary) ??
+      [...images].sort((a, b) => a.sort_order - b.sort_order)[0];
+
+    return {
+      id: row.id as string,
+      title: row.title as string,
+      slug: row.slug as string,
+      price: Number(row.price),
+      stock: Number(row.stock),
+      status: row.status as string,
+      description: (row.description as string | null) ?? null,
+      rejection_reason: (row.rejection_reason as string | null) ?? null,
+      created_at: row.created_at as string,
+      updated_at: row.updated_at as string,
+      submitted_for_review_at:
+        (row.submitted_for_review_at as string | null) ?? null,
+      shop_name: shop?.name ?? null,
+      seller_email: user?.email ?? null,
+      seller_name: user?.full_name ?? null,
+      category_name: cat?.name ?? null,
+      image_url: primary?.url ?? null,
     };
   });
 }

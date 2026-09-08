@@ -68,6 +68,25 @@ export type AdminSellerListItem = {
   created_at: string;
 };
 
+export type AdminProductListItem = {
+  id: string;
+  title: string;
+  slug: string;
+  price: number;
+  stock: number;
+  status: string;
+  description: string | null;
+  rejection_reason: string | null;
+  created_at: string;
+  updated_at: string;
+  submitted_for_review_at: string | null;
+  shop_name: string | null;
+  seller_email: string | null;
+  seller_name: string | null;
+  category_name: string | null;
+  image_url: string | null;
+};
+
 export type AdminOrderListItem = {
   id: string;
   order_number: string;

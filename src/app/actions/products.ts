@@ -500,3 +500,86 @@ export async function rejectProduct(input: {
   revalidateSeller(input.productId);
   return { success: "Ürün reddedildi." };
 }
+
+export async function suspendProduct(
+  productId: string
+): Promise<ProductActionState> {
+  const ctx = await requireAdminClient();
+  if (!ctx.ok) return { error: ctx.error };
+
+  const { data: oldRow } = await ctx.admin
+    .from("products")
+    .select("*")
+    .eq("id", productId)
+    .maybeSingle();
+
+  if (!oldRow) return { error: "Ürün bulunamadı." };
+  if (oldRow.status !== "ACTIVE") {
+    return { error: "Sadece aktif ürünler askıya alınabilir." };
+  }
+
+  const { data, error } = await ctx.admin
+    .from("products")
+    .update({ status: "SUSPENDED" })
+    .eq("id", productId)
+    .select("*")
+    .single();
+
+  if (error) return { error: error.message };
+
+  await writeAdminLog({
+    admin: ctx.admin,
+    adminUserId: ctx.userId,
+    action: "product.suspend",
+    entityType: "product",
+    entityId: productId,
+    oldData: oldRow as Record<string, unknown>,
+    newData: data as Record<string, unknown>,
+  });
+
+  revalidateSeller(productId);
+  return { success: "Ürün askıya alındı." };
+}
+
+export async function archiveProduct(
+  productId: string
+): Promise<ProductActionState> {
+  const ctx = await requireAdminClient();
+  if (!ctx.ok) return { error: ctx.error };
+
+  const { data: oldRow } = await ctx.admin
+    .from("products")
+    .select("*")
+    .eq("id", productId)
+    .maybeSingle();
+
+  if (!oldRow) return { error: "Ürün bulunamadı." };
+  if (oldRow.status === "ARCHIVED") {
+    return { error: "Ürün zaten arşivde." };
+  }
+
+  const { data, error } = await ctx.admin
+    .from("products")
+    .update({
+      status: "ARCHIVED",
+      archived_at: new Date().toISOString(),
+    })
+    .eq("id", productId)
+    .select("*")
+    .single();
+
+  if (error) return { error: error.message };
+
+  await writeAdminLog({
+    admin: ctx.admin,
+    adminUserId: ctx.userId,
+    action: "product.archive",
+    entityType: "product",
+    entityId: productId,
+    oldData: oldRow as Record<string, unknown>,
+    newData: data as Record<string, unknown>,
+  });
+
+  revalidateSeller(productId);
+  return { success: "Ürün arşivlendi." };
+}

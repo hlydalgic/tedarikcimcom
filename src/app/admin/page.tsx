@@ -66,7 +66,7 @@ export default async function AdminDashboardPage() {
           value={String(stats.pending_product_approvals)}
           hint={
             stats.pending_product_approvals > 0 ? (
-              <Link href="/admin/urunler/bekleyen" className="text-primary">
+              <Link href="/admin/urunler?durum=PENDING_REVIEW" className="text-primary">
                 Kuyruğa git →
               </Link>
             ) : undefined
