@@ -68,6 +68,7 @@ function CategoryRadioRow({
   return (
     <Link
       href={item.href}
+      prefetch={true}
       onClick={onLinkClick}
       className="block"
       role="radio"
@@ -132,6 +133,7 @@ export function CategoryTreeSidebar({
               <Link
                 key={ancestor.id}
                 href={ancestor.href}
+                prefetch={true}
                 onClick={onLinkClick}
                 className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm font-medium text-ink-muted transition hover:bg-primary-soft hover:text-primary"
               >

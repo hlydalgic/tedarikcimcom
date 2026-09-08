@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import {
   buildCategorySidebarContext,
@@ -589,7 +590,7 @@ export async function getShopBySlug(slug: string): Promise<ShopDetail | null> {
   };
 }
 
-export async function listActiveCategories(): Promise<NavCategory[]> {
+export const listActiveCategories = cache(async (): Promise<NavCategory[]> => {
   const supabase = createClient();
   const { data, error } = await supabase
     .from("categories")
@@ -602,7 +603,7 @@ export async function listActiveCategories(): Promise<NavCategory[]> {
   return attachCategoryHrefs(
     (data ?? []) as Pick<NavCategory, "id" | "name" | "slug" | "parent_id">[]
   );
-}
+});
 
 export async function getCategorySidebarContext(
   category: Pick<CategoryRow, "id" | "name" | "slug" | "parent_id">
