@@ -5,8 +5,8 @@ import {
   getProductBySlug,
   getProductSpecs,
   getRelatedProducts,
-  buildCategoryHref,
   getCategoryBreadcrumb,
+  attachCategoryHrefs,
 } from "@/lib/catalog/queries";
 import {
   getMarketplaceFeatures,
@@ -63,7 +63,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
   const product = await getProductBySlug(params.slug);
   if (!product) notFound();
 
-  const [specs, related, crumbs, features, favorited, siteUrl] =
+  const [specs, related, categoryCrumbs, features, favorited, siteUrl] =
     await Promise.all([
       getProductSpecs(product.id),
       getRelatedProducts(product.category_id, product.id, 4),
@@ -72,6 +72,8 @@ export default async function ProductDetailPage({ params }: PageProps) {
       isProductFavorited(product.id),
       getSiteUrl(),
     ]);
+
+  const crumbsWithHrefs = await attachCategoryHrefs(categoryCrumbs);
 
   const favoritesEnabled = isFeatureEnabled(features, "favorites_enabled");
   const quotesEnabled = isFeatureEnabled(features, "quotes_enabled");
@@ -85,12 +87,9 @@ export default async function ProductDetailPage({ params }: PageProps) {
   const productUrl = absoluteUrl(siteUrl, `/urunler/${product.slug}`);
   const breadcrumbItems = [
     { name: "Ana sayfa", href: "/" },
-    ...crumbs.map((c, i) => ({
+    ...crumbsWithHrefs.map((c) => ({
       name: c.name,
-      href:
-        i < crumbs.length - 1
-          ? buildCategoryHref(crumbs.slice(0, i + 1))
-          : `/kategoriler/${product.category_slug}`,
+      href: c.href,
     })),
     { name: product.title },
   ];
@@ -133,12 +132,9 @@ export default async function ProductDetailPage({ params }: PageProps) {
       <div className="mx-auto max-w-7xl px-4 pb-24 pt-8 md:px-6 lg:px-8 lg:pb-8">
         <Breadcrumb
           items={[
-            ...crumbs.map((c, i) => ({
+            ...crumbsWithHrefs.map((c) => ({
               name: c.name,
-              href:
-                i < crumbs.length - 1
-                  ? buildCategoryHref(crumbs.slice(0, i + 1))
-                  : `/kategoriler/${product.category_slug}`,
+              href: c.href,
             })),
             { name: product.title },
           ]}
