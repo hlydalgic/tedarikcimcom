@@ -2,6 +2,7 @@ import { CategoryBuilder } from "@/components/admin/categories/CategoryBuilder";
 import { getCategoryTree, listCategories } from "@/lib/categories/queries";
 import {
   listAttributes,
+  listAttributeOptions,
   listCategoryAttributes,
   listCategoryFilters,
   listActiveSystemFilterDefinitions,
@@ -13,22 +14,32 @@ type PageProps = {
 };
 
 export default async function AdminCategoriesPage({ searchParams }: PageProps) {
-  const [tree, flat, attributes, categoryAttributes, categoryFilters, systemFilterDefinitions, units] =
-    await Promise.all([
-      getCategoryTree({ includeArchived: false }),
-      listCategories({ includeArchived: false }),
-      listAttributes(),
-      listCategoryAttributes(),
-      listCategoryFilters(),
-      listActiveSystemFilterDefinitions(),
-      listUnits(),
-    ]);
+  const [
+    tree,
+    flat,
+    attributes,
+    attributeOptions,
+    categoryAttributes,
+    categoryFilters,
+    systemFilterDefinitions,
+    units,
+  ] = await Promise.all([
+    getCategoryTree({ includeArchived: false }),
+    listCategories({ includeArchived: false }),
+    listAttributes(),
+    listAttributeOptions(),
+    listCategoryAttributes(),
+    listCategoryFilters(),
+    listActiveSystemFilterDefinitions(),
+    listUnits(),
+  ]);
 
   return (
     <CategoryBuilder
       initialTree={tree}
       flatCategories={flat}
       attributes={attributes}
+      attributeOptions={attributeOptions}
       categoryAttributes={categoryAttributes}
       categoryFilters={categoryFilters}
       systemFilterDefinitions={systemFilterDefinitions}

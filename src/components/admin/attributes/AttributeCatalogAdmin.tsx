@@ -9,38 +9,32 @@ import {
   updateAttributeDefinition,
 } from "@/app/actions/attributes";
 import {
-  ATTRIBUTE_TYPES,
-  slugifyAttributeName,
-  type AttributeRow,
-  type AttributeType,
-  type UnitRow,
+  AttributeForm,
+  TYPE_LABELS,
+  attributeFormStateFromAttribute,
+  buildAttributeValidationRules,
+  createEmptyAttributeFormState,
+  needsAttributeOptions,
+  serializeAttributeOptions,
+  type AttributeFormState,
+} from "@/components/admin/attributes/AttributeForm";
+import type {
+  AttributeOptionRow,
+  AttributeRow,
+  UnitRow,
 } from "@/lib/attributes/types";
 
 type Props = {
   attributes: AttributeRow[];
   units: UnitRow[];
+  options: AttributeOptionRow[];
   usageCounts: Record<string, number>;
 };
-
-const TYPE_LABELS: Record<AttributeType, string> = {
-  SELECT: "Seçim",
-  MULTI_SELECT: "Çoklu seçim",
-  BOOLEAN: "Evet/Hayır",
-  NUMBER: "Sayı",
-  NUMBER_WITH_UNIT: "Birimli sayı",
-  RANGE: "Aralık",
-  TEXT: "Metin",
-  TEXTAREA: "Uzun metin",
-  COLOR: "Renk",
-  DATE: "Tarih",
-  YEAR: "Yıl",
-};
-
-type OptionDraft = { label: string; value: string; color_hex: string };
 
 export function AttributeCatalogAdmin({
   attributes,
   units,
+  options,
   usageCounts,
 }: Props) {
   const router = useRouter();
@@ -49,31 +43,9 @@ export function AttributeCatalogAdmin({
   const [message, setMessage] = useState<string | null>(null);
   const [modal, setModal] = useState<"create" | "edit" | null>(null);
   const [editAttr, setEditAttr] = useState<AttributeRow | null>(null);
-
-  const [name, setName] = useState("");
-  const [slug, setSlug] = useState("");
-  const [slugTouched, setSlugTouched] = useState(false);
-  const [type, setType] = useState<AttributeType>("SELECT");
-  const [unitId, setUnitId] = useState("");
-  const [required, setRequired] = useState(false);
-  const [filterable, setFilterable] = useState(false);
-  const [searchable, setSearchable] = useState(false);
-  const [comparable, setComparable] = useState(false);
-  const [isVariant, setIsVariant] = useState(false);
-  const [showOnCard, setShowOnCard] = useState(false);
-  const [showOnDetail, setShowOnDetail] = useState(true);
-  const [showInSpecs, setShowInSpecs] = useState(true);
-  const [sortOrder, setSortOrder] = useState(0);
-  const [placeholder, setPlaceholder] = useState("");
-  const [helpText, setHelpText] = useState("");
-  const [trueLabel, setTrueLabel] = useState("Evet");
-  const [falseLabel, setFalseLabel] = useState("Hayır");
-  const [min, setMin] = useState("");
-  const [max, setMax] = useState("");
-  const [decimal, setDecimal] = useState("");
-  const [options, setOptions] = useState<OptionDraft[]>([
-    { label: "", value: "", color_hex: "" },
-  ]);
+  const [form, setForm] = useState<AttributeFormState>(
+    createEmptyAttributeFormState()
+  );
 
   const unitById = useMemo(() => {
     const map = new Map<string, UnitRow>();
@@ -81,108 +53,69 @@ export function AttributeCatalogAdmin({
     return map;
   }, [units]);
 
-  const resetForm = (attr?: AttributeRow | null) => {
-    if (attr) {
-      setName(attr.name);
-      setSlug(attr.slug);
-      setSlugTouched(true);
-      setType(attr.type);
-      setUnitId(attr.unit_id ?? "");
-      setRequired(attr.required);
-      setFilterable(attr.filterable);
-      setSearchable(attr.searchable);
-      setComparable(attr.comparable);
-      setIsVariant(attr.is_variant_attribute);
-      setShowOnCard(attr.show_on_card);
-      setShowOnDetail(attr.show_on_detail);
-      setShowInSpecs(attr.show_in_specs);
-      setSortOrder(attr.sort_order);
-      setPlaceholder(attr.placeholder ?? "");
-      setHelpText(attr.help_text ?? "");
-      setTrueLabel(String(attr.validation_rules?.true_label ?? "Evet"));
-      setFalseLabel(String(attr.validation_rules?.false_label ?? "Hayır"));
-      setMin(String(attr.validation_rules?.min ?? ""));
-      setMax(String(attr.validation_rules?.max ?? ""));
-      setDecimal(String(attr.validation_rules?.decimal_places ?? ""));
-    } else {
-      setName("");
-      setSlug("");
-      setSlugTouched(false);
-      setType("SELECT");
-      setUnitId("");
-      setRequired(false);
-      setFilterable(false);
-      setSearchable(false);
-      setComparable(false);
-      setIsVariant(false);
-      setShowOnCard(false);
-      setShowOnDetail(true);
-      setShowInSpecs(true);
-      setSortOrder(0);
-      setPlaceholder("");
-      setHelpText("");
-      setTrueLabel("Evet");
-      setFalseLabel("Hayır");
-      setMin("");
-      setMax("");
-      setDecimal("");
-      setOptions([{ label: "", value: "", color_hex: "" }]);
-    }
-  };
+  const optionsByAttr = useMemo(() => {
+    const map = new Map<string, AttributeOptionRow[]>();
+    options.forEach((o) => {
+      const list = map.get(o.attribute_id) ?? [];
+      list.push(o);
+      map.set(o.attribute_id, list);
+    });
+    return map;
+  }, [options]);
 
   const openCreate = () => {
-    resetForm(null);
     setEditAttr(null);
+    setForm(createEmptyAttributeFormState());
     setModal("create");
   };
 
   const openEdit = (attr: AttributeRow) => {
-    resetForm(attr);
     setEditAttr(attr);
+    setForm(
+      attributeFormStateFromAttribute(attr, optionsByAttr.get(attr.id) ?? [])
+    );
     setModal("edit");
-  };
-
-  const buildValidation = (): Record<string, unknown> => {
-    const rules: Record<string, unknown> = {};
-    if (type === "BOOLEAN") {
-      rules.true_label = trueLabel;
-      rules.false_label = falseLabel;
-    }
-    if (
-      type === "NUMBER" ||
-      type === "RANGE" ||
-      type === "NUMBER_WITH_UNIT"
-    ) {
-      if (min !== "") rules.min = Number(min);
-      if (max !== "") rules.max = Number(max);
-      if (decimal !== "") rules.decimal_places = Number(decimal);
-    }
-    return rules;
   };
 
   const submit = () => {
     startTransition(async () => {
       setError(null);
+      const validationRules = buildAttributeValidationRules(form);
+      const optionPayload = needsAttributeOptions(form.type)
+        ? serializeAttributeOptions(form)
+        : undefined;
+
       if (modal === "edit" && editAttr) {
+        if (
+          form.type !== editAttr.type &&
+          !window.confirm(
+            `Attribute tipini ${editAttr.type} → ${form.type} olarak değiştirmek istiyor musunuz? Mevcut ürün değerleri etkilenebilir.`
+          )
+        ) {
+          return;
+        }
+
         const result = await updateAttributeDefinition({
           attributeId: editAttr.id,
-          name,
-          required,
-          filterable,
-          searchable,
-          comparable,
-          isVariantAttribute: isVariant,
-          showOnCard,
-          showOnDetail,
-          showInSpecs,
-          sortOrder,
-          placeholder: placeholder || null,
-          helpText: helpText || null,
-          unitId: unitId || null,
+          name: form.name,
+          type: form.type,
+          required: form.required,
+          filterable: form.filterable,
+          searchable: form.searchable,
+          comparable: form.comparable,
+          isVariantAttribute: form.isVariant,
+          showOnCard: form.showOnCard,
+          showOnDetail: form.showOnDetail,
+          showInSpecs: form.showInSpecs,
+          sortOrder: form.sortOrder,
+          placeholder: form.placeholder || null,
+          helpText: form.helpText || null,
+          unitId: form.unitId || null,
           validationRules: {
             ...editAttr.validation_rules,
-            ...buildValidation(),
+            ...validationRules,
           },
+          options: optionPayload,
         });
         if (result.error) {
           setError(result.error);
@@ -190,36 +123,26 @@ export function AttributeCatalogAdmin({
         }
         setMessage("Attribute güncellendi.");
       } else {
-        const needsOptions =
-          type === "SELECT" || type === "MULTI_SELECT" || type === "COLOR";
         const result = await createGlobalAttribute({
-          name,
-          slug,
-          type,
-          unitId: unitId || null,
-          required,
-          filterable,
-          searchable,
-          comparable,
-          isVariantAttribute: isVariant,
-          showOnCard,
-          showOnDetail,
-          showInSpecs,
-          sortOrder,
-          placeholder: placeholder || null,
-          helpText: helpText || null,
-          validationRules: buildValidation(),
-          trueLabel,
-          falseLabel,
-          options: needsOptions
-            ? options
-                .filter((o) => o.label.trim() && o.value.trim())
-                .map((o) => ({
-                  label: o.label.trim(),
-                  value: o.value.trim(),
-                  color_hex: o.color_hex || null,
-                }))
-            : undefined,
+          name: form.name,
+          slug: form.slug,
+          type: form.type,
+          unitId: form.unitId || null,
+          required: form.required,
+          filterable: form.filterable,
+          searchable: form.searchable,
+          comparable: form.comparable,
+          isVariantAttribute: form.isVariant,
+          showOnCard: form.showOnCard,
+          showOnDetail: form.showOnDetail,
+          showInSpecs: form.showInSpecs,
+          sortOrder: form.sortOrder,
+          placeholder: form.placeholder || null,
+          helpText: form.helpText || null,
+          validationRules,
+          trueLabel: form.trueLabel,
+          falseLabel: form.falseLabel,
+          options: optionPayload,
         });
         if (result.error) {
           setError(result.error);
@@ -243,11 +166,6 @@ export function AttributeCatalogAdmin({
       }
     });
   };
-
-  const needsOptions =
-    type === "SELECT" || type === "MULTI_SELECT" || type === "COLOR";
-  const needsNumeric =
-    type === "NUMBER" || type === "RANGE" || type === "NUMBER_WITH_UNIT";
 
   return (
     <div className="space-y-4">
@@ -316,7 +234,7 @@ export function AttributeCatalogAdmin({
                     </td>
                     <td className="px-4 py-3">
                       <span className="rounded bg-background px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase text-ink-muted">
-                        {attr.type}
+                        {TYPE_LABELS[attr.type] ?? attr.type}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-ink-muted">
@@ -377,210 +295,15 @@ export function AttributeCatalogAdmin({
                 Kapat
               </button>
             </div>
-            <div className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
-              <div>
-                <label className="mb-1.5 block text-sm font-medium">Ad</label>
-                <input
-                  value={name}
-                  onChange={(e) => {
-                    setName(e.target.value);
-                    if (!slugTouched) {
-                      setSlug(slugifyAttributeName(e.target.value));
-                    }
-                  }}
-                  className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm"
-                />
-              </div>
-              {modal === "create" ? (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <label className="mb-1.5 block text-sm font-medium">
-                      Slug
-                    </label>
-                    <input
-                      value={slug}
-                      onChange={(e) => {
-                        setSlugTouched(true);
-                        setSlug(e.target.value);
-                      }}
-                      className="h-11 w-full rounded-xl border border-border bg-background px-3 font-mono text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1.5 block text-sm font-medium">
-                      Tip
-                    </label>
-                    <select
-                      value={type}
-                      onChange={(e) =>
-                        setType(e.target.value as AttributeType)
-                      }
-                      className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm"
-                    >
-                      {ATTRIBUTE_TYPES.map((t) => (
-                        <option key={t} value={t}>
-                          {TYPE_LABELS[t]}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              ) : null}
-
-              {type === "BOOLEAN" ? (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <input
-                    value={trueLabel}
-                    onChange={(e) => setTrueLabel(e.target.value)}
-                    placeholder="Pozitif"
-                    className="h-11 rounded-xl border border-border bg-background px-3 text-sm"
-                  />
-                  <input
-                    value={falseLabel}
-                    onChange={(e) => setFalseLabel(e.target.value)}
-                    placeholder="Negatif"
-                    className="h-11 rounded-xl border border-border bg-background px-3 text-sm"
-                  />
-                </div>
-              ) : null}
-
-              {needsNumeric ? (
-                <div className="grid gap-3 sm:grid-cols-3">
-                  <input
-                    type="number"
-                    value={min}
-                    onChange={(e) => setMin(e.target.value)}
-                    placeholder="Min"
-                    className="h-11 rounded-xl border border-border bg-background px-3 text-sm"
-                  />
-                  <input
-                    type="number"
-                    value={max}
-                    onChange={(e) => setMax(e.target.value)}
-                    placeholder="Max"
-                    className="h-11 rounded-xl border border-border bg-background px-3 text-sm"
-                  />
-                  <input
-                    type="number"
-                    value={decimal}
-                    onChange={(e) => setDecimal(e.target.value)}
-                    placeholder="Ondalık"
-                    className="h-11 rounded-xl border border-border bg-background px-3 text-sm"
-                  />
-                </div>
-              ) : null}
-
-              {(type === "NUMBER_WITH_UNIT" ||
-                type === "NUMBER" ||
-                type === "RANGE") && (
-                <select
-                  value={unitId}
-                  onChange={(e) => setUnitId(e.target.value)}
-                  className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm"
-                >
-                  <option value="">Birim yok</option>
-                  {units.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.name} ({u.symbol})
-                    </option>
-                  ))}
-                </select>
-              )}
-
-              {needsOptions && modal === "create" ? (
-                <div className="space-y-2">
-                  {options.map((opt, idx) => (
-                    <div key={idx} className="flex gap-2">
-                      <input
-                        placeholder="Label"
-                        value={opt.label}
-                        onChange={(e) => {
-                          const next = [...options];
-                          next[idx] = {
-                            ...opt,
-                            label: e.target.value,
-                            value:
-                              opt.value ||
-                              slugifyAttributeName(e.target.value),
-                          };
-                          setOptions(next);
-                        }}
-                        className="h-10 flex-1 rounded-xl border border-border bg-background px-3 text-sm"
-                      />
-                      <input
-                        placeholder="value"
-                        value={opt.value}
-                        onChange={(e) => {
-                          const next = [...options];
-                          next[idx] = { ...opt, value: e.target.value };
-                          setOptions(next);
-                        }}
-                        className="h-10 w-28 rounded-xl border border-border bg-background px-3 font-mono text-sm"
-                      />
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    className="text-xs font-semibold text-primary"
-                    onClick={() =>
-                      setOptions([
-                        ...options,
-                        { label: "", value: "", color_hex: "" },
-                      ])
-                    }
-                  >
-                    + Seçenek
-                  </button>
-                </div>
-              ) : null}
-
-              <div className="grid gap-2 sm:grid-cols-2 text-sm">
-                {(
-                  [
-                    ["Required", required, setRequired],
-                    ["Filterable", filterable, setFilterable],
-                    ["Searchable", searchable, setSearchable],
-                    ["Comparable", comparable, setComparable],
-                    ["Variant", isVariant, setIsVariant],
-                    ["Show on card", showOnCard, setShowOnCard],
-                    ["Show on detail", showOnDetail, setShowOnDetail],
-                    ["Show in specs", showInSpecs, setShowInSpecs],
-                  ] as const
-                ).map(([label, checked, setter]) => (
-                  <label key={label} className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={(e) => setter(e.target.checked)}
-                      className="h-4 w-4 rounded border-border"
-                    />
-                    {label}
-                  </label>
-                ))}
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <input
-                  type="number"
-                  value={sortOrder}
-                  onChange={(e) => setSortOrder(Number(e.target.value) || 0)}
-                  placeholder="Sort order"
-                  className="h-11 rounded-xl border border-border bg-background px-3 text-sm"
-                />
-                <input
-                  value={placeholder}
-                  onChange={(e) => setPlaceholder(e.target.value)}
-                  placeholder="Placeholder"
-                  className="h-11 rounded-xl border border-border bg-background px-3 text-sm"
-                />
-                <textarea
-                  rows={2}
-                  value={helpText}
-                  onChange={(e) => setHelpText(e.target.value)}
-                  placeholder="Help text"
-                  className="sm:col-span-2 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
-                />
-              </div>
+            <div className="flex-1 overflow-y-auto px-5 py-4">
+              <AttributeForm
+                mode={modal}
+                state={form}
+                onChange={setForm}
+                units={units}
+                allowTypeChange
+                originalType={editAttr?.type ?? null}
+              />
             </div>
             <div className="flex justify-end gap-2 border-t border-border px-5 py-4">
               <button

@@ -18,6 +18,7 @@ import {
 } from "@/app/actions/attributes";
 import { AttributeFormModal } from "@/components/admin/categories/AttributeFormModal";
 import type {
+  AttributeOptionRow,
   AttributeRow,
   CategoryAttributeRow,
   UnitRow,
@@ -27,6 +28,7 @@ type Props = {
   categoryId: string;
   categoryAttributes: CategoryAttributeRow[];
   attributes: AttributeRow[];
+  attributeOptions: AttributeOptionRow[];
   units: UnitRow[];
   onMessage: (msg: string) => void;
   onError: (msg: string) => void;
@@ -36,6 +38,7 @@ export function CategoryAttributesTab({
   categoryId,
   categoryAttributes,
   attributes,
+  attributeOptions,
   units,
   onMessage,
   onError,
@@ -273,6 +276,7 @@ export function CategoryAttributesTab({
           categoryId={categoryId}
           units={units}
           catalog={attributes}
+          options={attributeOptions}
           assignedAttributeIds={assignedIds}
           mode={modal === "edit" ? "edit" : modal === "assign" ? "assign" : "create"}
           editAttribute={modal === "edit" ? editAttr : null}

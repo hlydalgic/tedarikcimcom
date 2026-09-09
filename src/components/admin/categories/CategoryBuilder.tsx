@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type { CategoryRow, CategoryTreeNode } from "@/lib/categories/types";
 import type {
+  AttributeOptionRow,
   AttributeRow,
   CategoryAttributeRow,
   CategoryFilterRow,
@@ -31,6 +32,7 @@ type Props = {
   initialTree: CategoryTreeNode[];
   flatCategories: CategoryRow[];
   attributes: AttributeRow[];
+  attributeOptions: AttributeOptionRow[];
   categoryAttributes: CategoryAttributeRow[];
   categoryFilters: CategoryFilterRow[];
   systemFilterDefinitions: SystemFilterDefinitionRow[];
@@ -197,6 +199,7 @@ export function CategoryBuilder({
   initialTree,
   flatCategories,
   attributes,
+  attributeOptions,
   categoryAttributes,
   categoryFilters,
   systemFilterDefinitions,
@@ -347,6 +350,7 @@ export function CategoryBuilder({
             parentId={createParentId}
             flatCategories={flatCategories}
             attributes={attributes}
+            attributeOptions={attributeOptions}
             categoryAttributes={categoryAttributes}
             categoryFilters={categoryFilters}
             systemFilterDefinitions={systemFilterDefinitions}
@@ -365,6 +369,7 @@ export function CategoryBuilder({
             category={selected}
             flatCategories={flatCategories}
             attributes={attributes}
+            attributeOptions={attributeOptions}
             categoryAttributes={categoryAttributes}
             categoryFilters={categoryFilters}
             systemFilterDefinitions={systemFilterDefinitions}

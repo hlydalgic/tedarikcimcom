@@ -270,6 +270,7 @@ export async function updateCategoryAttribute(input: {
 export async function updateAttributeDefinition(input: {
   attributeId: string;
   name?: string;
+  type?: AttributeType;
   required?: boolean;
   filterable?: boolean;
   searchable?: boolean;
@@ -284,6 +285,12 @@ export async function updateAttributeDefinition(input: {
   helpText?: string | null;
   unitId?: string | null;
   validationRules?: Record<string, unknown>;
+  options?: {
+    id?: string;
+    label: string;
+    value: string;
+    color_hex?: string | null;
+  }[];
 }): Promise<AttrActionState> {
   const ctx = await requireAdminClient();
   if (!ctx.ok) return { error: ctx.error };
@@ -296,8 +303,13 @@ export async function updateAttributeDefinition(input: {
 
   if (!oldRow) return { error: "Attribute bulunamadı." };
 
+  if (input.type !== undefined && !ATTRIBUTE_TYPES.includes(input.type)) {
+    return { error: "Geçersiz attribute tipi." };
+  }
+
   const patch: Record<string, unknown> = {};
   if (input.name !== undefined) patch.name = input.name.trim();
+  if (input.type !== undefined) patch.type = input.type;
   if (input.required !== undefined) patch.required = input.required;
   if (input.filterable !== undefined) patch.filterable = input.filterable;
   if (input.searchable !== undefined) patch.searchable = input.searchable;
@@ -330,6 +342,92 @@ export async function updateAttributeDefinition(input: {
 
   if (error) return { error: error.message };
 
+  const effectiveType = (input.type ?? oldRow.type) as AttributeType;
+  const isOptionType =
+    effectiveType === "SELECT" ||
+    effectiveType === "MULTI_SELECT" ||
+    effectiveType === "COLOR";
+
+  if (input.options !== undefined && isOptionType) {
+    const { data: existingOptions, error: existingError } = await ctx.admin
+      .from("attribute_options")
+      .select("id, value, status")
+      .eq("attribute_id", input.attributeId);
+
+    if (existingError) return { error: existingError.message };
+
+    const keptIds = new Set<string>();
+    const rows = input.options.flatMap((o, i) => {
+      const parsed = optionSchema.safeParse(o);
+      if (!parsed.success) return [];
+      return [
+        {
+          id: o.id,
+          attribute_id: input.attributeId,
+          label: parsed.data.label,
+          value: parsed.data.value,
+          color_hex: parsed.data.color_hex || null,
+          sort_order: i,
+          status: "active" as const,
+        },
+      ];
+    });
+
+    for (const row of rows) {
+      if (row.id) {
+        const { error: updateOptError } = await ctx.admin
+          .from("attribute_options")
+          .update({
+            label: row.label,
+            value: row.value,
+            color_hex: row.color_hex,
+            sort_order: row.sort_order,
+            status: "active",
+          })
+          .eq("id", row.id)
+          .eq("attribute_id", input.attributeId);
+        if (updateOptError) return { error: updateOptError.message };
+        keptIds.add(row.id);
+      } else {
+        const { data: inserted, error: insertOptError } = await ctx.admin
+          .from("attribute_options")
+          .insert({
+            attribute_id: row.attribute_id,
+            label: row.label,
+            value: row.value,
+            color_hex: row.color_hex,
+            sort_order: row.sort_order,
+            status: "active",
+          })
+          .select("id")
+          .single();
+        if (insertOptError) {
+          if (insertOptError.message.includes("attribute_options_attr_value")) {
+            return {
+              error: `Seçenek değeri zaten mevcut: ${row.value}`,
+            };
+          }
+          return { error: insertOptError.message };
+        }
+        if (inserted?.id) keptIds.add(inserted.id);
+      }
+    }
+
+    const toArchive = (existingOptions ?? []).filter(
+      (o) => o.status === "active" && !keptIds.has(o.id)
+    );
+    if (toArchive.length) {
+      const { error: archiveError } = await ctx.admin
+        .from("attribute_options")
+        .update({ status: "archived" })
+        .in(
+          "id",
+          toArchive.map((o) => o.id)
+        );
+      if (archiveError) return { error: archiveError.message };
+    }
+  }
+
   await writeAdminLog({
     admin: ctx.admin,
     adminUserId: ctx.userId,
@@ -338,6 +436,10 @@ export async function updateAttributeDefinition(input: {
     entityId: input.attributeId,
     oldData: oldRow as Record<string, unknown>,
     newData: data as Record<string, unknown>,
+    metadata:
+      input.options !== undefined
+        ? { options_synced: true, option_count: input.options.length }
+        : undefined,
   });
 
   revalidate();

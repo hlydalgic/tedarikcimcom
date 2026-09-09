@@ -10,6 +10,7 @@ import {
 } from "@/app/actions/categories";
 import { slugifyCategoryName, type CategoryRow } from "@/lib/categories/types";
 import type {
+  AttributeOptionRow,
   AttributeRow,
   CategoryAttributeRow,
   CategoryFilterRow,
@@ -48,6 +49,7 @@ type Props = {
   parentId?: string | null;
   flatCategories: CategoryRow[];
   attributes?: AttributeRow[];
+  attributeOptions?: AttributeOptionRow[];
   categoryAttributes?: CategoryAttributeRow[];
   categoryFilters?: CategoryFilterRow[];
   systemFilterDefinitions?: SystemFilterDefinitionRow[];
@@ -80,6 +82,7 @@ export function CategoryDetailPanel({
   parentId = null,
   flatCategories,
   attributes = [],
+  attributeOptions = [],
   categoryAttributes = [],
   categoryFilters = [],
   systemFilterDefinitions = [],
@@ -410,6 +413,7 @@ export function CategoryDetailPanel({
               categoryId={category.id}
               categoryAttributes={categoryAttributes}
               attributes={attributes}
+              attributeOptions={attributeOptions}
               units={units}
               onMessage={(msg) => onMessage?.(msg)}
               onError={(msg) => onError?.(msg)}
