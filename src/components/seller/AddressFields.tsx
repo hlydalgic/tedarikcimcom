@@ -5,10 +5,11 @@ import {
   getTurkeyDistricts,
 } from "@/data/turkey-locations";
 
-type AddressValue = {
+export type AddressValue = {
   city: string;
   district: string;
   address: string;
+  postalCode?: string;
 };
 
 type Props = {
@@ -17,6 +18,7 @@ type Props = {
   value: AddressValue;
   onChange: (value: AddressValue) => void;
   disabled?: boolean;
+  showPostalCode?: boolean;
 };
 
 export function AddressFields({
@@ -25,6 +27,7 @@ export function AddressFields({
   value,
   onChange,
   disabled = false,
+  showPostalCode = true,
 }: Props) {
   const districts = getTurkeyDistricts(value.city);
 
@@ -33,18 +36,27 @@ export function AddressFields({
       <legend className="text-sm font-medium text-ink">{label}</legend>
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <label htmlFor={`${idPrefix}-city`} className="mb-1.5 block text-xs text-ink-muted">
+          <label
+            htmlFor={`${idPrefix}-city`}
+            className="mb-1.5 block text-xs text-ink-muted"
+          >
             İl
           </label>
           <select
             id={`${idPrefix}-city`}
+            name={`${idPrefix}_city`}
             value={value.city}
             onChange={(e) =>
-              onChange({ city: e.target.value, district: "", address: value.address })
+              onChange({
+                city: e.target.value,
+                district: "",
+                address: value.address,
+                postalCode: value.postalCode ?? "",
+              })
             }
             className="h-11 w-full rounded-xl border border-border bg-surface px-3 text-sm"
           >
-            <option value="">Seçin</option>
+            <option value="">İl seçin</option>
             {TURKEY_CITIES.map((c) => (
               <option key={c.id} value={c.name}>
                 {c.name}
@@ -53,11 +65,16 @@ export function AddressFields({
           </select>
         </div>
         <div>
-          <label htmlFor={`${idPrefix}-district`} className="mb-1.5 block text-xs text-ink-muted">
+          <label
+            htmlFor={`${idPrefix}-district`}
+            className="mb-1.5 block text-xs text-ink-muted"
+          >
             İlçe
           </label>
           <select
             id={`${idPrefix}-district`}
+            name={`${idPrefix}_district`}
+            key={`${idPrefix}-district-${value.city}`}
             value={value.district}
             onChange={(e) =>
               onChange({ ...value, district: e.target.value })
@@ -65,7 +82,7 @@ export function AddressFields({
             disabled={!value.city}
             className="h-11 w-full rounded-xl border border-border bg-surface px-3 text-sm disabled:opacity-60"
           >
-            <option value="">Seçin</option>
+            <option value="">İlçe seçin</option>
             {districts.map((d) => (
               <option key={d.id} value={d.name}>
                 {d.name}
@@ -74,11 +91,15 @@ export function AddressFields({
           </select>
         </div>
         <div className="sm:col-span-2">
-          <label htmlFor={`${idPrefix}-address`} className="mb-1.5 block text-xs text-ink-muted">
+          <label
+            htmlFor={`${idPrefix}-address`}
+            className="mb-1.5 block text-xs text-ink-muted"
+          >
             Adres
           </label>
           <textarea
             id={`${idPrefix}-address`}
+            name={`${idPrefix}_address`}
             value={value.address}
             onChange={(e) => onChange({ ...value, address: e.target.value })}
             rows={2}
@@ -86,6 +107,28 @@ export function AddressFields({
             placeholder="Mahalle, sokak, bina no"
           />
         </div>
+        {showPostalCode ? (
+          <div>
+            <label
+              htmlFor={`${idPrefix}-postal`}
+              className="mb-1.5 block text-xs text-ink-muted"
+            >
+              Posta kodu
+            </label>
+            <input
+              id={`${idPrefix}-postal`}
+              name={`${idPrefix}_postal_code`}
+              value={value.postalCode ?? ""}
+              onChange={(e) =>
+                onChange({ ...value, postalCode: e.target.value })
+              }
+              inputMode="numeric"
+              maxLength={10}
+              placeholder="Örn. 34000"
+              className="h-11 w-full rounded-xl border border-border bg-surface px-3 text-sm"
+            />
+          </div>
+        ) : null}
       </div>
     </fieldset>
   );

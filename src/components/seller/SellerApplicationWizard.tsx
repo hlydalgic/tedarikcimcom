@@ -48,6 +48,7 @@ type FormState = {
   activity_city: string;
   activity_district: string;
   activity_address: string;
+  activity_postal_code: string;
   shop_name: string;
   category_ids: string[];
   phone: string;
@@ -55,9 +56,11 @@ type FormState = {
   billing_city: string;
   billing_district: string;
   billing_address: string;
+  billing_postal_code: string;
   return_city: string;
   return_district: string;
   return_address: string;
+  return_postal_code: string;
   iban: string;
   bank_name: string;
   e_invoice_declared: boolean;
@@ -74,6 +77,7 @@ const initialFormState: FormState = {
   activity_city: "",
   activity_district: "",
   activity_address: "",
+  activity_postal_code: "",
   shop_name: "",
   category_ids: [],
   phone: "",
@@ -81,9 +85,11 @@ const initialFormState: FormState = {
   billing_city: "",
   billing_district: "",
   billing_address: "",
+  billing_postal_code: "",
   return_city: "",
   return_district: "",
   return_address: "",
+  return_postal_code: "",
   iban: "",
   bank_name: "",
   e_invoice_declared: false,
@@ -321,6 +327,7 @@ export function SellerApplicationWizard({
           fd.set("activity_city", form.activity_city);
           fd.set("activity_district", form.activity_district);
           fd.set("activity_address", form.activity_address);
+          fd.set("activity_postal_code", form.activity_postal_code);
           fd.set("shop_name", form.shop_name);
           fd.set("phone", form.phone);
           fd.set(
@@ -330,9 +337,11 @@ export function SellerApplicationWizard({
           fd.set("billing_city", form.billing_city);
           fd.set("billing_district", form.billing_district);
           fd.set("billing_address", form.billing_address);
+          fd.set("billing_postal_code", form.billing_postal_code);
           fd.set("return_city", form.return_city);
           fd.set("return_district", form.return_district);
           fd.set("return_address", form.return_address);
+          fd.set("return_postal_code", form.return_postal_code);
           fd.set("iban", form.iban);
           fd.set("bank_name", form.bank_name);
           fd.set("e_invoice_declared", String(form.e_invoice_declared));
@@ -427,6 +436,7 @@ export function SellerApplicationWizard({
                 city: form.activity_city,
                 district: form.activity_district,
                 address: form.activity_address,
+                postalCode: form.activity_postal_code,
               }}
               onChange={(v) =>
                 setForm((prev) => ({
@@ -434,6 +444,7 @@ export function SellerApplicationWizard({
                   activity_city: v.city,
                   activity_district: v.district,
                   activity_address: v.address,
+                  activity_postal_code: v.postalCode ?? "",
                 }))
               }
             />
@@ -514,6 +525,7 @@ export function SellerApplicationWizard({
                   city: form.billing_city,
                   district: form.billing_district,
                   address: form.billing_address,
+                  postalCode: form.billing_postal_code,
                 }}
                 onChange={(v) =>
                   setForm((prev) => ({
@@ -521,6 +533,7 @@ export function SellerApplicationWizard({
                     billing_city: v.city,
                     billing_district: v.district,
                     billing_address: v.address,
+                    billing_postal_code: v.postalCode ?? "",
                   }))
                 }
               />
@@ -532,6 +545,7 @@ export function SellerApplicationWizard({
                 city: form.return_city,
                 district: form.return_district,
                 address: form.return_address,
+                postalCode: form.return_postal_code,
               }}
               onChange={(v) =>
                 setForm((prev) => ({
@@ -539,6 +553,7 @@ export function SellerApplicationWizard({
                   return_city: v.city,
                   return_district: v.district,
                   return_address: v.address,
+                  return_postal_code: v.postalCode ?? "",
                 }))
               }
             />

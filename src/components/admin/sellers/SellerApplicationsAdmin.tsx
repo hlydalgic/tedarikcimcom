@@ -23,13 +23,16 @@ export type SellerApplicationListItem = {
   activity_city: string | null;
   activity_district: string | null;
   activity_address: string | null;
+  activity_postal_code: string | null;
   billing_same_as_activity: boolean;
   billing_city: string | null;
   billing_district: string | null;
   billing_address: string | null;
+  billing_postal_code: string | null;
   return_city: string | null;
   return_district: string | null;
   return_address: string | null;
+  return_postal_code: string | null;
   category_ids: string[];
   e_invoice_declared: boolean;
   kvkk_accepted: boolean;
@@ -51,10 +54,12 @@ type Props = {
 function formatAddress(
   city: string | null,
   district: string | null,
-  address: string | null
+  address: string | null,
+  postalCode?: string | null
 ) {
-  if (!city && !district && !address) return "—";
-  return [address, district, city].filter(Boolean).join(", ");
+  if (!city && !district && !address && !postalCode) return "—";
+  const line = [address, district, city].filter(Boolean).join(", ");
+  return postalCode ? `${line} (${postalCode})` : line;
 }
 
 export function SellerApplicationsAdmin({
@@ -235,7 +240,8 @@ export function SellerApplicationsAdmin({
                 value={formatAddress(
                   selected.activity_city,
                   selected.activity_district,
-                  selected.activity_address
+                  selected.activity_address,
+                  selected.activity_postal_code
                 )}
               />
               <DetailRow
@@ -246,7 +252,8 @@ export function SellerApplicationsAdmin({
                     : formatAddress(
                         selected.billing_city,
                         selected.billing_district,
-                        selected.billing_address
+                        selected.billing_address,
+                        selected.billing_postal_code
                       )
                 }
               />
@@ -255,7 +262,8 @@ export function SellerApplicationsAdmin({
                 value={formatAddress(
                   selected.return_city,
                   selected.return_district,
-                  selected.return_address
+                  selected.return_address,
+                  selected.return_postal_code
                 )}
               />
               <DetailRow label="IBAN" value={selected.iban} mono />

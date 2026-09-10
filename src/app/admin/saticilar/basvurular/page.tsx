@@ -10,8 +10,10 @@ export default async function AdminSellerApplicationsPage() {
       .select(
         `id, user_id, company_type, company_name, shop_name, tax_number, tax_office,
          iban, bank_name, phone, activity_city, activity_district, activity_address,
+         activity_postal_code,
          billing_same_as_activity, billing_city, billing_district, billing_address,
-         return_city, return_district, return_address,
+         billing_postal_code,
+         return_city, return_district, return_address, return_postal_code,
          category_ids, e_invoice_declared, kvkk_accepted, seller_contract_accepted,
          tax_certificate_path, signature_circular_path,
          status, reviewed_at, rejection_reason, created_at,

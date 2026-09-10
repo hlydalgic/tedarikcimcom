@@ -77,6 +77,7 @@ function parseApplicationFormData(formData: FormData) {
     activity_city: formData.get("activity_city"),
     activity_district: formData.get("activity_district"),
     activity_address: formData.get("activity_address"),
+    activity_postal_code: formData.get("activity_postal_code"),
     shop_name: formData.get("shop_name"),
     category_ids: categoryIds,
     phone: formData.get("phone"),
@@ -90,9 +91,13 @@ function parseApplicationFormData(formData: FormData) {
     billing_address: billingSame
       ? formData.get("activity_address")
       : formData.get("billing_address"),
+    billing_postal_code: billingSame
+      ? formData.get("activity_postal_code")
+      : formData.get("billing_postal_code"),
     return_city: formData.get("return_city"),
     return_district: formData.get("return_district"),
     return_address: formData.get("return_address"),
+    return_postal_code: formData.get("return_postal_code"),
     iban: formData.get("iban"),
     bank_name: formData.get("bank_name"),
     e_invoice_declared: parseBooleanField(formData.get("e_invoice_declared")),
@@ -174,13 +179,16 @@ export async function submitSellerApplication(
     activity_city: d.activity_city,
     activity_district: d.activity_district,
     activity_address: d.activity_address,
+    activity_postal_code: d.activity_postal_code || null,
     billing_same_as_activity: d.billing_same_as_activity,
     billing_city: String(d.billing_city ?? d.activity_city),
     billing_district: String(d.billing_district ?? d.activity_district),
     billing_address: String(d.billing_address ?? d.activity_address),
+    billing_postal_code: d.billing_postal_code || d.activity_postal_code || null,
     return_city: d.return_city,
     return_district: d.return_district,
     return_address: d.return_address,
+    return_postal_code: d.return_postal_code || null,
     iban: d.iban,
     bank_name: d.bank_name,
     phone: d.phone,

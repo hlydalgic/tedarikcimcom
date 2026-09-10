@@ -66,8 +66,9 @@ export const sellerApplicationStep1Schema = z
       .trim()
       .min(5, "Faaliyet adresi en az 5 karakter olmalı.")
       .max(500),
+    activity_postal_code: z.string().trim().max(10).optional().or(z.literal("")),
   })
-  .superRefine((data, ctx) => {
+    .superRefine((data, ctx) => {
     validateTaxNumber(data.company_type, data.tax_number, ctx);
   });
 
@@ -90,6 +91,7 @@ export const sellerApplicationStep2Schema = z
     billing_city: z.string().trim().optional(),
     billing_district: z.string().trim().optional(),
     billing_address: z.string().trim().optional(),
+    billing_postal_code: z.string().trim().max(10).optional().or(z.literal("")),
     return_city: z.string().trim().min(1, "İade/depo ili seçin."),
     return_district: z.string().trim().min(1, "İade/depo ilçesi seçin."),
     return_address: z
@@ -97,6 +99,7 @@ export const sellerApplicationStep2Schema = z
       .trim()
       .min(5, "İade/depo adresi en az 5 karakter olmalı.")
       .max(500),
+    return_postal_code: z.string().trim().max(10).optional().or(z.literal("")),
     e_invoice_declared: z.boolean().refine((v) => v === true, {
       message: "e-Fatura / e-Arşiv mükellefi olduğunuzu onaylamalısınız.",
     }),
@@ -170,6 +173,7 @@ export const sellerApplicationFullSchema = z
       .trim()
       .min(5, "Faaliyet adresi en az 5 karakter olmalı.")
       .max(500),
+    activity_postal_code: z.string().trim().max(10).optional().or(z.literal("")),
     shop_name: z
       .string()
       .trim()
@@ -187,6 +191,7 @@ export const sellerApplicationFullSchema = z
     billing_city: z.string().trim().optional(),
     billing_district: z.string().trim().optional(),
     billing_address: z.string().trim().optional(),
+    billing_postal_code: z.string().trim().max(10).optional().or(z.literal("")),
     return_city: z.string().trim().min(1, "İade/depo ili seçin."),
     return_district: z.string().trim().min(1, "İade/depo ilçesi seçin."),
     return_address: z
@@ -194,6 +199,7 @@ export const sellerApplicationFullSchema = z
       .trim()
       .min(5, "İade/depo adresi en az 5 karakter olmalı.")
       .max(500),
+    return_postal_code: z.string().trim().max(10).optional().or(z.literal("")),
     e_invoice_declared: z.boolean(),
     iban: ibanSchema,
     bank_name: z
