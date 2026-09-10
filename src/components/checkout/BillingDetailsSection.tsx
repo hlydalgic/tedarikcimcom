@@ -2,7 +2,10 @@
 
 import { useMemo, useState } from "react";
 import type { AddressSnapshot } from "@/lib/orders/types";
-import { TR_CITIES } from "@/lib/orders/tr-cities";
+import {
+  TURKEY_CITIES,
+  getTurkeyDistricts,
+} from "@/data/turkey-locations";
 
 export type BillingFormState = {
   full_name: string;
@@ -24,8 +27,8 @@ export const emptyBillingForm = (defaults?: Partial<BillingFormState>): BillingF
   tax_number: defaults?.tax_number ?? "",
   tax_office: defaults?.tax_office ?? "",
   phone: defaults?.phone ?? "",
-  city: defaults?.city ?? TR_CITIES[0]?.city ?? "",
-  district: defaults?.district ?? TR_CITIES[0]?.districts[0] ?? "",
+  city: defaults?.city ?? "",
+  district: defaults?.district ?? "",
   address_line: defaults?.address_line ?? "",
   postal_code: defaults?.postal_code ?? "",
 });
@@ -48,7 +51,7 @@ export function BillingDetailsSection({
   onBillingFormChange,
 }: Props) {
   const districts = useMemo(
-    () => TR_CITIES.find((c) => c.city === billingForm.city)?.districts ?? [],
+    () => getTurkeyDistricts(billingForm.city),
     [billingForm.city]
   );
 
@@ -166,15 +169,15 @@ export function BillingDetailsSection({
               onChange={(e) =>
                 onBillingFormChange({
                   city: e.target.value,
-                  district:
-                    TR_CITIES.find((c) => c.city === e.target.value)?.districts[0] ?? "",
+                  district: "",
                 })
               }
               className="h-10 rounded-lg border border-border bg-surface px-3 text-sm"
             >
-              {TR_CITIES.map((c) => (
-                <option key={c.city} value={c.city}>
-                  {c.city}
+              <option value="">İl seçin</option>
+              {TURKEY_CITIES.map((c) => (
+                <option key={c.id} value={c.name}>
+                  {c.name}
                 </option>
               ))}
             </select>
@@ -182,11 +185,13 @@ export function BillingDetailsSection({
               required
               value={billingForm.district}
               onChange={(e) => onBillingFormChange({ district: e.target.value })}
-              className="h-10 rounded-lg border border-border bg-surface px-3 text-sm"
+              disabled={!billingForm.city}
+              className="h-10 rounded-lg border border-border bg-surface px-3 text-sm disabled:opacity-60"
             >
+              <option value="">İlçe seçin</option>
               {districts.map((d) => (
-                <option key={d} value={d}>
-                  {d}
+                <option key={d.id} value={d.name}>
+                  {d.name}
                 </option>
               ))}
             </select>

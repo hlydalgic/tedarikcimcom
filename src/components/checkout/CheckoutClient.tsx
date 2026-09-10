@@ -13,7 +13,10 @@ import {
 } from "@/lib/cart/store";
 import { estimateShopShipping, type AddressSnapshot } from "@/lib/orders/types";
 import type { AddressRow } from "@/lib/orders/types";
-import { TR_CITIES } from "@/lib/orders/tr-cities";
+import {
+  TURKEY_CITIES,
+  getTurkeyDistricts,
+} from "@/data/turkey-locations";
 import { createAddress } from "@/app/actions/addresses";
 import { placeOrder } from "@/app/actions/orders";
 import {
@@ -59,11 +62,9 @@ export function CheckoutClient({ addresses }: CheckoutClientProps) {
   );
   const [billingForm, setBillingForm] = useState(emptyBillingForm());
   const [showNewAddress, setShowNewAddress] = useState(!addresses.length);
-  const [city, setCity] = useState(TR_CITIES[0]?.city ?? "");
-  const districts = useMemo(
-    () => TR_CITIES.find((c) => c.city === city)?.districts ?? [],
-    [city]
-  );
+  const [city, setCity] = useState("");
+  const [district, setDistrict] = useState("");
+  const districts = useMemo(() => getTurkeyDistricts(city), [city]);
 
   const shopShipping = useMemo(() => {
     const map: Record<string, { amount: number; label: string; eta: string }> = {};
@@ -213,23 +214,31 @@ export function CheckoutClient({ addresses }: CheckoutClientProps) {
                   name="city"
                   required
                   value={city}
-                  onChange={(e) => setCity(e.target.value)}
+                  onChange={(e) => {
+                    setCity(e.target.value);
+                    setDistrict("");
+                  }}
                   className="h-10 rounded-lg border border-border bg-background px-3 text-sm"
                 >
-                  {TR_CITIES.map((c) => (
-                    <option key={c.city} value={c.city}>
-                      {c.city}
+                  <option value="">İl seçin</option>
+                  {TURKEY_CITIES.map((c) => (
+                    <option key={c.id} value={c.name}>
+                      {c.name}
                     </option>
                   ))}
                 </select>
                 <select
                   name="district"
                   required
-                  className="h-10 rounded-lg border border-border bg-background px-3 text-sm"
+                  value={district}
+                  onChange={(e) => setDistrict(e.target.value)}
+                  disabled={!city}
+                  className="h-10 rounded-lg border border-border bg-background px-3 text-sm disabled:opacity-60"
                 >
+                  <option value="">İlçe seçin</option>
                   {districts.map((d) => (
-                    <option key={d} value={d}>
-                      {d}
+                    <option key={d.id} value={d.name}>
+                      {d.name}
                     </option>
                   ))}
                 </select>

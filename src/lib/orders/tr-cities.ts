@@ -1,54 +1,16 @@
-/** Major TR cities + sample districts for checkout address form. */
-export const TR_CITIES: { city: string; districts: string[] }[] = [
-  {
-    city: "İstanbul",
-    districts: [
-      "Kadıköy",
-      "Üsküdar",
-      "Beşiktaş",
-      "Şişli",
-      "Bakırköy",
-      "Ataşehir",
-      "Maltepe",
-      "Pendik",
-      "Fatih",
-      "Beylikdüzü",
-    ],
-  },
-  {
-    city: "Ankara",
-    districts: ["Çankaya", "Keçiören", "Yenimahalle", "Mamak", "Etimesgut", "Sincan"],
-  },
-  {
-    city: "İzmir",
-    districts: ["Konak", "Karşıyaka", "Bornova", "Buca", "Bayraklı", "Gaziemir"],
-  },
-  {
-    city: "Bursa",
-    districts: ["Nilüfer", "Osmangazi", "Yıldırım", "Mudanya"],
-  },
-  {
-    city: "Antalya",
-    districts: ["Muratpaşa", "Kepez", "Konyaaltı", "Alanya"],
-  },
-  {
-    city: "Konya",
-    districts: ["Selçuklu", "Meram", "Karatay"],
-  },
-  {
-    city: "Adana",
-    districts: ["Seyhan", "Çukurova", "Yüreğir"],
-  },
-  {
-    city: "Gaziantep",
-    districts: ["Şahinbey", "Şehitkamil"],
-  },
-  {
-    city: "Kocaeli",
-    districts: ["İzmit", "Gebze", "Başiskele"],
-  },
-  {
-    city: "Mersin",
-    districts: ["Yenişehir", "Mezitli", "Toroslar"],
-  },
-];
+/** @deprecated Import from `@/data/turkey-locations` instead. */
+export {
+  TURKEY_CITIES,
+  getTurkeyCityByName,
+  getTurkeyDistricts,
+  type TurkeyCity,
+  type TurkeyDistrict,
+} from "@/data/turkey-locations";
+
+import { TURKEY_CITIES } from "@/data/turkey-locations";
+
+/** Legacy shape used by older forms — city name + district name strings. */
+export const TR_CITIES = TURKEY_CITIES.map((c) => ({
+  city: c.name,
+  districts: c.districts.map((d) => d.name),
+}));

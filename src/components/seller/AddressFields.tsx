@@ -1,6 +1,9 @@
 "use client";
 
-import { TR_CITIES } from "@/lib/orders/tr-cities";
+import {
+  TURKEY_CITIES,
+  getTurkeyDistricts,
+} from "@/data/turkey-locations";
 
 type AddressValue = {
   city: string;
@@ -23,8 +26,7 @@ export function AddressFields({
   onChange,
   disabled = false,
 }: Props) {
-  const districts =
-    TR_CITIES.find((c) => c.city === value.city)?.districts ?? [];
+  const districts = getTurkeyDistricts(value.city);
 
   return (
     <fieldset className="space-y-3" disabled={disabled}>
@@ -43,9 +45,9 @@ export function AddressFields({
             className="h-11 w-full rounded-xl border border-border bg-surface px-3 text-sm"
           >
             <option value="">Seçin</option>
-            {TR_CITIES.map((c) => (
-              <option key={c.city} value={c.city}>
-                {c.city}
+            {TURKEY_CITIES.map((c) => (
+              <option key={c.id} value={c.name}>
+                {c.name}
               </option>
             ))}
           </select>
@@ -65,8 +67,8 @@ export function AddressFields({
           >
             <option value="">Seçin</option>
             {districts.map((d) => (
-              <option key={d} value={d}>
-                {d}
+              <option key={d.id} value={d.name}>
+                {d.name}
               </option>
             ))}
           </select>
