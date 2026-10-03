@@ -6,7 +6,7 @@ import { useCartStore } from "@/lib/cart/store";
 import { trackClientEvent } from "@/lib/analytics/client";
 import { formatPrice } from "@/lib/format";
 import { QuoteRequestModal } from "@/components/quotes/QuoteRequestModal";
-import type { AddressRow } from "@/lib/orders/types";
+import { useUserAddresses } from "@/lib/cart/useUserAddresses";
 
 type ProductDetailPurchaseProps = {
   product: {
@@ -27,21 +27,18 @@ type ProductDetailPurchaseProps = {
     shippingPrice: number | null;
   };
   quotesEnabled: boolean;
-  addresses: AddressRow[];
-  isLoggedIn: boolean;
 };
 
 export function ProductDetailPurchase({
   product,
   quotesEnabled,
-  addresses,
-  isLoggedIn,
 }: ProductDetailPurchaseProps) {
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
   const inStock = product.stock > 0;
   const showQuote = product.shippingType === "QUOTE_REQUIRED" && quotesEnabled;
+  const { addresses, isLoggedIn } = useUserAddresses(showQuote);
 
   function handleAddToCart() {
     addItem({

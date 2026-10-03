@@ -11,10 +11,13 @@ import {
 } from "@/lib/catalog/queries";
 import { parseFiltersFromSearchParams } from "@/lib/catalog/filters-url";
 import {
+  toURLSearchParams,
+  type PageSearchParams,
+} from "@/lib/catalog/page-metadata";
+import {
   getMarketplaceFeatures,
   isFeatureEnabled,
 } from "@/lib/marketplace/settings";
-import { listUserFavoriteIds } from "@/lib/favorites/queries";
 import { Breadcrumb } from "@/components/catalog/Breadcrumb";
 import { CategoryCatalogLayout } from "@/components/catalog/CategoryCatalogLayout";
 import { CategoryFilterTracker } from "@/components/analytics/CategoryFilterTracker";
@@ -27,19 +30,8 @@ import { getSiteUrl } from "@/lib/seo/site-url";
 
 type CategoryPageContentProps = {
   slug: string[];
-  searchParams: Record<string, string | string[] | undefined>;
+  searchParams: PageSearchParams;
 };
-
-function toURLSearchParams(
-  input: Record<string, string | string[] | undefined>
-): URLSearchParams {
-  const params = new URLSearchParams();
-  for (const [key, value] of Object.entries(input)) {
-    if (typeof value === "string") params.set(key, value);
-    else if (Array.isArray(value)) value.forEach((v) => params.append(key, v));
-  }
-  return params;
-}
 
 export async function CategoryPageContent({
   slug,
@@ -55,7 +47,7 @@ export async function CategoryPageContent({
     filterDefs
   );
 
-  const [result, crumbs, sidebarContext, allCategories, features, favoriteIds, siteUrl] =
+  const [result, crumbs, sidebarContext, allCategories, features, siteUrl] =
     await Promise.all([
       filterProducts({
         categoryId: category.id,
@@ -69,7 +61,6 @@ export async function CategoryPageContent({
       getCategorySidebarContext(category),
       listActiveCategories(),
       getMarketplaceFeatures(),
-      listUserFavoriteIds(),
       getSiteUrl(),
     ]);
 
@@ -136,7 +127,6 @@ export async function CategoryPageContent({
         <ProductGrid
           products={result.items}
           favoritesEnabled={favoritesEnabled}
-          favoriteIds={favoriteIds}
           prefetchFirst={8}
         />
         <Pagination page={page} pageSize={result.pageSize} total={result.total} />

@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/client";
 
 let cached: { userId: string; promise: Promise<Set<string>> } | null = null;
+const listeners = new Set<(productId: string, favorited: boolean) => void>();
 
 export async function loadFavoriteIds(): Promise<Set<string>> {
   const supabase = createClient();
@@ -36,4 +37,14 @@ export function rememberFavorite(productId: string, favorited: boolean) {
     if (favorited) ids.add(productId);
     else ids.delete(productId);
   });
+  listeners.forEach((listener) => listener(productId, favorited));
+}
+
+export function subscribeFavorites(
+  listener: (productId: string, favorited: boolean) => void
+): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
 }

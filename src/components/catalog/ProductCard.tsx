@@ -7,7 +7,6 @@ import { ProductLink } from "@/components/catalog/ProductLink";
 type ProductCardProps = {
   product: CatalogProductListItem;
   favoritesEnabled?: boolean;
-  initialFavorited?: boolean;
   searchQuery?: string;
   prefetch?: boolean;
 };
@@ -15,7 +14,6 @@ type ProductCardProps = {
 export function ProductCard({
   product,
   favoritesEnabled = false,
-  initialFavorited,
   searchQuery,
   prefetch = true,
 }: ProductCardProps) {
@@ -49,7 +47,6 @@ export function ProductCard({
           <div className="absolute right-3 top-3 opacity-0 transition group-hover:opacity-100">
             <FavoriteButton
               productId={product.id}
-              initialFavorited={initialFavorited}
               className="bg-surface/95 shadow-sm"
             />
           </div>

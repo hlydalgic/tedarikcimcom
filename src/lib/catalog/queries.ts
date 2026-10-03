@@ -3,7 +3,6 @@ import "server-only";
 import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase/server";
 import { createPublicClient } from "@/lib/supabase/public";
 import {
   buildCategorySidebarContext,
@@ -61,7 +60,7 @@ function requirePublicClient(): SupabaseClient {
 
 async function attachCardAttributes(
   items: CatalogProductListItem[],
-  supabase: SupabaseClient = createClient()
+  supabase: SupabaseClient = requirePublicClient()
 ): Promise<CatalogProductListItem[]> {
   if (!items.length) return items;
 
@@ -105,7 +104,7 @@ export async function enrichCatalogProductListItems(
 export async function getCategoryFilters(
   categoryId: string
 ): Promise<CategoryFilterDefinition[]> {
-  const supabase = createClient();
+  const supabase = requirePublicClient();
   const { data, error } = await supabase.rpc("get_category_filters", {
     p_category_id: categoryId,
   });
@@ -148,7 +147,7 @@ type FilterProductsInput = {
 export async function filterProducts(
   input: FilterProductsInput
 ): Promise<CatalogProductListResult> {
-  return runFilterProducts(createClient(), input);
+  return runFilterProducts(requirePublicClient(), input);
 }
 
 async function runFilterProducts(
@@ -189,7 +188,7 @@ export async function searchProducts(input: {
   categoryId?: string;
   filters?: ProductFilters;
 }): Promise<CatalogProductListResult> {
-  const supabase = createClient();
+  const supabase = requirePublicClient();
   const page = input.page ?? 1;
   const pageSize = input.pageSize ?? 24;
 
@@ -219,7 +218,7 @@ export async function getSearchSuggestions(
   query: string,
   limit = 8
 ): Promise<SearchSuggestion[]> {
-  const supabase = createClient();
+  const supabase = requirePublicClient();
   const { data, error } = await supabase.rpc("search_product_suggestions", {
     p_query: query.trim(),
     p_limit: limit,
@@ -238,7 +237,7 @@ export async function getSearchCategoryFacets(
   query: string,
   limit = 20
 ): Promise<SearchCategoryFacet[]> {
-  const supabase = createClient();
+  const supabase = requirePublicClient();
   const { data, error } = await supabase.rpc("get_search_category_facets", {
     p_query: query.trim(),
     p_limit: limit,
@@ -257,7 +256,7 @@ export async function getSearchFilters(
   query: string,
   categoryId?: string
 ): Promise<CategoryFilterDefinition[]> {
-  const supabase = createClient();
+  const supabase = requirePublicClient();
   const { data, error } = await supabase.rpc("get_search_filters", {
     p_query: query.trim(),
     p_category_id: categoryId ?? null,
@@ -291,7 +290,7 @@ export async function getSearchFilters(
 export async function getProductSpecs(
   productId: string
 ): Promise<ProductSpecRow[]> {
-  const supabase = createClient();
+  const supabase = requirePublicClient();
   const { data, error } = await supabase.rpc("get_product_specs", {
     p_product_id: productId,
   });
@@ -311,9 +310,16 @@ export async function getProductSpecs(
 export async function getCategoryBySlugPath(
   slugParts: string[]
 ): Promise<CategoryRow | null> {
+  return getCategoryBySlugKey(slugParts.join("/"));
+}
+
+const getCategoryBySlugKey = cache(async function getCategoryBySlugKey(
+  slugKey: string
+): Promise<CategoryRow | null> {
+  const slugParts = slugKey.split("/").filter(Boolean);
   if (!slugParts.length) return null;
 
-  const supabase = createClient();
+  const supabase = requirePublicClient();
   const { data: categories, error } = await supabase
     .from("categories")
     .select(
@@ -345,12 +351,12 @@ export async function getCategoryBySlugPath(
   }
 
   return matched;
-}
+});
 
 export async function getCategoryBreadcrumb(
   categoryId: string
 ): Promise<{ id: string; name: string; slug: string }[]> {
-  const supabase = createClient();
+  const supabase = requirePublicClient();
   const { data: category, error } = await supabase
     .from("categories")
     .select("id, name, slug, path")
@@ -497,10 +503,10 @@ function unwrapRelation<T>(value: T | T[] | null | undefined): T | null {
   return Array.isArray(value) ? value[0] ?? null : value;
 }
 
-export async function getProductBySlug(
+export const getProductBySlug = cache(async function getProductBySlug(
   slug: string
 ): Promise<ProductDetail | null> {
-  const supabase = createClient();
+  const supabase = requirePublicClient();
   const { data: products, error } = await supabase
     .from("products")
     .select(
@@ -521,18 +527,19 @@ export async function getProductBySlug(
   const product = products?.[0];
   if (!product) return null;
 
-  const { data: images } = await supabase
-    .from("product_images")
-    .select("id, url, alt_text, is_primary, sort_order")
-    .eq("product_id", product.id)
-    .order("sort_order", { ascending: true });
-
-  const { count: shopProductCount } = await supabase
-    .from("products")
-    .select("id", { count: "exact", head: true })
-    .eq("shop_id", product.shop_id)
-    .eq("status", "ACTIVE")
-    .is("archived_at", null);
+  const [{ data: images }, { count: shopProductCount }] = await Promise.all([
+    supabase
+      .from("product_images")
+      .select("id, url, alt_text, is_primary, sort_order")
+      .eq("product_id", product.id)
+      .order("sort_order", { ascending: true }),
+    supabase
+      .from("products")
+      .select("id", { count: "exact", head: true })
+      .eq("shop_id", product.shop_id)
+      .eq("status", "ACTIVE")
+      .is("archived_at", null),
+  ]);
 
   const brand = unwrapRelation(
     product.brands as { id: string; name: string; slug: string } | { id: string; name: string; slug: string }[] | null
@@ -612,7 +619,7 @@ export async function getProductBySlug(
     ),
     published_at: product.published_at,
   };
-}
+});
 
 export async function getRelatedProducts(
   categoryId: string,
@@ -628,8 +635,10 @@ export async function getRelatedProducts(
   return result.items.filter((p) => p.id !== excludeProductId).slice(0, limit);
 }
 
-export async function getShopBySlug(slug: string): Promise<ShopDetail | null> {
-  const supabase = createClient();
+export const getShopBySlug = cache(async function getShopBySlug(
+  slug: string
+): Promise<ShopDetail | null> {
+  const supabase = requirePublicClient();
   const { data: shop, error } = await supabase
     .from("shops")
     .select("id, name, slug, description, logo_url, banner_url, rating_avg, rating_count")
@@ -659,7 +668,7 @@ export async function getShopBySlug(slug: string): Promise<ShopDetail | null> {
     rating_count: shop.rating_count,
     product_count: count ?? 0,
   };
-}
+});
 
 const fetchActiveCategories = unstable_cache(
   async (): Promise<NavCategory[]> => {

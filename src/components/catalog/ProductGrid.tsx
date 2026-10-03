@@ -4,7 +4,6 @@ import { ProductCard } from "@/components/catalog/ProductCard";
 type ProductGridProps = {
   products: CatalogProductListItem[];
   favoritesEnabled?: boolean;
-  favoriteIds?: Set<string>;
   columns?: "default" | "shop";
   searchQuery?: string;
   prefetchFirst?: number;
@@ -13,7 +12,6 @@ type ProductGridProps = {
 export function ProductGrid({
   products,
   favoritesEnabled = false,
-  favoriteIds,
   columns = "default",
   searchQuery,
   prefetchFirst,
@@ -41,7 +39,6 @@ export function ProductGrid({
           key={product.id}
           product={product}
           favoritesEnabled={favoritesEnabled}
-          initialFavorited={favoriteIds?.has(product.id)}
           searchQuery={searchQuery}
           prefetch={
             prefetchFirst != null ? index < prefetchFirst : true

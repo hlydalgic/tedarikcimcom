@@ -18,6 +18,7 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
           "/auth/",
           "/api/",
           "/offline/",
+          "/isr/",
         ],
       },
     ],

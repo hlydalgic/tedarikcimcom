@@ -13,9 +13,6 @@ import {
   getMarketplaceSettings,
   isFeatureEnabled,
 } from "@/lib/marketplace/settings";
-import { isProductFavorited } from "@/lib/favorites/queries";
-import { listUserAddresses } from "@/lib/cart/queries";
-import { createClient } from "@/lib/supabase/server";
 import { formatPrice } from "@/lib/format";
 import { Breadcrumb } from "@/components/catalog/Breadcrumb";
 import { FavoriteButton } from "@/components/catalog/FavoriteButton";
@@ -36,11 +33,15 @@ import { absoluteUrl, getSiteUrl } from "@/lib/seo/site-url";
 
 export const revalidate = 60;
 
+export function generateStaticParams() {
+  return [];
+}
+
 type PageProps = { params: { slug: string } };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const product = await getProductBySlug(params.slug);
-  if (!product) return { title: "Ürün bulunamadı" };
+  if (!product) notFound();
 
   const [settings, siteUrl] = await Promise.all([
     getMarketplaceSettings(),
@@ -63,26 +64,17 @@ export default async function ProductDetailPage({ params }: PageProps) {
   const product = await getProductBySlug(params.slug);
   if (!product) notFound();
 
-  const [specs, related, categoryCrumbs, features, favorited, siteUrl] =
+  const [specs, related, crumbsWithHrefs, features, siteUrl] =
     await Promise.all([
       getProductSpecs(product.id),
       getRelatedProducts(product.category_id, product.id, 4),
-      getCategoryBreadcrumb(product.category_id),
+      getCategoryBreadcrumb(product.category_id).then(attachCategoryHrefs),
       getMarketplaceFeatures(),
-      isProductFavorited(product.id),
       getSiteUrl(),
     ]);
 
-  const crumbsWithHrefs = await attachCategoryHrefs(categoryCrumbs);
-
   const favoritesEnabled = isFeatureEnabled(features, "favorites_enabled");
   const quotesEnabled = isFeatureEnabled(features, "quotes_enabled");
-
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const addresses = user ? await listUserAddresses() : [];
 
   const productUrl = absoluteUrl(siteUrl, `/urunler/${product.slug}`);
   const breadcrumbItems = [
@@ -169,7 +161,6 @@ export default async function ProductDetailPage({ params }: PageProps) {
               {favoritesEnabled ? (
                 <FavoriteButton
                   productId={product.id}
-                  initialFavorited={favorited}
                   className="shrink-0 border-0 bg-transparent shadow-none"
                 />
               ) : null}
@@ -196,8 +187,6 @@ export default async function ProductDetailPage({ params }: PageProps) {
             <ProductDetailPurchase
               product={purchaseProduct}
               quotesEnabled={quotesEnabled}
-              addresses={addresses}
-              isLoggedIn={Boolean(user)}
             />
 
             <div className="mt-6">

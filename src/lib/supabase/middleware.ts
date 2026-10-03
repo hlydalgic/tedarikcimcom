@@ -15,6 +15,7 @@ import {
   shouldSkipAdminSubdomainRewrite,
 } from "@/lib/site/admin-subdomain";
 import { mergeSupabaseCookieOptions } from "@/lib/supabase/cookie-options";
+import { ISR_PREFIX, storefrontIsrRewritePath } from "@/lib/catalog/isr-query";
 
 export async function updateSession(request: NextRequest) {
   const host = getRequestHost(request);
@@ -28,6 +29,28 @@ export async function updateSession(request: NextRequest) {
   ) {
     rewriteUrl = request.nextUrl.clone();
     rewriteUrl.pathname = mapAdminSubdomainPath(rawPathname);
+  }
+
+  if (!adminSubdomain) {
+    if (
+      rawPathname === ISR_PREFIX ||
+      rawPathname.startsWith(`${ISR_PREFIX}/`)
+    ) {
+      const homeUrl = request.nextUrl.clone();
+      homeUrl.pathname = "/";
+      homeUrl.search = "";
+      return NextResponse.redirect(homeUrl);
+    }
+
+    const isrPath = storefrontIsrRewritePath(
+      rawPathname,
+      request.nextUrl.searchParams
+    );
+    if (isrPath) {
+      rewriteUrl = request.nextUrl.clone();
+      rewriteUrl.pathname = isrPath;
+      rewriteUrl.search = "";
+    }
   }
 
   let supabaseResponse = rewriteUrl
