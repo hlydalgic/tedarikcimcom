@@ -1,9 +1,10 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 import { requireAdminClient } from "@/lib/admin/require-admin-client";
 import { writeAdminLog } from "@/lib/admin/log";
+import { CATALOG_CATEGORIES_TAG } from "@/lib/catalog/queries";
 import { countActiveProductsInCategory } from "@/lib/categories/queries";
 import { slugifyCategoryName } from "@/lib/categories/types";
 
@@ -48,6 +49,7 @@ const generalSchema = z.object({
 });
 
 function revalidateCategories(id?: string) {
+  revalidateTag(CATALOG_CATEGORIES_TAG);
   revalidatePath("/admin/kategoriler");
   if (id) revalidatePath(`/admin/kategoriler?id=${id}`);
 }

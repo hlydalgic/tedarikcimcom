@@ -1,7 +1,8 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
+import { CATALOG_PRODUCTS_TAG } from "@/lib/catalog/queries";
 import { requireSeller } from "@/lib/auth/require-seller";
 import { writeAdminLog } from "@/lib/admin/log";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
@@ -29,6 +30,7 @@ export async function fetchSellerFormSchema(categoryId: string) {
 }
 
 function revalidateSeller(productId?: string) {
+  revalidateTag(CATALOG_PRODUCTS_TAG);
   revalidatePath("/panel");
   revalidatePath("/panel/urunler");
   revalidatePath("/panel/urunler/ekle");

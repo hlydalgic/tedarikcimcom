@@ -4,15 +4,13 @@ import {
   getMarketplaceFeatures,
   isFeatureEnabled,
 } from "@/lib/marketplace/settings";
-import { listUserFavoriteIds } from "@/lib/favorites/queries";
 import { ProductGrid } from "@/components/catalog/ProductGrid";
 import { ProductHorizontalScroll } from "@/components/catalog/ProductHorizontalScroll";
 
 export async function FeaturedProducts() {
-  const [products, features, favoriteIds] = await Promise.all([
+  const [products, features] = await Promise.all([
     listFeaturedProducts(8),
     getMarketplaceFeatures(),
-    listUserFavoriteIds(),
   ]);
 
   const favoritesEnabled = isFeatureEnabled(features, "favorites_enabled");
@@ -46,7 +44,6 @@ export async function FeaturedProducts() {
           <ProductGrid
             products={products}
             favoritesEnabled={favoritesEnabled}
-            favoriteIds={favoriteIds}
           />
         </div>
       </div>

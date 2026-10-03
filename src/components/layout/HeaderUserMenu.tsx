@@ -12,10 +12,9 @@ import {
   User,
 } from "lucide-react";
 import { signOut } from "@/app/actions/auth";
-import type { HeaderUser } from "@/lib/auth/header-user";
+import { useHeaderUser } from "@/components/layout/useHeaderUser";
 
 type Props = {
-  user: HeaderUser | null;
   favoritesEnabled: boolean;
 };
 
@@ -27,7 +26,8 @@ function initials(name: string): string {
   return name.slice(0, 2).toUpperCase();
 }
 
-export function HeaderUserMenu({ user, favoritesEnabled }: Props) {
+export function HeaderUserMenu({ favoritesEnabled }: Props) {
+  const userState = useHeaderUser();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -40,6 +40,17 @@ export function HeaderUserMenu({ user, favoritesEnabled }: Props) {
     document.addEventListener("click", onDocClick);
     return () => document.removeEventListener("click", onDocClick);
   }, []);
+
+  if (userState.status === "loading") {
+    return (
+      <div
+        aria-hidden
+        className="h-10 w-10 animate-pulse rounded-lg bg-background lg:w-36"
+      />
+    );
+  }
+
+  const user = userState.user;
 
   if (!user) {
     return (

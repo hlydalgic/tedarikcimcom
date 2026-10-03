@@ -1,7 +1,10 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
 import { cache } from "react";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
 import {
   buildCategorySidebarContext,
   type CategorySidebarContext,
@@ -46,12 +49,22 @@ function mapListItem(row: Record<string, unknown>): CatalogProductListItem {
   };
 }
 
+export const CATALOG_CATEGORIES_TAG = "catalog-categories";
+export const CATALOG_PRODUCTS_TAG = "catalog-products";
+const PUBLIC_CATALOG_REVALIDATE_SECONDS = 300;
+
+function requirePublicClient(): SupabaseClient {
+  const supabase = createPublicClient();
+  if (!supabase) throw new Error("Supabase yapılandırması eksik.");
+  return supabase;
+}
+
 async function attachCardAttributes(
-  items: CatalogProductListItem[]
+  items: CatalogProductListItem[],
+  supabase: SupabaseClient = createClient()
 ): Promise<CatalogProductListItem[]> {
   if (!items.length) return items;
 
-  const supabase = createClient();
   const { data, error } = await supabase.rpc("get_product_card_attributes", {
     p_product_ids: items.map((item) => item.id),
   });
@@ -122,7 +135,7 @@ export async function getCategoryFilters(
   }));
 }
 
-export async function filterProducts(input: {
+type FilterProductsInput = {
   categoryId?: string;
   shopId?: string;
   filters?: ProductFilters;
@@ -130,8 +143,18 @@ export async function filterProducts(input: {
   page?: number;
   pageSize?: number;
   includeSubcategories?: boolean;
-}): Promise<CatalogProductListResult> {
-  const supabase = createClient();
+};
+
+export async function filterProducts(
+  input: FilterProductsInput
+): Promise<CatalogProductListResult> {
+  return runFilterProducts(createClient(), input);
+}
+
+async function runFilterProducts(
+  supabase: SupabaseClient,
+  input: FilterProductsInput
+): Promise<CatalogProductListResult> {
   const page = input.page ?? 1;
   const pageSize = input.pageSize ?? 24;
 
@@ -151,7 +174,7 @@ export async function filterProducts(input: {
   const total = rows.length ? Number(rows[0].total_count ?? 0) : 0;
 
   return {
-    items: await attachCardAttributes(rows.map(mapListItem)),
+    items: await attachCardAttributes(rows.map(mapListItem), supabase),
     total,
     page,
     pageSize,
@@ -384,7 +407,7 @@ export async function getCategoryBreadcrumb(
 }
 
 export async function getCategorySlugPath(categoryId: string): Promise<string> {
-  const supabase = createClient();
+  const supabase = requirePublicClient();
   const { data, error } = await supabase.rpc("category_slug_path", {
     p_category_id: categoryId,
   });
@@ -393,6 +416,52 @@ export async function getCategorySlugPath(categoryId: string): Promise<string> {
   const slugPath = String(data ?? "").trim().replace(/^\/+|\/+$/g, "");
   return slugPath;
 }
+
+/** id → full slug path for every visible category, built from a single query. */
+const getCategorySlugPathMap = unstable_cache(
+  async (): Promise<Record<string, string>> => {
+    const supabase = requirePublicClient();
+    const { data, error } = await supabase
+      .from("categories")
+      .select("id, slug, parent_id");
+    if (error) throw new Error(error.message);
+
+    const byId = new Map(
+      (data ?? []).map((row) => [
+        String(row.id),
+        {
+          slug: String(row.slug),
+          parentId: (row.parent_id as string | null) ?? null,
+        },
+      ])
+    );
+
+    const paths: Record<string, string> = {};
+    const resolve = (id: string, seen: Set<string>): string | null => {
+      if (paths[id] !== undefined) return paths[id];
+      const node = byId.get(id);
+      if (!node || seen.has(id)) return null;
+      seen.add(id);
+
+      let path = node.slug;
+      if (node.parentId) {
+        const parentPath = resolve(node.parentId, seen);
+        if (parentPath === null) return null;
+        path = `${parentPath}/${node.slug}`;
+      }
+      paths[id] = path;
+      return path;
+    };
+
+    for (const id of Array.from(byId.keys())) resolve(id, new Set());
+    return paths;
+  },
+  ["category-slug-path-map"],
+  {
+    revalidate: PUBLIC_CATALOG_REVALIDATE_SECONDS,
+    tags: [CATALOG_CATEGORIES_TAG],
+  }
+);
 
 export function buildCategoryHrefFromSlugPath(slugPath: string): string {
   const normalized = slugPath.trim().replace(/^\/+|\/+$/g, "");
@@ -404,9 +473,11 @@ export async function attachCategoryHrefs<T extends { id: string }>(
 ): Promise<(T & { href: string })[]> {
   if (!categories.length) return [];
 
+  const pathMap = await getCategorySlugPathMap();
   const hrefs = await Promise.all(
     categories.map(async (category) => {
-      const slugPath = await getCategorySlugPath(category.id);
+      const slugPath =
+        pathMap[category.id] ?? (await getCategorySlugPath(category.id));
       return buildCategoryHrefFromSlugPath(slugPath);
     })
   );
@@ -590,20 +661,29 @@ export async function getShopBySlug(slug: string): Promise<ShopDetail | null> {
   };
 }
 
-export const listActiveCategories = cache(async (): Promise<NavCategory[]> => {
-  const supabase = createClient();
-  const { data, error } = await supabase
-    .from("categories")
-    .select("id, name, slug, parent_id, sort_order")
-    .eq("status", "active")
-    .is("archived_at", null)
-    .order("sort_order", { ascending: true });
+const fetchActiveCategories = unstable_cache(
+  async (): Promise<NavCategory[]> => {
+    const supabase = requirePublicClient();
+    const { data, error } = await supabase
+      .from("categories")
+      .select("id, name, slug, parent_id, sort_order")
+      .eq("status", "active")
+      .is("archived_at", null)
+      .order("sort_order", { ascending: true });
 
-  if (error) throw new Error(error.message);
-  return attachCategoryHrefs(
-    (data ?? []) as Pick<NavCategory, "id" | "name" | "slug" | "parent_id">[]
-  );
-});
+    if (error) throw new Error(error.message);
+    return attachCategoryHrefs(
+      (data ?? []) as Pick<NavCategory, "id" | "name" | "slug" | "parent_id">[]
+    );
+  },
+  ["catalog-active-categories"],
+  {
+    revalidate: PUBLIC_CATALOG_REVALIDATE_SECONDS,
+    tags: [CATALOG_CATEGORIES_TAG],
+  }
+);
+
+export const listActiveCategories = cache(fetchActiveCategories);
 
 export async function getCategorySidebarContext(
   category: Pick<CategoryRow, "id" | "name" | "slug" | "parent_id">
@@ -612,21 +692,30 @@ export async function getCategorySidebarContext(
   return buildCategorySidebarContext(category, allCategories);
 }
 
-export async function listNavCategories(): Promise<NavCategory[]> {
-  const supabase = createClient();
-  const { data, error } = await supabase
-    .from("categories")
-    .select("id, name, slug, parent_id, sort_order")
-    .eq("status", "active")
-    .eq("show_in_nav", true)
-    .is("archived_at", null)
-    .order("sort_order", { ascending: true });
+const fetchNavCategories = unstable_cache(
+  async (): Promise<NavCategory[]> => {
+    const supabase = requirePublicClient();
+    const { data, error } = await supabase
+      .from("categories")
+      .select("id, name, slug, parent_id, sort_order")
+      .eq("status", "active")
+      .eq("show_in_nav", true)
+      .is("archived_at", null)
+      .order("sort_order", { ascending: true });
 
-  if (error) throw new Error(error.message);
-  return attachCategoryHrefs(
-    (data ?? []) as Pick<NavCategory, "id" | "name" | "slug" | "parent_id">[]
-  );
-}
+    if (error) throw new Error(error.message);
+    return attachCategoryHrefs(
+      (data ?? []) as Pick<NavCategory, "id" | "name" | "slug" | "parent_id">[]
+    );
+  },
+  ["catalog-nav-categories"],
+  {
+    revalidate: PUBLIC_CATALOG_REVALIDATE_SECONDS,
+    tags: [CATALOG_CATEGORIES_TAG],
+  }
+);
+
+export const listNavCategories = cache(fetchNavCategories);
 
 export async function listPopularNavCategories(limit = 6): Promise<NavCategory[]> {
   const categories = await listNavCategories();
@@ -634,45 +723,62 @@ export async function listPopularNavCategories(limit = 6): Promise<NavCategory[]
   return roots.slice(0, limit);
 }
 
-export async function listHomepageCategories(): Promise<
-  (NavCategory & { image_url: string | null; product_count: number })[]
-> {
-  const supabase = createClient();
-  const { data, error } = await supabase
-    .from("categories")
-    .select("id, name, slug, parent_id, image_url")
-    .eq("status", "active")
-    .eq("show_on_homepage", true)
-    .is("archived_at", null)
-    .order("sort_order", { ascending: true })
-    .limit(12);
+export const listHomepageCategories = unstable_cache(
+  async (): Promise<
+    (NavCategory & { image_url: string | null; product_count: number })[]
+  > => {
+    const supabase = requirePublicClient();
+    const { data, error } = await supabase
+      .from("categories")
+      .select("id, name, slug, parent_id, image_url")
+      .eq("status", "active")
+      .eq("show_on_homepage", true)
+      .is("archived_at", null)
+      .order("sort_order", { ascending: true })
+      .limit(12);
 
-  if (error) throw new Error(error.message);
+    if (error) throw new Error(error.message);
 
-  const categories = data ?? [];
-  const withHrefs = await attachCategoryHrefs(categories);
-  const enriched = await Promise.all(
-    withHrefs.map(async (cat) => {
-      const { count } = await supabase
-        .from("products")
-        .select("id", { count: "exact", head: true })
-        .eq("category_id", cat.id)
-        .eq("status", "ACTIVE")
-        .is("archived_at", null);
+    const categories = data ?? [];
+    const [withHrefs, counts] = await Promise.all([
+      attachCategoryHrefs(categories),
+      Promise.all(
+        categories.map(async (cat) => {
+          const { count } = await supabase
+            .from("products")
+            .select("id", { count: "exact", head: true })
+            .eq("category_id", cat.id)
+            .eq("status", "ACTIVE")
+            .is("archived_at", null);
+          return count ?? 0;
+        })
+      ),
+    ]);
 
-      return {
-        ...(cat as NavCategory & { image_url: string | null }),
-        product_count: count ?? 0,
-      };
-    })
-  );
+    return withHrefs.map((cat, index) => ({
+      ...(cat as NavCategory & { image_url: string | null }),
+      product_count: counts[index],
+    }));
+  },
+  ["catalog-homepage-categories"],
+  {
+    revalidate: PUBLIC_CATALOG_REVALIDATE_SECONDS,
+    tags: [CATALOG_CATEGORIES_TAG, CATALOG_PRODUCTS_TAG],
+  }
+);
 
-  return enriched;
-}
-
-export async function listFeaturedProducts(
-  limit = 8
-): Promise<CatalogProductListItem[]> {
-  const result = await filterProducts({ page: 1, pageSize: limit, sort: "newest" });
-  return result.items;
-}
+export const listFeaturedProducts = unstable_cache(
+  async (limit = 8): Promise<CatalogProductListItem[]> => {
+    const result = await runFilterProducts(requirePublicClient(), {
+      page: 1,
+      pageSize: limit,
+      sort: "newest",
+    });
+    return result.items;
+  },
+  ["catalog-featured-products"],
+  {
+    revalidate: PUBLIC_CATALOG_REVALIDATE_SECONDS,
+    tags: [CATALOG_PRODUCTS_TAG],
+  }
+);

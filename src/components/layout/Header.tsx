@@ -12,7 +12,6 @@ import {
   CategoryMobileNav,
 } from "@/components/layout/CategoryMegaMenu";
 import { buildNavCategoryHref } from "@/lib/catalog/category-href";
-import type { HeaderUser } from "@/lib/auth/header-user";
 import type { NavCategory } from "@/lib/catalog/types";
 
 export type HeaderBranding = {
@@ -24,14 +23,12 @@ type HeaderProps = {
   branding: HeaderBranding;
   navCategories: NavCategory[];
   favoritesEnabled: boolean;
-  user: HeaderUser | null;
 };
 
 export function Header({
   branding,
   navCategories,
   favoritesEnabled,
-  user,
 }: HeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [megaOpen, setMegaOpen] = useState(false);
@@ -64,7 +61,7 @@ export function Header({
         </div>
 
         <nav className="ml-auto flex items-center gap-1 md:gap-2" aria-label="Hesap">
-          <HeaderUserMenu user={user} favoritesEnabled={favoritesEnabled} />
+          <HeaderUserMenu favoritesEnabled={favoritesEnabled} />
           <AppLink
             href="/sepet"
             className="relative inline-flex h-10 items-center gap-1.5 rounded-lg px-2.5 text-sm font-medium text-ink transition hover:bg-background"

@@ -15,7 +15,7 @@ type ProductCardProps = {
 export function ProductCard({
   product,
   favoritesEnabled = false,
-  initialFavorited = false,
+  initialFavorited,
   searchQuery,
   prefetch = true,
 }: ProductCardProps) {

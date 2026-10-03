@@ -1,8 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { requireAdminClient } from "@/lib/admin/require-admin-client";
 import { writeAdminLog } from "@/lib/admin/log";
+import { MARKETPLACE_SETTINGS_TAG } from "@/lib/marketplace/settings";
 
 export type SettingsActionState = {
   success?: boolean;
@@ -10,6 +11,7 @@ export type SettingsActionState = {
 };
 
 function revalidateSite() {
+  revalidateTag(MARKETPLACE_SETTINGS_TAG);
   revalidatePath("/", "layout");
   revalidatePath("/admin");
   revalidatePath("/admin/ayarlar");

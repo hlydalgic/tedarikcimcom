@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import { createPublicClient } from "@/lib/supabase/public";
 
@@ -153,7 +154,10 @@ export function marketplaceCssVars(
   };
 }
 
-export const getMarketplaceSettings = cache(
+export const MARKETPLACE_SETTINGS_TAG = "marketplace-settings";
+const SETTINGS_REVALIDATE_SECONDS = 300;
+
+const fetchMarketplaceSettings = unstable_cache(
   async (): Promise<MarketplaceSettings> => {
     const supabase = createPublicClient();
     if (!supabase) return fallbackSettings();
@@ -170,10 +174,12 @@ export const getMarketplaceSettings = cache(
     } catch {
       return fallbackSettings();
     }
-  }
+  },
+  ["marketplace-settings"],
+  { revalidate: SETTINGS_REVALIDATE_SECONDS, tags: [MARKETPLACE_SETTINGS_TAG] }
 );
 
-export const getMarketplaceFeatures = cache(
+const fetchMarketplaceFeatures = unstable_cache(
   async (): Promise<MarketplaceFeatures> => {
     const supabase = createPublicClient();
     if (!supabase) return DEFAULT_FEATURES;
@@ -194,8 +200,14 @@ export const getMarketplaceFeatures = cache(
     } catch {
       return DEFAULT_FEATURES;
     }
-  }
+  },
+  ["marketplace-features"],
+  { revalidate: SETTINGS_REVALIDATE_SECONDS, tags: [MARKETPLACE_SETTINGS_TAG] }
 );
+
+export const getMarketplaceSettings = cache(fetchMarketplaceSettings);
+
+export const getMarketplaceFeatures = cache(fetchMarketplaceFeatures);
 
 export function isFeatureEnabled(
   features: MarketplaceFeatures,

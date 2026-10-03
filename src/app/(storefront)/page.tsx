@@ -18,7 +18,7 @@ import {
 } from "@/lib/seo/json-ld";
 import { getSiteUrl } from "@/lib/seo/site-url";
 
-export const revalidate = 600;
+export const revalidate = 300;
 
 export async function generateMetadata(): Promise<Metadata> {
   const [settings, siteUrl] = await Promise.all([
