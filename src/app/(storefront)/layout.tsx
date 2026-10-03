@@ -1,4 +1,6 @@
+import { Suspense } from "react";
 import { Header } from "@/components/layout/Header";
+import { NavigationProgress } from "@/components/layout/NavigationProgress";
 import { Footer } from "@/components/layout/Footer";
 import { AnalyticsTracker } from "@/components/analytics/AnalyticsTracker";
 import { StorefrontPwa } from "@/components/pwa/StorefrontPwa";
@@ -23,6 +25,9 @@ export default async function StorefrontLayout({
   return (
     <StorefrontPwa>
       <AnalyticsTracker />
+      <Suspense fallback={null}>
+        <NavigationProgress />
+      </Suspense>
       <div className="flex min-h-screen flex-col">
         <Header
           branding={{

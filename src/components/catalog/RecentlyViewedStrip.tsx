@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { AppLink } from "@/components/ui/AppLink";
 import { formatPrice } from "@/lib/format";
+import { createClient } from "@/lib/supabase/client";
 import {
   getRecentlyViewed,
+  pruneRecentlyViewed,
   type RecentlyViewedItem,
 } from "@/lib/catalog/recently-viewed";
 
@@ -13,7 +15,33 @@ export function RecentlyViewedStrip({ title = "Son görüntülenenler" }: { titl
   const [items, setItems] = useState<RecentlyViewedItem[]>([]);
 
   useEffect(() => {
-    setItems(getRecentlyViewed());
+    const stored = getRecentlyViewed();
+    if (!stored.length) return;
+    let cancelled = false;
+
+    void (async () => {
+      // Explicit status filters: RLS also exposes inactive products to their owner/admins.
+      const { data, error } = await createClient()
+        .from("products")
+        .select("id")
+        .in(
+          "id",
+          stored.map((item) => item.id)
+        )
+        .eq("status", "ACTIVE")
+        .is("archived_at", null);
+
+      if (cancelled) return;
+      if (error) {
+        setItems(stored);
+        return;
+      }
+      setItems(pruneRecentlyViewed(new Set((data ?? []).map((row) => row.id as string))));
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   if (!items.length) return null;

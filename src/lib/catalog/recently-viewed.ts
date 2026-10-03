@@ -42,6 +42,14 @@ export function addRecentlyViewed(item: Omit<RecentlyViewedItem, "viewedAt">) {
   writeStorage(next);
 }
 
+/** Drops entries whose product is no longer publicly available. */
+export function pruneRecentlyViewed(activeIds: Set<string>): RecentlyViewedItem[] {
+  const current = readStorage();
+  const kept = current.filter((item) => activeIds.has(item.id));
+  if (kept.length !== current.length) writeStorage(kept);
+  return kept.sort((a, b) => b.viewedAt - a.viewedAt);
+}
+
 export function clearRecentlyViewed() {
   localStorage.removeItem(STORAGE_KEY);
 }
