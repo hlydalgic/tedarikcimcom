@@ -2,14 +2,12 @@ import type { Metadata } from "next";
 import { AppLink } from "@/components/ui/AppLink";
 import { requireUser } from "@/lib/auth/require-user";
 import { listBuyerOrders } from "@/lib/orders/queries";
-import { getMarketplaceSettings } from "@/lib/marketplace/settings";
 import { formatPrice } from "@/lib/format";
 import { ORDER_STATUS_LABELS } from "@/lib/orders/types";
 import { Breadcrumb } from "@/components/catalog/Breadcrumb";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await getMarketplaceSettings();
-  return { title: `Siparişlerim | ${settings.marketplace_name}` };
+  return { title: "Siparişlerim" };
 }
 
 export default async function BuyerOrdersPage() {

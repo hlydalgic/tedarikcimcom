@@ -4,7 +4,6 @@ import { notFound, redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth/require-user";
 import {
   getMarketplaceFeatures,
-  getMarketplaceSettings,
   isFeatureEnabled,
 } from "@/lib/marketplace/settings";
 import { listBuyerQuoteRequests } from "@/lib/quotes/queries";
@@ -12,8 +11,7 @@ import { QUOTE_STATUS_LABELS } from "@/lib/quotes/types";
 import { Breadcrumb } from "@/components/catalog/Breadcrumb";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await getMarketplaceSettings();
-  return { title: `Tekliflerim | ${settings.marketplace_name}` };
+  return { title: "Tekliflerim" };
 }
 
 export default async function BuyerQuotesPage() {

@@ -3,7 +3,6 @@ import { AppLink } from "@/components/ui/AppLink";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth/require-user";
 import { getBuyerOrderByNumber } from "@/lib/orders/queries";
-import { getMarketplaceSettings } from "@/lib/marketplace/settings";
 import { formatPrice } from "@/lib/format";
 import {
   ORDER_STATUS_LABELS,
@@ -19,9 +18,8 @@ import { OrderTrackingPanel } from "@/components/shipping/OrderTrackingPanel";
 type PageProps = { params: { order_number: string } };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const settings = await getMarketplaceSettings();
   return {
-    title: `Sipariş ${params.order_number} | ${settings.marketplace_name}`,
+    title: `Sipariş ${params.order_number}`,
   };
 }
 

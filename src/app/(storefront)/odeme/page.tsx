@@ -1,14 +1,12 @@
 import type { Metadata } from "next";
 import { requireUser } from "@/lib/auth/require-user";
 import { listUserAddresses } from "@/lib/cart/queries";
-import { getMarketplaceSettings } from "@/lib/marketplace/settings";
 import { CheckoutClient } from "@/components/checkout/CheckoutClient";
 import { Breadcrumb } from "@/components/catalog/Breadcrumb";
 import { CartSyncOnMount } from "@/components/cart/CartSyncOnMount";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await getMarketplaceSettings();
-  return { title: `Ödeme | ${settings.marketplace_name}` };
+  return { title: "Ödeme" };
 }
 
 export default async function OdemePage() {

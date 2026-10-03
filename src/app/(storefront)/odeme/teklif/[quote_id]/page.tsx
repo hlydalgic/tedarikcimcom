@@ -2,15 +2,13 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth/require-user";
 import { getQuoteCheckoutDetail } from "@/lib/quotes/queries";
-import { getMarketplaceSettings } from "@/lib/marketplace/settings";
 import { QuoteCheckoutClient } from "@/components/quotes/QuoteCheckoutClient";
 
 type PageProps = { params: { quote_id: string } };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const settings = await getMarketplaceSettings();
   return {
-    title: `Teklif ödemesi | ${settings.marketplace_name}`,
+    title: "Teklif ödemesi",
   };
 }
 

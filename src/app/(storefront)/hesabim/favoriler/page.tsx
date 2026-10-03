@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import {
   getMarketplaceFeatures,
-  getMarketplaceSettings,
   isFeatureEnabled,
 } from "@/lib/marketplace/settings";
 import { listUserFavorites } from "@/lib/favorites/queries";
@@ -10,9 +9,8 @@ import { ProductGrid } from "@/components/catalog/ProductGrid";
 import { Breadcrumb } from "@/components/catalog/Breadcrumb";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await getMarketplaceSettings();
   return {
-    title: `Favorilerim | ${settings.marketplace_name}`,
+    title: "Favorilerim",
   };
 }
 

@@ -1,13 +1,11 @@
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
-import { getMarketplaceSettings } from "@/lib/marketplace/settings";
 import { CartPageClient } from "@/components/cart/CartPageClient";
 import { CartSyncOnMount } from "@/components/cart/CartSyncOnMount";
 import { Breadcrumb } from "@/components/catalog/Breadcrumb";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await getMarketplaceSettings();
-  return { title: `Sepet | ${settings.marketplace_name}` };
+  return { title: "Sepet" };
 }
 
 export default async function SepetPage() {

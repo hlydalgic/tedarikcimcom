@@ -51,7 +51,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     product.description?.slice(0, 160) ?? settings.seo_description ?? undefined;
 
   return buildPageMetadata({
-    title: `${product.title} | ${settings.marketplace_name}`,
+    title: product.title,
     description,
     siteName: settings.marketplace_name,
     canonicalPath: `/urunler/${params.slug}`,

@@ -34,7 +34,7 @@ export async function buildCategoryMetadata(slug: string[]): Promise<Metadata> {
     category.seo_description ?? category.description ?? settings.seo_description;
 
   return buildPageMetadata({
-    title: `${title} | ${settings.marketplace_name}`,
+    title,
     description,
     siteName: settings.marketplace_name,
     canonicalPath: `/kategoriler/${slug.join("/")}`,
@@ -53,7 +53,7 @@ export async function buildShopMetadata(slug: string): Promise<Metadata> {
   ]);
 
   return buildPageMetadata({
-    title: `${shop.name} | ${settings.marketplace_name}`,
+    title: shop.name,
     description: shop.description,
     siteName: settings.marketplace_name,
     canonicalPath: `/magaza/${slug}`,
@@ -73,7 +73,7 @@ export async function buildSearchMetadata(
   const title = q ? `"${q}" arama sonuçları` : "Arama";
 
   return buildPageMetadata({
-    title: `${title} | ${settings.marketplace_name}`,
+    title,
     description: q ? `"${q}" için arama sonuçları` : settings.seo_description,
     siteName: settings.marketplace_name,
     canonicalPath: q ? `/arama?q=${encodeURIComponent(q)}` : "/arama",

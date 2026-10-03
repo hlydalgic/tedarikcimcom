@@ -4,16 +4,14 @@ import { notFound } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { requireUser } from "@/lib/auth/require-user";
 import { getOrderByNumberPublicForBuyer } from "@/lib/orders/queries";
-import { getMarketplaceSettings } from "@/lib/marketplace/settings";
 import { formatPrice } from "@/lib/format";
 import { ORDER_STATUS_LABELS } from "@/lib/orders/types";
 
 type PageProps = { params: { order_number: string } };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const settings = await getMarketplaceSettings();
   return {
-    title: `Sipariş ${params.order_number} | ${settings.marketplace_name}`,
+    title: `Sipariş ${params.order_number}`,
   };
 }
 

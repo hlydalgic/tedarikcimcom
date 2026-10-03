@@ -4,7 +4,6 @@ import { notFound, redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth/require-user";
 import {
   getMarketplaceFeatures,
-  getMarketplaceSettings,
   isFeatureEnabled,
 } from "@/lib/marketplace/settings";
 import { getBuyerQuoteRequest } from "@/lib/quotes/queries";
@@ -16,9 +15,8 @@ import { BuyerQuoteActions } from "@/components/quotes/BuyerQuoteActions";
 type PageProps = { params: { id: string } };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const settings = await getMarketplaceSettings();
   return {
-    title: `Teklif detayı | ${settings.marketplace_name}`,
+    title: "Teklif detayı",
   };
 }
 
